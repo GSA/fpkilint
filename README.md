@@ -5,9 +5,10 @@ CPCT will be a capable of analyzing a certificate’s conformance to a pre-defin
 When complete, the tool is expected to be capable of analyzing certificates for conformance with the FPKI profiles described in the documents available on the [Federal Public Key Infrastructure (FPKI) web page](https://www.idmanagement.gov/fpki/).
 
 #### Common Policy Framework
-Common Policy Certificate and CRL Profile
+[Certificate Policy for the Federal PKI Common Policy Framework (FCPF)](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-common-policy.pdf)
+[X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf)
 
 #### Federal Bridge
-X.509 Certificate and CRL Extensions Profile
-X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program
+[X.509 Certificate and CRL Extensions Profile](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-profiles.pdf)
+[X.509 Certificate and CRL Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Credentials](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-pivi-cert-profiles.pdf)
 
