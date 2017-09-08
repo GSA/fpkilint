@@ -6,9 +6,11 @@ When complete, the tool is expected to be capable of analyzing certificates for 
 
 #### Common Policy Framework
 [Certificate Policy for the Federal PKI Common Policy Framework (FCPF)](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-common-policy.pdf)
+
 [X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf)
 
 #### Federal Bridge
 [X.509 Certificate and CRL Extensions Profile](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-profiles.pdf)
+
 [X.509 Certificate and CRL Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Credentials](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-pivi-cert-profiles.pdf)
 
