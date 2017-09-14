@@ -38,6 +38,20 @@ def is_policy_in_policies(policy_oid_string, certificate_policies):
     return False
 
 
+def is_name_type_in_dn(oid_string, name):
+    if not isinstance(name, x509.Name):
+        raise TypeError("name must be an x509.Name")
+
+    rdn_seq = name.chosen
+    if len(rdn_seq):
+        for rdn in rdn_seq:
+            for name in rdn:
+                if name['type'].dotted == oid_string:
+                    return True
+
+    return False
+
+
 def get_pretty_dn_name_component(name_type):
 
     # name_type = NameType
@@ -106,6 +120,4 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
         s = ""
 
     return s
-
-
 
