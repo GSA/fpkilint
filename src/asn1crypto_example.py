@@ -41,6 +41,13 @@ if __name__ == "__main__":
         if cert.basic_constraints_value.native['ca'] is False and len(cert.basic_constraints_value.contents) > 0:
             print("Basic Constraints DEFAULT value was encoded: {}".format(cert.basic_constraints_value.contents))
     else:
-        print("Basic Constraints is not present")
+        print("Basic Constraints is not present\n")
 
+    cn_oid = '2.5.4.3'
+    surname_oid = '2.5.4.4'
 
+    if is_name_type_in_dn(cn_oid, cert.subject) is True:
+        print("Certificate subject contains common name")
+
+    if is_name_type_in_dn(surname_oid, cert.subject) is False:
+        print("Certificate subject does not contain surname")
