@@ -1,0 +1,48 @@
+[
+ {"certificate":
+  {"algorithm": [
+    {
+
+        "Leaf":  {
+           "Name":  "md2_rsa",
+           "Require":  "0",
+           "Type": "OID",
+           "Value":  "1.2.840.113549.1.1.2"
+        }
+    },
+    {
+
+        "Leaf":  {
+           "Name":  "md5_rsa",
+           "Require":  "0",
+           "Type": "OID",
+           "Value":  "1.2.840.113549.1.1.4"
+    },
+    {
+
+        "Leaf":  {
+           "Name": "sha1_rsa",
+           "Require":  "0",
+           "Type": "OID",
+           "Value":  "1.2.840.113549.1.1.5"
+    },
+    {
+        "Leaf":  {
+           "Name": "other",
+           "Require":  "0",
+           "Type": "Any"
+    }]
+  }
+ },
+  {"version":
+      {
+
+        "Leaf":  {
+           "Name": "min_version",
+           "Require":  "2",
+           "Type": "String",
+           "Value":  "v3"
+        }
+    }
+  }
+]
