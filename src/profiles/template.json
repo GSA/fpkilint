@@ -1,28 +1,184 @@
-{"Basic Certificate Fields":
-    {"Certificate Fields": {
-      "signatureAlgorithm":
-        {"Leaf":
-          {"Require": "2",
-            "Value": ["md2_rsa", "md5_rsa", "sha1_rsa", "rsassa_pss", "sha256_rsa", "sha384_rsa", "sha512_rsa", "sha224_rsa", "sha1_dsa", "sha1_ec", "sha224_ec", "sha256_ec", "sha384_ec", "sha512_ec"]
-          }
-        },
-      "Subject":
-        {"Leaf":
-          {"Require": "2",
-            "Value": ["common_name"]
-          }
+{
+  "Basic Certificate Fields": {
+    "Certificate Fields": {
+      "signatureAlgorithm": {
+        "Leaf": {
+          "Require": "2",
+          "Value": ["md2_rsa", "md5_rsa", "sha1_rsa", "rsassa_pss", "sha256_rsa", "sha384_rsa", "sha512_rsa", "sha224_rsa", "sha1_dsa", "sha1_ec", "sha224_ec", "sha256_ec", "sha384_ec", "sha512_ec"]
         }
-    }
-  },
- "Certificate Extensions":
-    {"Standard Extensions":
-      {"Certificate Policies":
-        {"Leaf":
-          {"Require": "2",
-            "Value": ["any_policy", "1.3.6.1.4.1.14370.1.6", "2.23.140.1.2.1", "1.3.6.1.4.1.44947.1.1.1", "2.23.140.1.2.1", "1.3.6.1.4.1.4146.1.60"]
+      },
+      "signatureValue": {
+        "Leaf": {
+          "Require": "2",
+          "Value": ""
+        }
+      }
+    },
+    "TBSCertificate": { 
+      "Version": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Serial Number": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Signature": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Issuer": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Validity": {
+        "UTCTime": {
+          "Leaf": {
+            "Require": "2",
+            "Value": []
           }
+	    },
+        "GeneralizedTime" : {
+          "Leaf": {
+            "Require": "2",
+            "Value": []
+          }
+	    }
+      },
+      "Subject": {
+        "Leaf": {
+          "Require": "2",
+          "Value": ["common_name"]
+        }
+      },
+      "Subject Public Key Info": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Unique Identifiers": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
         }
       }
     }
+  },
+  "Certificate Extensions": {
+    "Standard Extensions": {
+      "Authority Key Identifier": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Subject Key Identifier": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Key Usage": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Certificate Policies": {
+        "Leaf": {
+          "Require": "2",
+          "Value": ["any_policy", "1.3.6.1.4.1.14370.1.6", "2.23.140.1.2.1", "1.3.6.1.4.1.44947.1.1.1", "2.23.140.1.2.1", "1.3.6.1.4.1.4146.1.60"]
+        }
+      },
+      "Policy Mappings": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Subject Alternative Name": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Issuer Alternative Name": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Subject Directory Attributes": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Basic Constraints": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Name Constraints": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Policy Constraints": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Extended Key Usage ": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "CRL Distribution Points": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Inhibit anyPolicy": { 
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Freshest CRL": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      }
+    },
+    "Private Internet Extensions": {
+      "Authority Information Access": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      },
+      "Subject Information Access": {
+        "Leaf": {
+          "Require": "2",
+          "Value": []
+        }
+      }
+    }
+  }
 }
-  
