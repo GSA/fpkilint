@@ -18,7 +18,6 @@ def lint_other_extensions(cfg_opt, cert, cfg_sect, outJson):
     #'2.16.840.1.113730.1.1': 'netscape_certificate_type',
     # https://tools.ietf.org/html/rfc6962.html#page-14
     #'1.3.6.1.4.1.11129.2.4.2': 'signed_certificate_timestamp_list',
-
     return
 
 def lint_policy_mappings(cfg_opt, cert, cfg_sect, outJson):
