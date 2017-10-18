@@ -62,8 +62,7 @@ def lint_name_constraints(cfg_opt, cert, cfg_sect, outJson):
     output(found, "name_constraints_present", cfg_opt, cfg_sect, e['extn_id'].native, outJson)
     if found:
         output(e['critical'].native, "name_constraints_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson) #typo in template.json?
-
-        #todo: other fields requirements
+        #todo: need cert sample
 
     else:
         missing("name_constraints_is_critical", cfg_opt, cfg_sect, outJson)
@@ -210,6 +209,7 @@ def lint_akid(cfg_opt, cert, cfg_sect, outJson):
     output(found, "akid_present", cfg_opt, cfg_sect, str(e['extn_id'].native), outJson)
     if found:
         output(e['critical'].native, "akid_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson)
+        extn_v = '{}'.format('%02X' % c for c in e['extn_value'].native)
         #TODO: output(e['require_method_one'], "akid_require_method_one", cfg_opt, cfg_sect, str(e['critical'].native), outJson)
     else:
         missing("akid_is_critical", cfg_opt, cfg_sect, outJson)
@@ -230,6 +230,7 @@ def lint_skid(cfg_opt, cert, cfg_sect, outJson):
     output(found, "skid_present", cfg_opt, cfg_sect, e['extn_id'].native, outJson)
     if found:
         output(e['critical'].native, "skid_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson)
+        extn_v = '{}'.format('%02X' % c for c in e['extn_value'].native)
         #TODO: output(e['require_method_one'], "skid_require_method_one", cfg_opt, cfg_sect, str(e['critical'].native), outJson)
     else:
         missing("skid_is_critical", cfg_opt, cfg_sect, outJson)
@@ -251,7 +252,7 @@ def lint_policy_constraints(cfg_opt, cert, cfg_sect, outJson):
     if found:
         output(e['critical'].native, "policy_constraints_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson) #typo in template.json?
 
-        #todo: requirement for other fields
+        #todo: example cert
 
     else:
         missing("policy_constraints_is_critical", cfg_opt, cfg_sect, outJson)
@@ -280,7 +281,7 @@ def lint_basic_constraints(cfg_opt, cert, cfg_sect, outJson):
     if found:
         output(e['critical'].native, "basic_constraints_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson) #typo in template.json?
 
-        #todo: other fields requirements
+        #todo: need cert example
 
     else:
         missing("basic_constraints_is_critical", cfg_opt, cfg_sect, outJson)
@@ -351,19 +352,40 @@ def lint_aia(cfg_opt, cert, cfg_sect, outJson):
         output(e['critical'].native, "aia_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson) #typo in template.json?
         ca_issuers_present = False
         ocsp_present = False
+        http_found = False
+        ldap_found = False
+        http_before_ldap = False
+        ocsp_http = False
         for item in e['extn_value'].native:
             if item['access_method'] == 'ca_issuers':
-                ca_issuers_present = True #search oid?
+                ca_issuers_present = True
+                if 'http' in item['access_location']:
+                    http_found = True
+                elif 'ldap' in item['access_location']:
+                    ldap_found = True
+                    if http_found:
+                        http_before_ldap = True
             elif item['access_method'] == 'ocsp':
                 ocsp_present = True
+                if 'http' in item['access_location']:
+                    ocsp_http = True
         output(ca_issuers_present, "aia_ca_issuers_present", cfg_opt, cfg_sect, item['access_method'], outJson)
         output(ocsp_present, "aia_ocsp_present", cfg_opt, cfg_sect, item['access_method'], outJson)
-        #todo: requirements for other field
+        output(http_found, "aia_ca_issuers_http", cfg_opt, cfg_sect, item['access_method'], outJson)
+        output(ldap_found, "aia_ca_issuers_ldap", cfg_opt, cfg_sect, item['access_method'], outJson)
+        output(http_before_ldap, "aia_ca_issuers_http_before_ldap", cfg_opt, cfg_sect, item['access_method'], outJson)
+        output(ocsp_http, "aia_ocsp_https", cfg_opt, cfg_sect, item['access_method'], outJson)
+
+#todo, cert example: "aia_ca_issuers_directory_name"
 
     else:
         missing("aia_critical", cfg_opt, cfg_sect, outJson)
         missing("aia_ca_issuers_present", cfg_opt, cfg_sect, outJson)
         missing("aia_ocsp_present", cfg_opt, cfg_sect, outJson)
+        missing("aia_ca_issuers_http", cfg_opt, cfg_sect, outJson)
+        missing("aia_ca_issuers_ldap", cfg_opt, cfg_sect, outJson)
+        missing("aia_ca_issuers_http_before_ldap", cfg_opt, cfg_sect, outJson)
+        missing("aia_ocsp_https", cfg_opt, cfg_sect, outJson)
     return
 
 
@@ -508,8 +530,11 @@ def lint_eku(cfg_opt, cert, cfg_sect, outJson):
 def lint_crldp(cfg_opt, cert, cfg_sect, outJson):
     extensions = cert['tbs_certificate']['extensions']
     found = False
-    critical = False
-
+    crldp_http = False
+    crldp_ldap = False
+    ocsp_present = False
+    http_before_ldap = False
+    ocsp_http = False
     for e in extensions:
         if e['extn_id'].native == "crl_distribution_points":
                 found = True
@@ -518,42 +543,67 @@ def lint_crldp(cfg_opt, cert, cfg_sect, outJson):
     output(found, "crldp_present", cfg_opt, cfg_sect, e['extn_id'].native, outJson)
     if found:
         output(e['critical'].native, "crldp_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson) #typo in template.json?
-        crldp_http = False
-        crldp_ldap = False
+
         for item in e['extn_value'].native:
-            if "http" in item['distribution_point']:
+            if "http" in str(item['distribution_point']):
                 crldp_http = True #search oid?
-            elif "ldap" in item['distribution_point']:
+            if "ldap" in str(item['distribution_point']):
                 crldp_ldap = True
+                if crldp_http:
+                    http_before_ldap = True
+            # elif crldp_dn tell dn
         output(crldp_http, "crldp_http", cfg_opt, cfg_sect, str(item['distribution_point'][0]), outJson)
         output(crldp_ldap, "crldp_ldap", cfg_opt, cfg_sect, str(item['distribution_point'][0]), outJson)
-        #todo: requirements for other fields
+        output(http_before_ldap, "crldp_http_before_ldap", cfg_opt, cfg_sect, str(item['distribution_point'][0]), outJson)
+        # todo, cert example: "crldp_directory_name"
 
     else:
         missing("crldp_is_critical", cfg_opt, cfg_sect, outJson)
         missing("crldp_http", cfg_opt, cfg_sect, outJson)
         missing("crldp_ldap", cfg_opt, cfg_sect, outJson)
+        missing("crldp_http_before_ldap", cfg_opt, cfg_sect, outJson)
     return
-
 
 def lint_sia(cfg_opt, cert, cfg_sect, outJson):
     extensions = cert['tbs_certificate']['extensions']
     found = False
+    critical = False
 
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:
         if e['extn_id'].native == "subject_information_access":
-                found = True
-                break
+            found = True
+            break
 
     output(found, "sia_present", cfg_opt, cfg_sect, e['extn_id'].native, outJson)
     if found:
-        output(e['critical'].native, "sia_is_critical", cfg_opt, cfg_sect, str(e['critical'].native), outJson)
-
-        # todo: requirements for other fields
+        output(e['critical'].native, "sia_is_critical", cfg_opt, cfg_sect, str(e['critical'].native),
+               outJson)  # typo in template.json?
+        ca_repository_present = False
+        ocsp_present = False
+        http_found = False
+        ldap_found = False
+        http_before_ldap = False
+        ocsp_http = False
+        for item in e['extn_value'].native:
+            if item['access_method'] == 'ca_repository':
+                ca_repository_present = True
+                if 'http' in item['access_location']:
+                    http_found = True
+                elif 'ldap' in item['access_location']:
+                    ldap_found = True
+                    if http_found:
+                        http_before_ldap = True
+        output(ca_repository_present, "sia_ca_repository_present", cfg_opt, cfg_sect, item['access_method'], outJson)
+        output(http_found, "sia_ca_repository_http", cfg_opt, cfg_sect, item['access_method'], outJson)
+        output(ldap_found, "sia_ca_repository_ldap", cfg_opt, cfg_sect, item['access_method'], outJson)
+        output(http_before_ldap, "sia_ca_repository_http_before_ldap", cfg_opt, cfg_sect, item['access_method'], outJson)
 
     else:
         missing("sia_is_critical", cfg_opt, cfg_sect, outJson)
-
+        missing("sia_ca_repository_present", cfg_opt, cfg_sect, outJson)
+        missing("sia_ca_repository_http", cfg_opt, cfg_sect, outJson)
+        missing("sia_ca_repository_ldap", cfg_opt, cfg_sect, outJson)
+        missing("sia_ca_repository_http_before_ldap", cfg_opt, cfg_sect, outJson)
     return
 
 
@@ -579,7 +629,6 @@ def lint_pkup(cfg_opt, cert, cfg_sect, outJson):
 def lint_sub_dir_attr(cfg_opt, cert, cfg_sect, outJson):
     extensions = cert['tbs_certificate']['extensions']
     found = False
-    critical = False
 
     for e in extensions: #not in cert, mimicing aia
         if e['extn_id'].native == "subject_directory_attribute":
@@ -609,6 +658,7 @@ def lint_signature_algorithm(cfg_opt, cert, cfg_sect, outJson):
         print ("['signature_algorithm']['signature'] and ['tbs_certificate']['signature']['algorithm'] has differnt values: "
             + str(cert_leaf.dotted) + " vs. " + str(cert_leaf1))
     output(found and cert_leaf.dotted == cert_leaf1, ce, cfg_opt, cfg_sect, cert_leaf.dotted, outJson)
+
     return
 
 
@@ -622,7 +672,6 @@ def lint_version(cfg_opt, cert, cfg_sect, outJson):
 def lint_ocsp_nocheck(cfg_opt, cert, cfg_sect, outJson):
     extensions = cert['tbs_certificate']['extensions']
     found = False
-    critical = False
 
     for e in extensions: #not in cert, mimicing aia
         if e['extn_id'].native == "ocsp_no_ckeck":
@@ -655,20 +704,16 @@ def lint_inhibit_any(cfg_opt, cert, cfg_sect, outJson):
     else:
         missing("inhibit_any_policy_is_critical", cfg_opt, cfg_sect, outJson)
     return
-
+# change template design to 0 permitted 1 not permitted 2 optional 3  required
 def output(result, ce, cfg_opt, cfg_sect, cert_value, outJson):
-    if result is True and cfg_opt[ce].value is '1' or result is False and cfg_opt[ce].value is '2':
-      dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
+    gate = "PASS"
+    if result is True and cfg_opt[ce].value is '1' or result is False and cfg_opt[ce].value is '3':
+       gate = "FAIL"
+    dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
                       '"Item": "' + ce + '",' +
                       '"Value": "' + cfg_opt[ce].value + '",' +
                       '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"OUTPUT": "FAIL with Cert Value: ' + str(cert_value) + '"}')
-    else:
-      dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"OUTPUT": "PASS with Cert Value: ' + str(cert_value) + '"}')
+                      '"OUTPUT": "' + gate + ' with Cert Value: ' + str(cert_value) + '"}')
     outJson.append(dictn.copy())
     return
 def missing(ce, cfg_opt, cfg_sect, outJson):
