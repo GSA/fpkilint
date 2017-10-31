@@ -5,7 +5,7 @@
 | Version | V3 (2) | PASS |
 | Serial Number | 05 9B 1B 57 9E 8E | PASS |
 | Issuer Signature Algorithm | sha256WithRSAEncryption (1 2 840 113549 1 1 11) | PASS |
-| Issuer Distinguished Name | CN = Example CA<br/>OU = Example Unit<br/>DC = Example<br/>DC = US | DC name component is not permitted |
+| Issuer Distinguished Name | CN = Example CA<br/>OU = Example Unit<br/>DC = Example<br/>DC = US | DC name component is not permitted</br>Cn is not permitted |
 | Not Before | 130801120000Z [utc_time]<br/> (2013-08-01 12:00:00+00:00) | PASS |
 | Not After | 140901120000Z [utc_time]<br/> (2014-09-01 12:00:00+00:00) | Exceeds maximum allowed validity period |
 | Subject Distinguished Name | CN = Example Sub CA<br/>OU = Example Unit<br/>DC = Example<br/>DC = US | DC name component is not permitted |
