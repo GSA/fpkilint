@@ -121,7 +121,6 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
 
     return s
 
-
 def get_extension_from_certificate(cert, oid):
 
     extensions = cert['tbs_certificate']['extensions']
