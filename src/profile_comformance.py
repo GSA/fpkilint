@@ -4,6 +4,8 @@ import datetime
 import pytz
 import sys
 import ast
+
+
 # import ldap
 
 
@@ -11,6 +13,7 @@ class config_entry:
     def __init__(self):
         self.value = ""
         self.oid = ""
+
 
 prof_ext_oids = set()
 
@@ -34,7 +37,6 @@ def _get_extension_options(cfg_options):
 
 
 def _process_common_extension_options(cfg_options, extension, extension_is_critical, display_name):
-
     print("\nProcessing {}...".format(display_name))
     option_present, option_is_critical = _get_extension_options(cfg_options)
 
@@ -55,6 +57,16 @@ def _process_common_extension_options(cfg_options, extension, extension_is_criti
 
     return
 
+def get_extension_from_certificate(cert, oid):
+
+    extensions = cert['tbs_certificate']['extensions']
+
+    for e in extensions:
+        if e['extn_id'] == oid:
+            return e, e['critical']
+
+    return None, False
+
 
 def lint_name_contraints(cfg_opt, cert, cfg_sect, outJson):
     output_array = []
@@ -62,7 +74,7 @@ def lint_name_contraints(cfg_opt, cert, cfg_sect, outJson):
     _process_common_extension_options(cfg_opt, cert.name_constraints_value,
                                       'name_constraints' in cert.critical_extensions,
                                       "Name Constraints")
-
+    #todo: reconcile with reast code
     return
 
 
@@ -74,32 +86,16 @@ def lint_other_extensions(cfg_opt, cert, cfg_sect, outJson):
         cert_ext_oids.add(ext['extn_id'].dotted)
     for ce in cfg_opt:
         if ce == "other_non_critical_extensions_present":
-                reason = "Other extensions not specifiled in profile is not allowed in certificate"
-                output_array.append({"Item": ce, "Result": cert_ext_oids <= prof_ext_oids, "Content": str(cert_ext_oids), "Reason": reason})
+            reason = "Other extensions not specifiled in profile is not allowed in certificate"
+            output_array.append(
+                {"Item": ce, "Result": cert_ext_oids <= prof_ext_oids, "Content": str(cert_ext_oids), "Reason": reason})
 
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
     return
 
-def lint_policy_mappings(cfg_opt, cert, cfg_sect, outJson):
 
+def lint_policy_mappings(cfg_opt, cert, cfg_sect, outJson):
     _process_common_extension_options(cfg_opt, cert.policy_mappings_value,
                                       'policy_mappings' in cert.critical_extensions,
                                       "Policy Mappings")
@@ -117,42 +113,27 @@ def lint_policy_mappings(cfg_opt, cert, cfg_sect, outJson):
     for ce in cfg_opt:
         if ce == "present":
             reason = "Policy Mappings not present in certificate"
-            output_array.append({"Item": ce, "Result": not c_policies == None, "Content": e['extn_id'].dotted, "Reason": reason})
+            output_array.append(
+                {"Item": ce, "Result": not c_policies == None, "Content": e['extn_id'].dotted, "Reason": reason})
         elif ce == "is_critical":
             if not c_policies == None:
-               reason = "Policy Mappings ciriticality does not match between profile and certificate"
-               output_array.append({"Item": ce, "Result": not c_policies == None, "Content": str(e['critical'].native), "Reason": reason})
+                reason = "Policy Mappings ciriticality does not match between profile and certificate"
+                output_array.append({"Item": ce, "Result": not c_policies == None, "Content": str(e['critical'].native),
+                                     "Reason": reason})
         elif ce == "content":
             if not c_policies == None:
-              for item in c_policies['extn_value']:
-                oids += [item['policy_identifier']]
-              if [cfg_opt[ce].oid] <= oids:
-                content = True
-              reason = "Profile policy mapping content in certificate does not include the one in profile"
-              output_array.append({"Item": ce, "Result": content, "Content": oids, "Reason": reason})
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+                for item in c_policies['extn_value']:
+                    oids += [item['policy_identifier']]
+                if [cfg_opt[ce].oid] <= oids:
+                    content = True
+                reason = "Profile policy mapping content in certificate does not include the one in profile"
+                output_array.append({"Item": ce, "Result": content, "Content": oids, "Reason": reason})
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
 def lint_piv_naci(cfg_opt, cert, cfg_sect, outJson):
-
     pivnaci, is_critical = get_extension_from_certificate(cert, '2.16.840.1.101.3.6.9.1')
 
     _process_common_extension_options(cfg_opt, pivnaci, is_critical, "PIV NACI")
@@ -193,33 +174,31 @@ def lint_validity(cfg_opt, cert, cfg_sect, outJson):
 
     for ce in cfg_opt:
         if ce == "validity_period_maximum":
-            result = lifespan.days < int(cfg_opt[ce].value) or int(cfg_opt[ce].value) == 0
+            result = int(cfg_opt[ce].value) == 0 or lifespan.days < int(cfg_opt[ce].value)
             cert_value = lifespan.days
             reason += " Certificatre life span is less than the one specified in profile."
-            output_array.append({"Item": ce, "Result": result, "Content": str(cert_value),"Reason": reason})
+            output_array.append({"Item": ce, "Result": result, "Content": str(cert_value), "Reason": reason})
         elif ce == "validity_period_generalized_time":
-            result = nb.native < cut_off
+            result = nb.native < cut_off #todo: ensure time compare
             cert_value = nb.native
             reason += " Generalized time validaity period is beyond what specified in profile."
-            output_array.append({"Item": ce, "Result": result, "Content": str(cert_value),"Reason": reason})
+            output_array.append({"Item": ce, "Result": result, "Content": str(cert_value), "Reason": reason})
     for opa in output_array:
         gate = "PASS"
         ce = opa["Item"]
         result = opa["Result"]
         content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
+        if not result:
             gate = "FAIL: " + opa["Reason"]
             content = opa["Content"]
         dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
+                                 '"Item": "' + ce + '",' +
+                                 '"Value": "' + cfg_opt[ce].value + '",' +
+                                 '"OID": "' + cfg_opt[ce].oid + '",' +
+                                 '"Content": "' + content + '",' +
+                                 '"OUTPUT": "' + gate + '"}')
         outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+
     return
 
 
@@ -227,46 +206,34 @@ def lint_subject(cfg_opt, cert, cfg_sect, outJson):
     output_array = []
     subject = cert['tbs_certificate']['subject']
     found_base_dn = False
-    found = False
+
     # iterate over all rdn entries
     for ce in cfg_opt:
         if "rdn_" in ce:
             # print(ce + " " + cfg_opt[ce].oid)
             rdn_seq = subject.chosen
+            found = False
             for rdn in rdn_seq:
                 for name in rdn:
                     if name['type'].dotted == cfg_opt[ce].oid:
                         found = True
                         break
+                if found:
+                    break
             reason = "oid does not match in profile and certificate"
-            output_array.append({"Item": ce, "Result": found, "Content": str(rdn_seq.native),"Reason": reason})
+            output_array.append({"Item": ce, "Result": found, "Content": str(rdn_seq.native), "Reason": reason})
         elif "subject_base_dn" in ce:
-            for rdn in subject.native: # need oid for base_dn to search for oid
+            for rdn in subject.native:  # need oid for base_dn to search for oid
                 if 'base_dn' in rdn:
                     found_base_dn = True
-                    #dn_split = ldap.dn(rdn) todo: compare dn's
+                    # dn_split = ldap.dn(rdn) todo: compare dn's
                     break
             reason = "base DN not found"
-            output_array.append({"Item": "subject_base_dn", "Result": found_base_dn, "Content": str(subject.native), "Reason": reason})
+            output_array.append(
+                {"Item": "subject_base_dn", "Result": found_base_dn, "Content": str(subject.native), "Reason": reason})
 
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
@@ -282,8 +249,8 @@ key_usage_display_map = {
     'decipher_only': ' decipherOnly(8)',
 }
 
-def lint_key_usage(cfg_opt, cert, cfg_sect, outJson):
 
+def lint_key_usage(cfg_opt, cert, cfg_sect, outJson):
     _process_common_extension_options(cfg_opt, cert.key_usage_value,
                                       'key_usage' in cert.critical_extensions, "Key Usage")
 
@@ -300,51 +267,52 @@ def lint_key_usage(cfg_opt, cert, cfg_sect, outJson):
             if ku in cfg_opt and cfg_opt[ku].value == '2' and ku not in cert.key_usage_value.native:
                 print("{} is required".format(key_usage_display_map[ku]))
 
-    #
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    # critical = False
-    #
-    # for e in extensions:
-    #     if e['extn_id'].native == "key_usage":
-    #             found = True
-    #             break
-    #
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-    #
-    #     reason = "Profile oid does not match the one in the certificate"
-    #     output_array.append({"Item": "digital_signature", "Result": 'digital_signature' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "non_repudiation", "Result": 'non_repudiation' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "key_encipherment", "Result": 'key_encipherment' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "data_encipherment", "Result": 'data_encipherment' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "key_agreement", "Result": 'key_agreement' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "key_cert_sign", "Result": 'key_cert_sign' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "crl_sign", "Result": 'crl_sign' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "encipher_only", "Result": 'encipher_only' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     output_array.append({"Item": "decipher_only", "Result": 'decipher_only' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-    #         cfg_opt[ce].value is '2') :
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                   '"Item": "' + ce + '",' +
-    #                   '"Value": "' + cfg_opt[ce].value + '",' +
-    #                   '"OID": "' + cfg_opt[ce].oid + '",' +
-    #                   '"Content": "' + content + '",' +
-    #                   '"OUTPUT": "' +  gate + '"}')
-    #     outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+                #
+                # output_array = []
+                # extensions = cert['tbs_certificate']['extensions']
+                # found = False
+                # critical = False
+                #
+                # for e in extensions:
+                #     if e['extn_id'].native == "key_usage":
+                #             found = True
+                #             break
+                #
+                # reason = "Profile oid is not in the certificate"
+                # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
+                # if found:
+                #     reason = "extension criticality does not match  between profile and certificate"
+                #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+                #
+                #     reason = "Profile oid does not match the one in the certificate"
+                #     output_array.append({"Item": "digital_signature", "Result": 'digital_signature' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "non_repudiation", "Result": 'non_repudiation' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "key_encipherment", "Result": 'key_encipherment' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "data_encipherment", "Result": 'data_encipherment' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     result = opa["Result"]
+                #     content = ""
+                #     if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
+                #         cfg_opt[ce].value is '2') :
+                #         gate = "FAIL: " + opa["Reason"]
+                #         content = opa["Content"]
+                #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
+                #                   '"Item": "' + ce + '",' +
+                #                   '"Value": "' + cfg_opt[ce].value + '",' +
+                #                   '"OID": "' + cfg_opt[ce].oid + '",' +
+                #                   '"Content": "' + content + '",' +
+                #                   '"OUTPUT": "' +  gate + '"}')
+                #     outJson.append(dictn.copy())
+                # if "present" in ce:
+                #    prof_ext_oids.add(cfg_opt[ce].oid)
+                #     output_array.append({"Item": "key_agreement", "Result": 'key_agreement' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "key_cert_sign", "Result": 'key_cert_sign' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "crl_sign", "Result": 'crl_sign' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "encipher_only", "Result": 'encipher_only' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                #     output_array.append({"Item": "decipher_only", "Result": 'decipher_only' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
+                # for opa in output_array:
+                #     gate = "PASS"
+                #     ce = opa["Item"]
+
 
     return
 
@@ -359,36 +327,32 @@ def lint_issuer(cfg_opt, cert, cfg_sect, outJson):
         if "rdn_" in ce:
             # print(ce + " " + cfg_opt[ce].oid)
             rdn_seq = cert_leaf.chosen
+            found = False
             for rdn in rdn_seq:
                 for name in rdn:
                     if name['type'].dotted == cfg_opt[ce].oid:
                         found = True
                         break
+                if found:
+                    break
             reason = "oid does not match in profile and certificate"
-            output_array.append({"Item": ce, "Result": found, "Content": rdn_seq.native,"Reason": reason})
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-                                                                                           cfg_opt[ce].value is '2'):
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                                    '"Item": "' + ce + '",' +
-                                    '"Value": "' + cfg_opt[ce].value + '",' +
-                                    '"OID": "' + cfg_opt[ce].oid + '",' +
-                                    '"Content": "' + content + '",' +
-                                    '"OUTPUT": "' + gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-        #     prof_ext_oids.add(cfg_opt[ce].oid)
+            output_array.append({"Item": ce, "Result": found, "Content": rdn_seq.native, "Reason": reason})
+        elif "base_dn" in ce:
+            for rdn in cert_leaf.native:  # need oid for base_dn to search for oid
+                if 'base_dn' in rdn:
+                    found_base_dn = True
+                    # dn_split = ldap.dn(rdn) todo: compare dn's
+                    break
+            reason = "base DN not found"
+            output_array.append(
+                {"Item": "base_dn", "Result": found_base_dn, "Content": "", "Reason": reason})
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
 def lint_akid(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.authority_key_identifier_value,
                                       'authority_key_identifier' in cert.critical_extensions,
                                       "Authority Key Id")
@@ -399,41 +363,26 @@ def lint_akid(cfg_opt, cert, cfg_sect, outJson):
 
     for e in extensions:
         if e['extn_id'].native == "key_identifier":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Subject Key Identifier is not present"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-        #extn_v = '{}'.format('%02X' % c for c in e['extn_value'].native)
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
+        extn_v = '{}'.format('%02X' % c for c in e['extn_value'].native)
 
-        #TODO: two more fields
+        # TODO: two more fields
 
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
     return
 
-def lint_skid(cfg_opt, cert, cfg_sect, outJson):
 
+def lint_skid(cfg_opt, cert, cfg_sect, outJson):
     _process_common_extension_options(cfg_opt, cert.key_identifier_value,
                                       'key_identifier' in cert.critical_extensions,
                                       "Subject Key Id")
@@ -441,49 +390,33 @@ def lint_skid(cfg_opt, cert, cfg_sect, outJson):
     output_array = []
     extensions = cert['tbs_certificate']['extensions']
     found = False
-    critical = False
-    #cert entry not found
 
     for e in extensions:
         if e['extn_id'].native == "key_identifier":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Subject Key Identifier is not present"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-        #extn_v = '{}'.format('%02X' % c for c in e['extn_value'].native)
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
+
         skid = cert.key_identifier_value.native
         they_used_method_one = skid == cert['tbs_certificate']['subject_public_key_info'].sha1
         reason = "Method one (sha1) is not allowed"
         output_array.append(
             {"Item": "require_method_one", "Result": they_used_method_one, "Content": str(skid),
              "Reason": reason})
-      #todo look further
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+        # todo look further
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
-def lint_policy_constraints(cfg_opt, cert, cfg_sect, outJson):
 
+def lint_policy_constraints(cfg_opt, cert, cfg_sect, outJson):
     _process_common_extension_options(cfg_opt, cert.policy_constraints_value,
                                       'policy_constraints' in cert.critical_extensions,
                                       "Policy Constraints")
@@ -493,16 +426,18 @@ def lint_policy_constraints(cfg_opt, cert, cfg_sect, outJson):
     found = False
     critical = False
 
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:  # not in cert, mimicing aia
         if e['extn_id'].native == "policy_constraints":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
         '''
         explicit_policy_present = False
@@ -528,27 +463,10 @@ def lint_policy_constraints(cfg_opt, cert, cfg_sect, outJson):
                                      "Content": str(e['critical'].native), "Reason": reason})
         '''
 
-                #todo: need cert example
+        # todo: need cert example
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
@@ -558,33 +476,33 @@ def lint_serial_number(cfg_opt, cert, cfg_sect, outJson):
     ln = len(str(cert_leaf))
     pln = int(cfg_opt["min_length"].value)
     reason = "Certficate serial number length is less than profile specifiled minimum length"
-    output_array.append({"Item": "min_length", "Result": pln == 0 or ln > pln, "Content": str(cert_leaf), "Reason": reason})
+    output_array.append(
+        {"Item": "min_length", "Result": pln == 0 or ln > pln, "Content": str(cert_leaf), "Reason": reason})
     pln = int(cfg_opt["max_length"].value)
     reason = "Certficate serial number length is more than profile specifiled maximum length"
-    output_array.append({"Item": "max_length", "Result": pln == 0 or ln < pln, "Content": str(cert_leaf), "Reason": reason})
-    
+    output_array.append(
+        {"Item": "max_length", "Result": pln == 0 or ln < pln, "Content": str(cert_leaf), "Reason": reason})
+
     for opa in output_array:
         gate = "PASS"
         ce = opa["Item"]
         result = opa["Result"]
         content = ""
-        if not result :
+        if not result:
             gate = "FAIL: " + opa["Reason"]
             content = opa["Content"]
         dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
+                                 '"Item": "' + ce + '",' +
+                                 '"Value": "' + cfg_opt[ce].value + '",' +
+                                 '"OID": "' + cfg_opt[ce].oid + '",' +
+                                 '"Content": "' + content + '",' +
+                                 '"OUTPUT": "' + gate + '"}')
         outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+
     return
 
 
 def lint_basic_constraints(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.basic_constraints_value,
                                       'basic_constraints' in cert.critical_extensions,
                                       "Basic Constraints")
@@ -594,44 +512,28 @@ def lint_basic_constraints(cfg_opt, cert, cfg_sect, outJson):
     found = False
     critical = False
 
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:  # not in cert, mimicing aia
         if e['extn_id'].native == "basic_constraints":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
 
-        #todo: need cert example
+        # todo: need cert example
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
 def lint_cert_policies(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.certificate_policies_value,
                                       'certificate_policies' in cert.critical_extensions,
                                       "Certificate Policies")
@@ -649,38 +551,25 @@ def lint_cert_policies(cfg_opt, cert, cfg_sect, outJson):
     for ce in cfg_opt:
         if ce == "present":
             reason = "certificate policies not present"
-            output_array.append({"Item": ce, "Result": not c_policies == None, "Content": e['extn_id'].dotted, "Reason": reason})
+            output_array.append(
+                {"Item": ce, "Result": not c_policies == None, "Content": e['extn_id'].dotted, "Reason": reason})
         elif ce == "is_critical":
             if not c_policies == None:
-               reason = "certificate policies is not critical"
-               output_array.append({"Item": ce, "Result": c_policies['critical'], "Content": str(c_policies['critical']), "Reason": reason})
+                reason = "certificate policies is not critical"
+                output_array.append(
+                    {"Item": ce, "Result": c_policies['critical'], "Content": str(c_policies['critical']),
+                     "Reason": reason})
         elif ce == "content":
             if not c_policies == None:
-              for item in c_policies['extn_value'].native:
-                oids.add(item['policy_identifier'])
-              if cfg_opt[ce].oid in oids:
-                content = True
-              reason = "profile policy oid is not in the certificate"
-              output_array.append({"Item": ce, "Result": content, "Content": str(oids), "Reason": reason})
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+                for item in c_policies['extn_value'].native:
+                    oids.add(item['policy_identifier'])
+                if cfg_opt[ce].oid in oids:
+                    content = True
+                reason = "profile policy oid is not in the certificate"
+                output_array.append({"Item": ce, "Result": content, "Content": str(oids), "Reason": reason})
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
@@ -694,38 +583,39 @@ def lint_subject_public_key_info(cfg_opt, cert, cfg_sect, outJson):
             found = True
             break
     reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": ce, "Result": found, "Content": algo, "Reason": reason})
+    vl = cfg_opt[ce].value
+    output_array.append({"Item": ce, "Result": vl == "0" or vl == "1" and not found or vl == "2" and found,
+                         "Content": algo, "Reason": reason})
 
     blen = cert_leaf['public_key'].native['modulus'].bit_length()
 
     reason = "certificate public key size is less than prfoile minimum key size"
-    output_array.append({"Item": "min_size", "Result": blen > int(cfg_opt['min_size'].value), "Content": str(blen), "Reason": reason})
+    output_array.append(
+        {"Item": "min_size", "Result": blen > int(cfg_opt['min_size'].value), "Content": str(blen), "Reason": reason})
     reason = "certificate public key size is more than prfoile maximum key size"
-    output_array.append({"Item": "max_size", "Result": blen < int(cfg_opt['max_size'].value), "Content": str(blen), "Reason": reason})
-    
+    output_array.append(
+        {"Item": "max_size", "Result": blen < int(cfg_opt['max_size'].value), "Content": str(blen), "Reason": reason})
+
     for opa in output_array:
         gate = "PASS"
         ce = opa["Item"]
         result = opa["Result"]
         content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
+        if not result:
             gate = "FAIL: " + opa["Reason"]
             content = opa["Content"]
         dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
+                                 '"Item": "' + ce + '",' +
+                                 '"Value": "' + cfg_opt[ce].value + '",' +
+                                 '"OID": "' + cfg_opt[ce].oid + '",' +
+                                 '"Content": "' + content + '",' +
+                                 '"OUTPUT": "' + gate + '"}')
         outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+
     return
 
 
 def lint_aia(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.authority_information_access_value,
                                       'authority_information_access' in cert.critical_extensions,
                                       "Authority Info Access")
@@ -737,16 +627,18 @@ def lint_aia(cfg_opt, cert, cfg_sect, outJson):
 
     for e in extensions:
         if e['extn_id'].native == "authority_information_access":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
         ca_issuers_present = False
-        ocsp_present = False
+        ocsp_found = False
         http_found = False
         ldap_found = False
         http_before_ldap = False
@@ -761,55 +653,45 @@ def lint_aia(cfg_opt, cert, cfg_sect, outJson):
                     if http_found:
                         http_before_ldap = True
             elif item['access_method'] == 'ocsp':
-                ocsp_present = True
+                ocsp_found = True
                 if 'http' in item['access_location']:
                     ocsp_http = True
 
         reason = "ca_repository_present not present"
-        output_array.append({"Item": "ca_issuers_present", "Result": ca_issuers_present, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_issuers_present", "Result": ca_issuers_present, "Content": item['access_method'],
+             "Reason": reason})
 
         reason = "AIA CA Repository HTTP is not found"
-        output_array.append({"Item": "ca_issuers_http", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_issuers_http", "Result": http_found, "Content": item['access_location'], "Reason": reason})
 
         reason = "AIA CA Repository LDAP is not found"
-        output_array.append({"Item": "ca_issuers_ldap", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_issuers_ldap", "Result": ldap_found, "Content": item['access_location'], "Reason": reason})
 
         reason = "AIA CA Repository LDAP is before HTTP"
-        output_array.append({"Item": "ca_issuers_http_before_ldap", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_issuers_http_before_ldap", "Result": http_before_ldap, "Content": item['access_location'],
+             "Reason": reason})
 
         reason = "AIA OCSP not present"
-        output_array.append({"Item": "ocsp_present", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ocsp_present", "Result": ocsp_found, "Content": item['access_location'], "Reason": reason})
 
         reason = "AIA OCSP HTTP is not found"
-        output_array.append({"Item": "ocsp_https", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ocsp_https", "Result": ocsp_http, "Content": item['access_location'], "Reason": reason})
 
-#todo, cert example: "ca_issuers_directory_name"
+    # todo, cert example: "ca_issuers_directory_name"
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
     return
 
 
 def lint_san(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.subject_alt_name_value,
                                       'subject_alt_name' in cert.critical_extensions,
                                       "Subject Alt Name")
@@ -821,53 +703,58 @@ def lint_san(cfg_opt, cert, cfg_sect, outJson):
 
     for e in extensions:
         if e['extn_id'].native == "subject_alt_name":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
-        #c_oid = e['extn_value'].native[0]['type_id']
-        c_oid = "1.2.3.4.5"
+        c_oid = e['extn_value'].native[0]['type_id']
+
         reason = "Profile oid does not match the one in the certificate"
-        output_array.append({"Item": "rfc822_name", "Result": c_oid == cfg_opt['rfc822_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "x400_address", "Result": c_oid == cfg_opt['x400_address'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "directory_name", "Result": c_oid == cfg_opt['directory_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "edi_party_name", "Result": c_oid == cfg_opt['edi_party_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "uniform_resource_identifier", "Result": c_oid == cfg_opt['uniform_resource_identifier'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "ip_address", "Result": c_oid == cfg_opt['ip_address'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "registered_id", "Result": c_oid == cfg_opt['registered_id'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "other_name_upn", "Result": c_oid == cfg_opt['other_name_upn'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "other_name_piv_fasc_n", "Result": c_oid == cfg_opt['other_name_piv_fasc_n'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "uniform_resource_identifier_chuid", "Result": c_oid == cfg_opt['uniform_resource_identifier_chuid'].oid, "Content": c_oid, "Reason": reason})
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+        #oid_found = False
+        #for ce in cfg_opt:
+         #   if c_oid == cfg_opt['rfc822_name'].oid:
+          #      oid_found = True
+          #      break need redesign tempate.json to accommodate section wide PASS/FAILL
+        output_array.append(
+            {"Item": "rfc822_name", "Result": c_oid == cfg_opt['rfc822_name'].oid, "Content": c_oid, "Reason": reason})
+        output_array.append({"Item": "x400_address", "Result": c_oid == cfg_opt['x400_address'].oid, "Content": c_oid,
+                             "Reason": reason})
+        output_array.append(
+            {"Item": "directory_name", "Result": c_oid == cfg_opt['directory_name'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append(
+            {"Item": "edi_party_name", "Result": c_oid == cfg_opt['edi_party_name'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append(
+            {"Item": "uniform_resource_identifier", "Result": c_oid == cfg_opt['uniform_resource_identifier'].oid,
+             "Content": c_oid, "Reason": reason})
+        output_array.append(
+            {"Item": "ip_address", "Result": c_oid == cfg_opt['ip_address'].oid, "Content": c_oid, "Reason": reason})
+        output_array.append({"Item": "registered_id", "Result": c_oid == cfg_opt['registered_id'].oid, "Content": c_oid,
+                             "Reason": reason})
+        output_array.append(
+            {"Item": "other_name_upn", "Result": c_oid == cfg_opt['other_name_upn'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append(
+            {"Item": "other_name_piv_fasc_n", "Result": c_oid == cfg_opt['other_name_piv_fasc_n'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append({"Item": "uniform_resource_identifier_chuid",
+                             "Result": c_oid == cfg_opt['uniform_resource_identifier_chuid'].oid, "Content": c_oid,
+                             "Reason": reason})
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
     return
 
 
 def lint_ian(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.issuer_alt_name_value,
                                       'issuer_alt_name' in cert.critical_extensions,
                                       "Issuer Alt Name")
@@ -879,53 +766,53 @@ def lint_ian(cfg_opt, cert, cfg_sect, outJson):
 
     for e in extensions:
         if e['extn_id'].native == "issuer_alt_name":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
         c_oid = e['extn_value'].native[0]['type_id']
         reason = "Profile oid does not match the one in the certificate"
-        output_array.append({"Item": "rfc822_name", "Result": c_oid == cfg_opt['rfc822_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "x400_address", "Result": c_oid == cfg_opt['x400_address'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "directory_name", "Result": c_oid == cfg_opt['directory_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "edi_party_name", "Result": c_oid == cfg_opt['edi_party_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "uniform_resource_identifier", "Result": c_oid == cfg_opt['uniform_resource_identifier'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "ip_address", "Result": c_oid == cfg_opt['ip_address'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "registered_id", "Result": c_oid == cfg_opt['registered_id'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "other_name", "Result": c_oid == cfg_opt['other_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "dns_name", "Result": c_oid == cfg_opt['dns_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "other_name_piv_fasc_n", "Result": c_oid == cfg_opt['other_name_piv_fasc_n'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "uniform_resource_identifier_chuid", "Result": c_oid == cfg_opt['uniform_resource_identifier_chuid'].oid, "Content": c_oid, "Reason": reason})
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+        output_array.append(
+            {"Item": "rfc822_name", "Result": c_oid == cfg_opt['rfc822_name'].oid, "Content": c_oid, "Reason": reason})
+        output_array.append({"Item": "x400_address", "Result": c_oid == cfg_opt['x400_address'].oid, "Content": c_oid,
+                             "Reason": reason})
+        output_array.append(
+            {"Item": "directory_name", "Result": c_oid == cfg_opt['directory_name'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append(
+            {"Item": "edi_party_name", "Result": c_oid == cfg_opt['edi_party_name'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append(
+            {"Item": "uniform_resource_identifier", "Result": c_oid == cfg_opt['uniform_resource_identifier'].oid,
+             "Content": c_oid, "Reason": reason})
+        output_array.append(
+            {"Item": "ip_address", "Result": c_oid == cfg_opt['ip_address'].oid, "Content": c_oid, "Reason": reason})
+        output_array.append({"Item": "registered_id", "Result": c_oid == cfg_opt['registered_id'].oid, "Content": c_oid,
+                             "Reason": reason})
+        output_array.append(
+            {"Item": "other_name", "Result": c_oid == cfg_opt['other_name'].oid, "Content": c_oid, "Reason": reason})
+        output_array.append(
+            {"Item": "dns_name", "Result": c_oid == cfg_opt['dns_name'].oid, "Content": c_oid, "Reason": reason})
+        output_array.append(
+            {"Item": "other_name_piv_fasc_n", "Result": c_oid == cfg_opt['other_name_piv_fasc_n'].oid, "Content": c_oid,
+             "Reason": reason})
+        output_array.append({"Item": "uniform_resource_identifier_chuid",
+                             "Result": c_oid == cfg_opt['uniform_resource_identifier_chuid'].oid, "Content": c_oid,
+                             "Reason": reason})
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
     return
 
 
 def _do_presence_test(cfg_options, cfg_str, display_str, is_present):
-
     error_string = None
 
     if cfg_str in cfg_options and len(cfg_options[cfg_str].value) > 0:
@@ -1038,7 +925,6 @@ eku_display_map = {
 
 
 def lint_eku(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.extended_key_usage_value,
                                       'extended_key_usage' in cert.critical_extensions,
                                       "Extended Key Usage")
@@ -1053,79 +939,78 @@ def lint_eku(cfg_opt, cert, cfg_sect, outJson):
         for ce in cfg_opt:
             if "oid_" in ce:
                 error_string = _do_presence_test(cfg_opt, ce,
-                                  eku_display_map.get(cfg_opt[ce].oid, "Unknown EKU"),
+                                                 eku_display_map.get(cfg_opt[ce].oid, "Unknown EKU"),
                                                  cfg_opt[ce].oid in eku_oids)
                 if error_string is not None:
                     print(error_string)
 
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    # critical = False
-    #
-    # for e in extensions:
-    #     if e['extn_id'].native == "extended_key_usage":
-    #             found = True
-    #             break
-    #
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-    #
-    #     c_oid = e['extn_value'].native[0]
-    #     reason = "Profile oid does not match the one in the certificate"
-    #     output_array.append({"Item": "oid_server_auth", "Result": c_oid == cfg_opt['oid_server_auth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_client_auth", "Result": c_oid == cfg_opt['oid_client_auth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_code_signing", "Result": c_oid == cfg_opt['oid_code_signing'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_email_protection", "Result": c_oid == cfg_opt['oid_email_protection'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_time_stamping", "Result": c_oid == cfg_opt['oid_time_stamping'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ocsp_signing", "Result": c_oid == cfg_opt['oid_ocsp_signing'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_any_eku", "Result": c_oid == cfg_opt['oid_any_eku'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_smart_card_logon", "Result": c_oid == cfg_opt['oid_smart_card_logon'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_ike_intermediate", "Result": c_oid == cfg_opt['oid_ipsec_ike_intermediate'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_end_system", "Result": c_oid == cfg_opt['oid_ipsec_end_system'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_tunnel_termination", "Result": c_oid == cfg_opt['oid_ipsec_tunnel_termination'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_user", "Result": c_oid == cfg_opt['oid_ipsec_user'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_piv_card_auth", "Result": c_oid == cfg_opt['oid_piv_card_auth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_pivi_content_signing", "Result": c_oid == cfg_opt['oid_pivi_content_signing'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_smartCardLogon", "Result": c_oid == cfg_opt['oid_smartCardLogon'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_pkinit_KPKdc", "Result": c_oid == cfg_opt['oid_pkinit_KPKdc'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_pkinit_KPClientAuth", "Result": c_oid == cfg_opt['oid_pkinit_KPClientAuth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "other", "Result": c_oid == cfg_opt['other'].oid, "Content": c_oid, "Reason": reason})
-    #
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-    #         cfg_opt[ce].value is '2') :
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                   '"Item": "' + ce + '",' +
-    #                   '"Value": "' + cfg_opt[ce].value + '",' +
-    #                   '"OID": "' + cfg_opt[ce].oid + '",' +
-    #                   '"Content": "' + content + '",' +
-    #                   '"OUTPUT": "' +  gate + '"}')
-    #     outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    # output_array = []
+                    # extensions = cert['tbs_certificate']['extensions']
+                    # found = False
+                    # critical = False
+                    #
+                    # for e in extensions:
+                    #     if e['extn_id'].native == "extended_key_usage":
+                    #             found = True
+                    #             break
+                    #
+                    # reason = "Profile oid is not in the certificate"
+                    # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
+                    # if found:
+                    #     reason = "extension criticality does not match  between profile and certificate"
+                    #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+                    #
+                    #     c_oid = e['extn_value'].native[0]
+                    #     reason = "Profile oid does not match the one in the certificate"
+                    #     output_array.append({"Item": "oid_server_auth", "Result": c_oid == cfg_opt['oid_server_auth'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_client_auth", "Result": c_oid == cfg_opt['oid_client_auth'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_code_signing", "Result": c_oid == cfg_opt['oid_code_signing'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_email_protection", "Result": c_oid == cfg_opt['oid_email_protection'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_time_stamping", "Result": c_oid == cfg_opt['oid_time_stamping'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_ocsp_signing", "Result": c_oid == cfg_opt['oid_ocsp_signing'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_any_eku", "Result": c_oid == cfg_opt['oid_any_eku'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_smart_card_logon", "Result": c_oid == cfg_opt['oid_smart_card_logon'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_ipsec_ike_intermediate", "Result": c_oid == cfg_opt['oid_ipsec_ike_intermediate'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_ipsec_end_system", "Result": c_oid == cfg_opt['oid_ipsec_end_system'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_ipsec_tunnel_termination", "Result": c_oid == cfg_opt['oid_ipsec_tunnel_termination'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_ipsec_user", "Result": c_oid == cfg_opt['oid_ipsec_user'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_piv_card_auth", "Result": c_oid == cfg_opt['oid_piv_card_auth'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_pivi_content_signing", "Result": c_oid == cfg_opt['oid_pivi_content_signing'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_smartCardLogon", "Result": c_oid == cfg_opt['oid_smartCardLogon'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_pkinit_KPKdc", "Result": c_oid == cfg_opt['oid_pkinit_KPKdc'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "oid_pkinit_KPClientAuth", "Result": c_oid == cfg_opt['oid_pkinit_KPClientAuth'].oid, "Content": c_oid, "Reason": reason})
+                    #     output_array.append({"Item": "other", "Result": c_oid == cfg_opt['other'].oid, "Content": c_oid, "Reason": reason})
+                    #
+                    # for opa in output_array:
+                    #     gate = "PASS"
+                    #     ce = opa["Item"]
+                    #     result = opa["Result"]
+                    #     content = ""
+                    #     if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
+                    #         cfg_opt[ce].value is '2') :
+                    #         gate = "FAIL: " + opa["Reason"]
+                    #         content = opa["Content"]
+                    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
+                    #                   '"Item": "' + ce + '",' +
+                    #                   '"Value": "' + cfg_opt[ce].value + '",' +
+                    #                   '"OID": "' + cfg_opt[ce].oid + '",' +
+                    #                   '"Content": "' + content + '",' +
+                    #                   '"OUTPUT": "' +  gate + '"}')
+                    #     outJson.append(dictn.copy())
+                    # if "present" in ce:
+                    #    prof_ext_oids.add(cfg_opt[ce].oid)
 
     return
 
 
 def lint_crldp(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.crl_distribution_points_value,
                                       'crl_distribution_points' in cert.critical_extensions,
                                       "CRL Distribution Points")
@@ -1134,64 +1019,51 @@ def lint_crldp(cfg_opt, cert, cfg_sect, outJson):
     found = False
     http = False
     ldap = False
-    ocsp_present = False
     http_before_ldap = False
-    ocsp_http = False
+    http = False
     for e in extensions:
         if e['extn_id'].native == "crl_distribution_points":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
         for item in e['extn_value'].native:
             if "http" in str(item['distribution_point']):
-                http = True #search oid?
+                http = True  # search oid?
             if "ldap" in str(item['distribution_point']):
                 ldap = True
                 if http:
                     http_before_ldap = True
-            # elif dn tell dn
+                    # elif dn tell dn
 
         reason = "CRL Dirstribution Point HTTP is not found"
-        output_array.append({"Item": "http", "Result": http, "Content": item['distribution_point'][0],"Reason": reason})
+        output_array.append(
+            {"Item": "http", "Result": http, "Content": item['distribution_point'][0], "Reason": reason})
 
         reason = "CRL Dirstribution Point LDAP is not found"
-        output_array.append({"Item": "ldap", "Result": ldap, "Content": item['distribution_point'][0],"Reason": reason})
+        output_array.append(
+            {"Item": "ldap", "Result": ldap, "Content": item['distribution_point'][0], "Reason": reason})
 
         reason = "CRL Dirstribution Point LDAP is before HTTP"
-        output_array.append({"Item": "http_before_ldap", "Result": http_before_ldap, "Content": item['distribution_point'][0],"Reason": reason})
+        output_array.append(
+            {"Item": "http_before_ldap", "Result": http_before_ldap, "Content": item['distribution_point'][0],
+             "Reason": reason})
 
         # todo, cert example: "directory_name"
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
     return
 
-def lint_sia(cfg_opt, cert, cfg_sect, outJson):
 
+def lint_sia(cfg_opt, cert, cfg_sect, outJson):
     _process_common_extension_options(cfg_opt, cert.subject_information_access_value,
                                       'subject_information_access' in cert.critical_extensions,
                                       "Subject info Access")
@@ -1210,14 +1082,14 @@ def lint_sia(cfg_opt, cert, cfg_sect, outJson):
     output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
         ca_repository_present = False
-        ocsp_present = False
         http_found = False
         ldap_found = False
         http_before_ldap = False
-        ocsp_http = False
         for item in e['extn_value'].native:
             if item['access_method'] == 'ca_repository':
                 ca_repository_present = True
@@ -1228,42 +1100,29 @@ def lint_sia(cfg_opt, cert, cfg_sect, outJson):
                     if http_found:
                         http_before_ldap = True
         reason = "ca_repository_present not present"
-        output_array.append({"Item": "ca_repository_present", "Result": ca_repository_present, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_repository_present", "Result": ca_repository_present, "Content": item['access_method'],
+             "Reason": reason})
 
         reason = "SIA CA Repository HTTP is not found"
-        output_array.append({"Item": "ca_repository_http", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_repository_http", "Result": http_found, "Content": item['access_location'], "Reason": reason})
 
         reason = "SIA CA Repository LDAP is not found"
-        output_array.append({"Item": "ca_repository_ldap", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_repository_ldap", "Result": ldap_found, "Content": item['access_location'], "Reason": reason})
 
         reason = "SIA CA Repository LDAP is before HTTP"
-        output_array.append({"Item": "ca_repository_http_before_ldap", "Result": http_found, "Content": item['access_method'],"Reason": reason})
+        output_array.append(
+            {"Item": "ca_repository_http_before_ldap", "Result": http_before_ldap, "Content": item['access_location'],
+             "Reason": reason})
 
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
     return
 
 
 def lint_pkup(cfg_opt, cert, cfg_sect, outJson):
-
     pkup, is_critical = get_extension_from_certificate(cert, '2.5.29.16')
 
     _process_common_extension_options(cfg_opt, pkup,
@@ -1273,45 +1132,29 @@ def lint_pkup(cfg_opt, cert, cfg_sect, outJson):
     output_array = []
     extensions = cert['tbs_certificate']['extensions']
     found = False
-    critical = False
 
     oids = []
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:  # not in cert, mimicing aia
         oids.append(e['extn_id'].dotted)
         if e['extn_id'].native == "private_key_usage_period":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": str(oids),"Reason": reason})
+    output_array.append({"Item": "present", "Result": found, "Content": str(oids), "Reason": reason})
 
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
 def lint_sub_dir_attr(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.subject_directory_attributes_value,
                                       'subject_directory_attributes' in cert.critical_extensions,
                                       "Subject Directory Attributes")
@@ -1321,38 +1164,23 @@ def lint_sub_dir_attr(cfg_opt, cert, cfg_sect, outJson):
     found = False
 
     oids = []
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:  # not in cert, mimicing aia
         oids.append(e['extn_id'].dotted)
         if e['extn_id'].native == "subject_directory_attribute":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": str(oids),"Reason": reason})
+    output_array.append({"Item": "present", "Result": found, "Content": str(oids), "Reason": reason})
 
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
@@ -1368,8 +1196,10 @@ def lint_signature_algorithm(cfg_opt, cert, cfg_sect, outJson):
 
     cert_leaf1 = cert['tbs_certificate']['signature']['algorithm'].dotted
     reason = "the certificate signature algorithm not found in profile or the signature algorithm and TBS certificate signature algorithm are not the same"
-    output_array.append({"Item": ce, "Result": found and cert_leaf.dotted == cert_leaf1, "Content": "signature algorithm:" + oid + ". tbs certificate sig algorithm: " + cert_leaf1, "Reason": reason})
-    
+    output_array.append({"Item": ce, "Result": found and cert_leaf.dotted == cert_leaf1,
+                         "Content": "signature algorithm:" + oid + ". tbs certificate sig algorithm: " + cert_leaf1,
+                         "Reason": reason})
+
     for opa in output_array:
         gate = "PASS"
         ce = opa["Item"]
@@ -1379,14 +1209,14 @@ def lint_signature_algorithm(cfg_opt, cert, cfg_sect, outJson):
             gate = "FAIL: " + opa["Reason"]
             content = opa["Content"]
         dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
+                                 '"Item": "' + ce + '",' +
+                                 '"Value": "' + cfg_opt[ce].value + '",' +
+                                 '"OID": "' + cfg_opt[ce].oid + '",' +
+                                 '"Content": "' + content + '",' +
+                                 '"OUTPUT": "' + gate + '"}')
         outJson.append(dictn.copy())
         # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+        #    prof_ext_oids.add(cfg_opt[ce].oid)
 
     return
 
@@ -1396,31 +1226,16 @@ def lint_version(cfg_opt, cert, cfg_sect, outJson):
     cert_leaf = cert['tbs_certificate']['version'].native
 
     reason = "Certifcate Version is less than the minimum certificate versoin specified in the profile"
-    output_array.append({"Item": "min_version", "Result": int(cert_leaf[1:]) >= int(cfg_opt['min_version'].value), "Content": cert_leaf,"Reason": reason})
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    output_array.append(
+        {"Item": "min_version", "Result": int(cert_leaf[1:]) >= int(cfg_opt['min_version'].value), "Content": cert_leaf,
+         "Reason": reason})
+
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
     return
 
 
 def lint_ocsp_nocheck(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.ocsp_no_check_value,
                                       'ocsp_no_check' in cert.critical_extensions,
                                       "OCSP NoCheck")
@@ -1429,43 +1244,25 @@ def lint_ocsp_nocheck(cfg_opt, cert, cfg_sect, outJson):
     extensions = cert['tbs_certificate']['extensions']
     found = False
 
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:  # not in cert, mimicing aia
         if e['extn_id'].native == "ocsp_no_ckeck":
-                found = True
-                break
+            found = True
+            break
 
     reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted,"Reason": reason})
+    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
 
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append({"Item": "critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+                             "Reason": reason})
 
-    
-    for opa in output_array:
-        gate = "PASS"
-        ce = opa["Item"]
-        result = opa["Result"]
-        content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
-            gate = "FAIL: " + opa["Reason"]
-            content = opa["Content"]
-        dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
-        outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
 
     return
 
 
 def lint_inhibit_any(cfg_opt, cert, cfg_sect, outJson):
-
     _process_common_extension_options(cfg_opt, cert.inhibit_any_policy_value,
                                       'inhibit_any_policy' in cert.critical_extensions,
                                       "Inhibit Any Policy")
@@ -1475,39 +1272,40 @@ def lint_inhibit_any(cfg_opt, cert, cfg_sect, outJson):
     found = False
     critical = False
 
-    for e in extensions: #not in cert, mimicing aia
+    for e in extensions:  # not in cert, mimicing aia
         if e['extn_id'].native == "inhibit_any_policy":
-                found = True
-                break
+            found = True
+            break
     reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted,"Reason": reason})
+    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
 
     if found:
         reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
+        output_array.append(
+            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
+             "Reason": reason})
 
-    
+    json_dump(output_array, cfg_opt, cfg_sect, outJson)
+
+    return
+
+def json_dump(output_array, cfg_opt, cfg_sect, outJson):
     for opa in output_array:
         gate = "PASS"
         ce = opa["Item"]
         result = opa["Result"]
         content = ""
-        if result is True and cfg_opt[ce].value is '1' or result is False and (cfg_opt[ce].value is '3' or
-            cfg_opt[ce].value is '2') :
+        if result is True and cfg_opt[ce].value is '1' or result is False and cfg_opt[ce].value is '2':
             gate = "FAIL: " + opa["Reason"]
             content = opa["Content"]
         dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                      '"Item": "' + ce + '",' +
-                      '"Value": "' + cfg_opt[ce].value + '",' +
-                      '"OID": "' + cfg_opt[ce].oid + '",' +
-                      '"Content": "' + content + '",' +
-                      '"OUTPUT": "' +  gate + '"}')
+                                 '"Item": "' + ce + '",' +
+                                 '"Value": "' + cfg_opt[ce].value + '",' +
+                                 '"OID": "' + cfg_opt[ce].oid + '",' +
+                                 '"Content": "' + content + '",' +
+                                 '"OUTPUT": "' + gate + '"}')
         outJson.append(dictn.copy())
-        # if "present" in ce:
-	     #    prof_ext_oids.add(cfg_opt[ce].oid)
-
     return
-
 
 conformance_check_functions = {
     'policy_mappings': lint_policy_mappings,
@@ -1536,8 +1334,7 @@ conformance_check_functions = {
     'ocsp_nocheck': lint_ocsp_nocheck,
     'inhibit_any': lint_inhibit_any,
     'name_constraints': lint_name_contraints
-    }
-
+}
 
 if __name__ == "__main__":
 
@@ -1576,10 +1373,11 @@ if __name__ == "__main__":
         # print(cfg_sect)
         if cfg_sect in conformance_check_functions:
             conformance_check_functions[cfg_sect](cert_profile[cfg_sect], input_cert, cfg_sect, outJson)
-            if "critical" in cert_profile[cfg_sect] and "present" in cert_profile[cfg_sect]:
+            if "critical" in cert_profile[cfg_sect] and "present" in cert_profile[cfg_sect]: #why critical?
                 prof_ext_oids.add(cert_profile[cfg_sect]["present"].oid)
         elif not cfg_sect == "other_extensions":
             print("Invalid config section:  {}".format(cfg_sect))
     lint_other_extensions(cert_profile["other_extensions"], input_cert, cfg_sect, outJson)
-  #  json.dump(outJson, sys.stdout, indent=2)
+    #output
+    json.dump(outJson, sys.stdout, indent=2)
 
