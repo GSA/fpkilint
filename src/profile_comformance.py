@@ -2,7 +2,7 @@ from cert_helpers import *
 import json
 import datetime
 import pytz
-import ast
+import glob
 import textwrap
 from collections import OrderedDict
 
@@ -59,6 +59,9 @@ def _lint_cert_add_error_to_row(r, error_string, preface=None):
 
     return
 
+def _snake_to_camelcase(snake_str):
+    components = snake_str.split('_')
+    return components[0] + "".join(x.title() for x in components[1:])
 
 class ConfigEntry:
     def __init__(self):
@@ -97,7 +100,6 @@ def _get_extension_options(config_options):
 
 
 def _process_common_extension_options(config_options, extension, extension_is_critical, r):
-
     option_present, option_is_critical = _get_extension_options(config_options)
 
     if extension is None:
@@ -116,16 +118,35 @@ def _process_common_extension_options(config_options, extension, extension_is_cr
 
     return
 
+def _process_more_cert_options(found_set, r, config_options):
+    #todo: add content
+    for ku in config_options:
+        if not ku == 'present' and not ku == 'is_critical':
+            camelcase = _snake_to_camelcase(ku)  # alternatively use a map between profile key and display text
+
+            if   ku in found_set and config_options[ku].value == '1':
+                    _lint_cert_add_content_line(r, camelcase + " " + found_set[ku])
+                    _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+            elif not ku in found_set and config_options[ku].value == '2':
+                _lint_cert_add_error_to_row(r, "{} is required".format(_snake_to_camelcase(ku)))
+    return
 
 def lint_name_constraints(config_options, cert):
     r = OutputRow("Name Constraints")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.name_constraints_value,
+    ext_value = cert.name_constraints_value
+    _process_common_extension_options(config_options, ext_value,
                                       'name_constraints' in cert.critical_extensions,
                                       r)
+    if ext_value is not None:
+        found_set = {}
 
-    # todo permitted and excluded subtrees
+        if ext_value['permitted_subtrees']:
+            found_set.update({"permitted": ""})
+        if ext_value['excluded_subtrees']:
+            found_set.update({"excluded": ""})
+        _process_more_cert_options(found_set, r, config_options)
 
     return r
 
@@ -146,8 +167,8 @@ def lint_other_extensions(config_options, cert):
     for e in extensions:
         if e['extn_id'].dotted not in _lint_processed_extensions:
             # init_row_name = None, init_content = None, init_analysis = None, init_config_section = None):
-            extension_name = e['extn_id'].dotted
-            #todo soemthing more readable
+            extension_name = e.native['extn_id']
+            # todo soemthing more readable
             r = OutputRow(extension_name, "", "", "other_extensions")
             if e['critical'].native is True:
                 others_critical += 1
@@ -169,19 +190,6 @@ def lint_other_extensions(config_options, cert):
 
             rows.append(r)
 
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # cert_ext_oids = set()
-    # for ext in extensions:
-    #     cert_ext_oids.add(ext['extn_id'].dotted)
-    # for ce in config_options:
-    #     if ce == "other_non_critical_extensions_present":
-    #         reason = "Other extensions not specifiled in profile is not allowed in certificate"
-    #         output_array.append(
-    #             {"Item": ce, "Result": cert_ext_oids <= prof_ext_oids, "Content": str(cert_ext_oids), "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
-
     return rows
 
 
@@ -189,68 +197,37 @@ def lint_policy_mappings(config_options, cert):
     r = OutputRow("Policy Mappings")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.policy_mappings_value,
+    ext_value = cert.policy_mappings_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'policy_mappings' in cert.critical_extensions,
                                       r)
 
-    # 
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # content = False
-    # oids = []
-    # c_policies = None
-    # for e in extensions:
-    #     if e['extn_id'] == 'policy_mappings':
-    #         c_policies = e
-    #         break
-    # 
-    # for ce in config_options:
-    #     if ce == "present":
-    #         reason = "Policy Mappings not present in certificate"
-    #         output_array.append(
-    #             {"Item": ce, "Result": not c_policies == None, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     elif ce == "is_critical":
-    #         if not c_policies == None:
-    #             reason = "Policy Mappings ciriticality does not match between profile and certificate"
-    #             output_array.append({"Item": ce, "Result": not c_policies == None, "Content": str(e['critical'].native),
-    #                                  "Reason": reason})
-    #     elif ce == "content":
-    #         if not c_policies == None:
-    #             for item in c_policies['extn_value']:
-    #                 oids += [item['policy_identifier']]
-    #             if [config_options[ce].oid] <= oids:
-    #                 content = True
-    #             reason = "Profile policy mapping content in certificate does not include the one in profile"
-    #             output_array.append({"Item": ce, "Result": content, "Content": oids, "Reason": reason})
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+    if ext_value is not None:
+        if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
+            permitted_policies = config_options['permitted'].value.split()
 
+            for policy in ext_value:
+                _lint_cert_add_content_line(r, policy.native['issuer_domain_policy'])
+
+                if permitted_policies is not None and \
+                                policy.native['issuer_domain_policy'] not in permitted_policies: #todo: check permitted value format
+                    _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['issuer_domain_policy']))
+            for policy in ext_value:
+                _lint_cert_add_content_line(r, policy.native['subject_domain_policy'])
+
+                if permitted_policies is not None and \
+                                policy.native['subject_domain_policy'] not in permitted_policies:
+                    _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['subject_domain_policy']))
     return r
 
 
 def lint_piv_naci(config_options, cert):
     r = OutputRow("PIV NACI")
     print("\n--- " + r.row_name + " ---")
-    
+
     pivnaci, is_critical = get_extension_from_certificate(cert, '2.16.840.1.101.3.6.9.1')
 
     _process_common_extension_options(config_options, pivnaci, is_critical, r)
-
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    # critical = False
-    #
-    # for e in extensions:
-    #     if e['extn_id'] == config_options["present"].oid:
-    #             found = True
-    #             break
-    #
-    #
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
 
     return r
 
@@ -267,7 +244,7 @@ def lint_validity(config_options, cert):
     # reason = ""
     nb = cert['tbs_certificate']['validity']['not_before']
     na = cert['tbs_certificate']['validity']['not_after']
-    
+
     r.content = _lint_format_time(nb, 'Not Before')
     r.content += _lint_cert_newline
     r.content += _lint_format_time(na, 'Not After')
@@ -275,11 +252,12 @@ def lint_validity(config_options, cert):
     lifespan = na.native - nb.native
     r.content += _lint_cert_newline
     r.content += "Valid for {}".format(lifespan)
-    
+
     if 'validity_period_maximum' in config_options and len(config_options['validity_period_maximum'].value) > 0:
         validity_period_maximum = int(config_options['validity_period_maximum'].value)
 
-    if 'validity_period_generalized_time' in config_options and len(config_options['validity_period_generalized_time'].value):
+    if 'validity_period_generalized_time' in config_options and len(
+            config_options['validity_period_generalized_time'].value):
         validity_period_generalized_time = int(config_options['validity_period_generalized_time'].value)
 
     if validity_period_maximum > 0:
@@ -288,13 +266,10 @@ def lint_validity(config_options, cert):
         if lifespan > max_validity:
             _lint_cert_add_error_to_row(r, "Validity period exceeds {} days".format(str(validity_period_maximum)))
 
-    #todo i think this cutoff code probably doesn't work. the date would likely show up as 1950
+    # todo i think this cutoff code probably doesn't work. the date would likely show up as 1950
     cut_off = datetime.datetime(2050, 1, 1)
     cut_off = cut_off.replace(tzinfo=pytz.UTC)
 
-    # if nb.name == 'utc_time':
-    #     if nb.native > cut_off:
-    #         reason = "notBefore is required to be GeneralizedTime."
 
     if nb.name == 'utc_time':
         if nb.native > cut_off or validity_period_generalized_time is LINT_CERT_REQUIRED:
@@ -308,34 +283,6 @@ def lint_validity(config_options, cert):
     elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
         _lint_cert_add_error_to_row(r, "notAfter is not permitted to be GeneralizedTime")
 
-            
-    # for ce in config_options:
-    #     if ce == "validity_period_maximum":
-    #         result = int(config_options[ce].value) == 0 or lifespan.days < int(config_options[ce].value)
-    #         cert_value = lifespan.days
-    #         reason += " Certificatre life span is less than the one specified in profile."
-    #         output_array.append({"Item": ce, "Result": result, "Content": str(cert_value), "Reason": reason})
-    #     elif ce == "validity_period_generalized_time":
-    #         result = nb.native < cut_off #todo: ensure time compare
-    #         cert_value = nb.native
-    #         reason += " Generalized time validaity period is beyond what specified in profile."
-    #         output_array.append({"Item": ce, "Result": result, "Content": str(cert_value), "Reason": reason})
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if not result:
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                              '"Item": "' + ce + '",' +
-    #                              '"Value": "' + config_options[ce].value + '",' +
-    #                              '"OID": "' + config_options[ce].oid + '",' +
-    #                              '"Content": "' + content + '",' +
-    #                              '"OUTPUT": "' + gate + '"}')
-    #     outJson.append(dictn.copy())
-
     return r
 
 
@@ -343,17 +290,11 @@ def lint_subject(config_options, cert):
     r = OutputRow("Subject")
     print("\n--- " + r.row_name + " ---")
 
-    output_array = []
-
     subject = cert['tbs_certificate']['subject']
     r.content = get_pretty_dn(subject, ",{}".format(_lint_cert_newline), "=")
 
-    found_base_dn = False
-
-    # iterate over all rdn entries
     for ce in config_options:
         if "rdn_" in ce:
-            # print(ce + " " + config_options[ce].oid)
             rdn_seq = subject.chosen
             found = False
             for rdn in rdn_seq:
@@ -363,44 +304,48 @@ def lint_subject(config_options, cert):
                         break
                 if found:
                     break
-            reason = "oid does not match in profile and certificate"
-            output_array.append({"Item": ce, "Result": found, "Content": str(rdn_seq.native), "Reason": reason})
-        elif "subject_base_dn" in ce:
-            for rdn in subject.native:  # need oid for base_dn to search for oid
-                if 'base_dn' in rdn:
-                    found_base_dn = True
-                    # dn_split = ldap.dn(rdn) todo: compare dn's
-                    break
-            reason = "base DN not found"
-            output_array.append(
-                {"Item": "subject_base_dn", "Result": found_base_dn, "Content": str(subject.native), "Reason": reason})
+            camelcase = _snake_to_camelcase(ce)
 
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+            if found:
+                if config_options[ce].value == '1':
+                    _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+            elif config_options[ce].value == '2':
+                _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
+        elif ce == "subject_base_dn":
+            camelcase = _snake_to_camelcase(ce)
+            if 'base_dn' in subject.native:  #todo: dict compare
+                c_base_dn_dic = json.dumps(subject.native['base_dn'])
+                p_base_dn_dict = json.dumps(config_options[ce].value)
+                if not c_base_dn_dic == p_base_dn_dict:
+                    _lint_cert_add_error_to_row(r, "{} is required to be matched".format(camelcase))
+            elif  len(config_options[ce].value) > 0:
+                _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
     return r
 
 
 key_usage_display_map = {
-    'digital_signature': 'digitalSignature (0)',
-    'non_repudiation': 'nonRepudiation (1)',
-    'key_encipherment': 'keyEncipherment (2)',
-    'data_encipherment': 'dataEncipherment (3)',
+    'digital_signature': 'digitalSignature(0)',
+    'non_repudiation': 'nonRepudiation(1)',
+    'key_encipherment': 'keyEncipherment(2)',
+    'data_encipherment': 'dataEncipherment(3)',
     'key_agreement': 'keyAgreement (4)',
     'key_cert_sign': 'keyCertSign(5)',
     'crl_sign': 'cRLSign(6)',
     'encipher_only': 'encipherOnly(7)',
-    'decipher_only': ' decipherOnly(8)',
+    'decipher_only': 'decipherOnly(8)',
 }
 
 
 def lint_key_usage(config_options, cert):
     r = OutputRow("Key Usage")
     print("\n--- " + r.row_name + " ---")
-
-    _process_common_extension_options(config_options, cert.key_usage_value,
+    
+    ext_value = cert.key_usage_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'key_usage' in cert.critical_extensions, r)
 
-    if cert.key_usage_value is not None:
+    if ext_value is not None:
 
         for ku in cert.key_usage_value.native:
             _lint_cert_add_content_line(r, key_usage_display_map[ku])
@@ -409,56 +354,8 @@ def lint_key_usage(config_options, cert):
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(key_usage_display_map[ku]))
 
         for ku in key_usage_display_map.keys():
-            if ku in config_options and config_options[ku].value == '2' and ku not in cert.key_usage_value.native:
+            if ku in config_options and config_options[ku].value == '2' and ku not in ext_value.native:
                 _lint_cert_add_error_to_row(r, "{} is required".format(key_usage_display_map[ku]))
-
-
-                #
-                # output_array = []
-                # extensions = cert['tbs_certificate']['extensions']
-                # found = False
-                # critical = False
-                #
-                # for e in extensions:
-                #     if e['extn_id'].native == "key_usage":
-                #             found = True
-                #             break
-                #
-                # reason = "Profile oid is not in the certificate"
-                # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-                # if found:
-                #     reason = "extension criticality does not match  between profile and certificate"
-                #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-                #
-                #     reason = "Profile oid does not match the one in the certificate"
-                #     output_array.append({"Item": "digital_signature", "Result": 'digital_signature' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "non_repudiation", "Result": 'non_repudiation' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "key_encipherment", "Result": 'key_encipherment' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "data_encipherment", "Result": 'data_encipherment' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     result = opa["Result"]
-                #     content = ""
-                #     if result is True and config_options[ce].value is '1' or result is False and (config_options[ce].value is '3' or
-                #         config_options[ce].value is '2') :
-                #         gate = "FAIL: " + opa["Reason"]
-                #         content = opa["Content"]
-                #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-                #                   '"Item": "' + ce + '",' +
-                #                   '"Value": "' + config_options[ce].value + '",' +
-                #                   '"OID": "' + config_options[ce].oid + '",' +
-                #                   '"Content": "' + content + '",' +
-                #                   '"OUTPUT": "' +  gate + '"}')
-                #     outJson.append(dictn.copy())
-                # if "present" in ce:
-                #    prof_ext_oids.add(config_options[ce].oid)
-                #     output_array.append({"Item": "key_agreement", "Result": 'key_agreement' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "key_cert_sign", "Result": 'key_cert_sign' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "crl_sign", "Result": 'crl_sign' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "encipher_only", "Result": 'encipher_only' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                #     output_array.append({"Item": "decipher_only", "Result": 'decipher_only' in e['extn_value'].native, "Content": e['extn_id'].dotted, "Reason": reason})
-                # for opa in output_array:
-                #     gate = "PASS"
-                #     ce = opa["Item"]
-
 
     return r
 
@@ -467,17 +364,12 @@ def lint_issuer(config_options, cert):
     r = OutputRow("Issuer")
     print("\n--- " + r.row_name + " ---")
 
-    r.content = get_pretty_dn(cert.issuer, ",{}".format(_lint_cert_newline), "=")
+    issuer = cert.issuer
+    r.content = get_pretty_dn(issuer, ",{}".format(_lint_cert_newline), "=")
 
-    output_array = []
-    cert_leaf = cert['tbs_certificate']['issuer']
-    found_base_dn = False
-    found = False
-    # iterate over all rdn entries
     for ce in config_options:
         if "rdn_" in ce:
-            # print(ce + " " + config_options[ce].oid)
-            rdn_seq = cert_leaf.chosen
+            rdn_seq = issuer.chosen
             found = False
             for rdn in rdn_seq:
                 for name in rdn:
@@ -486,19 +378,22 @@ def lint_issuer(config_options, cert):
                         break
                 if found:
                     break
-            reason = "oid does not match in profile and certificate"
-            output_array.append({"Item": ce, "Result": found, "Content": rdn_seq.native, "Reason": reason})
-        elif "base_dn" in ce:
-            for rdn in cert_leaf.native:  # need oid for base_dn to search for oid
-                if 'base_dn' in rdn:
-                    found_base_dn = True
-                    # dn_split = ldap.dn(rdn) todo: compare dn's
-                    break
-            reason = "base DN not found"
-            output_array.append(
-                {"Item": "base_dn", "Result": found_base_dn, "Content": "", "Reason": reason})
+            camelcase = _snake_to_camelcase(ce)
 
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+            if found:
+                if config_options[ce].value == '1':
+                    _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+            elif config_options[ce].value == '2':
+                _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
+        elif ce == "issuer_base_dn":
+            camelcase = _snake_to_camelcase(ce)
+            if 'base_dn' in issuer.native:  #todo: dict compare
+                c_base_dn_dic = json.dumps(issuer.native['base_dn'])
+                p_base_dn_dict = json.dumps(config_options[ce].value)
+                if not c_base_dn_dic == p_base_dn_dict:
+                    _lint_cert_add_error_to_row(r, "{} is required to be matched".format(camelcase))
+            elif  len(config_options[ce].value) > 0:
+                _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
     return r
 
@@ -506,32 +401,32 @@ def lint_issuer(config_options, cert):
 def lint_akid(config_options, cert):
     r = OutputRow("Authority Key Id")
     print("\n--- " + r.row_name + " ---")
-
-    _process_common_extension_options(config_options, cert.authority_key_identifier_value,
+    ext_value = cert.authority_key_identifier_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'authority_key_identifier' in cert.critical_extensions,
                                       r)
+    if ext_value is not None:
+        kid = ext_value['key_identifier']
+        ku = "key_id"
+        camelcase = _snake_to_camelcase(ku)
+        if kid:
+            s = 'KeyID:  {} ({} octets)'.format(' '.join('%02X' % c for c in kid.contents), len(kid.contents))
+            _lint_cert_add_content_line(r, s)
+            if config_options[ku].value == 1:
+                _lint_cert_add_error_to_row(r, "{} is not allowed".format(_snake_to_camelcase(ku)))
+        elif config_options[ku].value == 2:
+            _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
+        ku = "name_and_serial"
+        camelcase = _snake_to_camelcase(ku)
+        item = ext_value['authority_cert_serial_number']
+        if item: #todo: no example cert
+            s = 'Name and Serial:  {} ({} octets)'.format(' '.join('%02X' % c for c in item.contents), len(item.contents))
+            _lint_cert_add_content_line(r, s)
+            if config_options[ku].value == 1:
+                _lint_cert_add_error_to_row(r, "{} is not allowed".format(_snake_to_camelcase(ku)))
+        elif config_options[ku].value == 2:
+            _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-
-    for e in extensions:
-        if e['extn_id'].native == "key_identifier":
-            found = True
-            break
-
-    reason = "Subject Key Identifier is not present"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-        extn_v = '{}'.format('%02X' % c for c in e['extn_value'].native)
-
-        # TODO: two more fields
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
 
@@ -539,36 +434,19 @@ def lint_akid(config_options, cert):
 def lint_skid(config_options, cert):
     r = OutputRow("Subject Key Id")
     print("\n--- " + r.row_name + " ---")
-
-    _process_common_extension_options(config_options, cert.key_identifier_value,
+    ext_value = cert.key_identifier_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'key_identifier' in cert.critical_extensions,
                                       r)
 
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
+    if ext_value is not None:
+        skid = ext_value.native
+        _lint_cert_add_content_line(r, 'sha1')
+        if not skid == cert['tbs_certificate']['subject_public_key_info'].sha1:
+            ku = "require_method_one"
+            if config_options[ku].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is required".format(_snake_to_camelcase(ku)))
 
-    for e in extensions:
-        if e['extn_id'].native == "key_identifier":
-            found = True
-            break
-
-    reason = "Subject Key Identifier is not present"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-
-        skid = cert.key_identifier_value.native
-        they_used_method_one = skid == cert['tbs_certificate']['subject_public_key_info'].sha1
-        reason = "Method one (sha1) is not allowed"
-        output_array.append(
-            {"Item": "require_method_one", "Result": they_used_method_one, "Content": str(skid),
-             "Reason": reason})
-        # todo look further
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
 
@@ -577,55 +455,43 @@ def lint_policy_constraints(config_options, cert):
     r = OutputRow("Policy Constraints")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.policy_constraints_value,
+    ext_value = cert.policy_constraints_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'policy_constraints' in cert.critical_extensions,
                                       r)
+    
+    if ext_value is not None:
+        ku = 'require_explicit_policy_present'
+        camelcase = _snake_to_camelcase(ku)
+        mku = 'require_explicit_policy_max'
+        mcamelcase = _snake_to_camelcase(mku)
+        rep = ext_value['require_explicit_policy']
+        _lint_cert_add_content_line(r, "Require Explicit Policy: {}".format(str(rep)))
+        if rep:
+            if config_options[ku].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+            elif config_options[ku].value == '2':
+                max = config_options[mku].value
+                if max > 0 and ext_value['require_explicit_policy'] > max:
+                    _lint_cert_add_error_to_row(r, "{} is more than maximum permitted".format(mcamelcase))
+        elif config_options[ku].value == '2':
+            _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    critical = False
-
-    for e in extensions:  # not in cert, mimicing aia
-        if e['extn_id'].native == "policy_constraints":
-            found = True
-            break
-
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-
-        '''
-        explicit_policy_present = False
-        policy_mapping_present = False
-
-        for item in e['extn_value'].native:
-            if item['require_explicit_policy']:
-                explicit_policy_present = True
-            elif item['inhibit_policy_mapping'] > 0:
-                policy_mapping_present = True
-
-            reason = "Policy Constraints Require Explicit Policy not present"
-            output_array.append({"Item": "require_explicit_policy_present", "Result": explicit_policy_present,
-                                     "Content": str(e['critical'].native), "Reason": reason})
-            reason = "Policy Constraints Require Explicit Policy Max not present"
-            output_array.append({"Item": "require_explicit_policy_max", "Result": e['critical'].native,
-                                     "Content": str(e['critical'].native), "Reason": reason})
-            reason = "Policy Constraints Require Explicit Policy Mapping not present"
-            output_array.append({"Item": "inhibit_policy_mapping_present", "Result": policy_mapping_present,
-                                     "Content": str(e['critical'].native), "Reason": reason})
-            reason = "extension criticality does not match between profile and certificate"
-            output_array.append({"Item": "inhibit_policy_mapping_max", "Result": e['critical'].native,
-                                     "Content": str(e['critical'].native), "Reason": reason})
-        '''
-
-        # todo: need cert example
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+        ku = 'inhibit_policy_mapping_present'
+        camelcase = _snake_to_camelcase(ku)
+        mku = 'inhibit_policy_mapping_max'
+        mcamelcase = _snake_to_camelcase(mku)
+        ipm = ext_value['inhibit_policy_mapping']
+        _lint_cert_add_content_line(r, "Inhibit Policy Mapping: {}".format(str(ipm)))
+        if ipm:
+            if config_options[ku].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+            elif config_options[ku].value == '2':
+                max = config_options[mku].value
+                if max > 0 and ext_value['inhibit_policy_mapping'] > max:
+                    _lint_cert_add_error_to_row(r, "{} is more than maximum permitted".format(mcamelcase))
+        elif config_options[ku].value == '2':
+            _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
     return r
 
@@ -634,40 +500,26 @@ def lint_serial_number(config_options, cert):
     r = OutputRow("Serial Number")
     print("\n--- " + r.row_name + " ---")
 
-    output_array = []
-    cert_leaf = cert['tbs_certificate']['serial_number'].native
+    serial_number = cert['tbs_certificate']['serial_number'].contents
 
     # todo we don't care about the length of the string representation of the binary converted to an int.
     # todo the length that matters is the length of the binary.
     # todo i.e. len(cert['tbs_certificate']['serial_number'].contents)
     # todo if the spreadsheet is not clear enough: "No minimum, minimum length (bytes), No max, max length (bytes)"
     # todo then please ask...
-
-    ln = len(str(cert_leaf))
-    pln = int(config_options["min_length"].value)
-    reason = "Certficate serial number length is less than profile specifiled minimum length"
-    output_array.append(
-        {"Item": "min_length", "Result": pln == 0 or ln > pln, "Content": str(cert_leaf), "Reason": reason})
-    pln = int(config_options["max_length"].value)
-    reason = "Certficate serial number length is more than profile specifiled maximum length"
-    output_array.append(
-        {"Item": "max_length", "Result": pln == 0 or ln < pln, "Content": str(cert_leaf), "Reason": reason})
-
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if not result:
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                              '"Item": "' + ce + '",' +
-    #                              '"Value": "' + config_options[ce].value + '",' +
-    #                              '"OID": "' + config_options[ce].oid + '",' +
-    #                              '"Content": "' + content + '",' +
-    #                              '"OUTPUT": "' + gate + '"}')
-    #     outJson.append(dictn.copy())
+    s = 'Serial Number:  {} ({} octets)'.format(' '.join('%02X' % c for c in serial_number), len(serial_number))
+    _lint_cert_add_content_line(r, s)
+    ln = len(serial_number)
+    ku = 'min_length'
+    camelcase = _snake_to_camelcase(ku)
+    pln = int(config_options[ku].value)
+    if pln > 0 and ln < pln:
+        _lint_cert_add_error_to_row(r, "{} is required minimum".format(camelcase))
+    ku = 'max_length'
+    camelcase = _snake_to_camelcase(ku)
+    pln = int(config_options[ku].value)
+    if pln > 0 and ln > pln:
+        _lint_cert_add_error_to_row(r, "{} is required maximum".format(camelcase))
 
     return r
 
@@ -676,32 +528,38 @@ def lint_basic_constraints(config_options, cert):
     r = OutputRow("Basic Constraints")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.basic_constraints_value,
+    ext_value = cert.basic_constraints_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'basic_constraints' in cert.critical_extensions,
-                                     r)
+                                      r)
 
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    critical = False
+    if ext_value is not None:
+        ku = 'ca_true'
+        camelcase = _snake_to_camelcase(ku)
+        _lint_cert_add_content_line(r, camelcase)
 
-    for e in extensions:  # not in cert, mimicing aia
-        if e['extn_id'].native == "basic_constraints":
-            found = True
-            break
+        if ext_value['ca']:
+            if config_options[ku].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+        elif config_options[ku].value == '2':
+            _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
+        ku = 'path_length_constraint_req'
+        camelcase = _snake_to_camelcase(ku)
+        _lint_cert_add_content_line(r, camelcase)
+        mku = 'path_length_constraint_max'
+        mcamelcase = _snake_to_camelcase(mku)
+        _lint_cert_add_content_line(r, mcamelcase)
+        if ext_value['path_len_constraint']:
+            if config_options[ku].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
+            elif config_options[ku].value == '2':
+                max = config_options[mku].value
+                if max > 0 and ext_value['path_len_constraint'] > max:
+                    _lint_cert_add_error_to_row(r, "{} is more than maximum permitted".format(mcamelcase))
+        elif config_options[ku].value == '2':
+            _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
 
-
-        # todo: need cert example. you have them in the zip file I sent you 10/18/2017 2:12 PM
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
 
@@ -710,7 +568,8 @@ def lint_cert_policies(config_options, cert):
     r = OutputRow("Certificate Policies")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.certificate_policies_value,
+    ext_value = cert.certificate_policies_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'certificate_policies' in cert.critical_extensions,
                                       r)
 
@@ -728,40 +587,6 @@ def lint_cert_policies(config_options, cert):
                             policy.native['policy_identifier'] not in permitted_policies:
                 _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['policy_identifier']))
 
-    #
-    #
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # content = False
-    # oids = set()
-    # c_policies = None
-    # for e in extensions:
-    #     if e['extn_id'].native == 'certificate_policies':
-    #         c_policies = e
-    #         break
-    #
-    # for ce in config_options:
-    #     if ce == "present":
-    #         reason = "certificate policies not present"
-    #         output_array.append(
-    #             {"Item": ce, "Result": not c_policies == None, "Content": e['extn_id'].dotted, "Reason": reason})
-    #     elif ce == "is_critical":
-    #         if not c_policies == None:
-    #             reason = "certificate policies is not critical"
-    #             output_array.append(
-    #                 {"Item": ce, "Result": c_policies['critical'], "Content": str(c_policies['critical']),
-    #                  "Reason": reason})
-    #     elif ce == "content":
-    #         if not c_policies == None:
-    #             for item in c_policies['extn_value'].native:
-    #                 oids.add(item['policy_identifier'])
-    #             if config_options[ce].oid in oids:
-    #                 content = True
-    #             reason = "profile policy oid is not in the certificate"
-    #             output_array.append({"Item": ce, "Result": content, "Content": str(oids), "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
-
     return r
 
 
@@ -769,45 +594,43 @@ def lint_subject_public_key_info(config_options, cert):
     r = OutputRow("Public Key")
     print("\n--- " + r.row_name + " ---")
 
-    r.content = "Put public key here"
+    ext_value = cert.public_key
 
-    output_array = []
-    cert_leaf = cert['tbs_certificate']['subject_public_key_info']
-    algo = cert_leaf['algorithm']['algorithm'].dotted
-    found = False
-    for ce in config_options:
-        if config_options[ce].oid == algo:
-            found = True
-            break
-    reason = "Profile oid is not in the certificate"
-    vl = config_options[ce].value
-    output_array.append({"Item": ce, "Result": vl == "0" or vl == "1" and not found or vl == "2" and found,
-                         "Content": algo, "Reason": reason})
+    if ext_value is not None:
+        c_oid = ext_value['algorithm'][0].dotted
+        _lint_cert_add_content_line(r, c_oid) #todo: export table content of cert or profile?
+        if c_oid == "1.2.840.113549.1.1.1":
+            if config_options['alg_rsa'].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_rsa')))
+        elif c_oid == "1.2.840.10045.2.1":
+            if config_options['alg_ec'].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_ec')))
+        elif c_oid == "1.2.840.10040.4.1":
+            if config_options['alg_dsa'].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_dsa')))
+        elif c_oid in config_options['alg_ec_named_curve'].value:
+            if config_options['alg_ec_named_curve'].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_ec_named_curve')))
+        else:
+            for ce in config_options:
+             if config_options[ce].value == '2' and not ce in set({'max_size', 'min_size'}):
+                _lint_cert_add_error_to_row(r, "{} is require".format(_snake_to_camelcase('ce')))
+        der_string = 'DER:\n'
+        der_string += textwrap.fill(' '.join('%02X' % c for c in ext_value.contents), 43)
+        der_string = der_string.replace('\n', _lint_cert_newline)
+        _lint_cert_add_content_line(r, der_string)
 
-    blen = cert_leaf['public_key'].native['modulus'].bit_length()
-
-    reason = "certificate public key size is less than prfoile minimum key size"
-    output_array.append(
-        {"Item": "min_size", "Result": blen > int(config_options['min_size'].value), "Content": str(blen), "Reason": reason})
-    reason = "certificate public key size is more than prfoile maximum key size"
-    output_array.append(
-        {"Item": "max_size", "Result": blen < int(config_options['max_size'].value), "Content": str(blen), "Reason": reason})
-
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if not result:
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                              '"Item": "' + ce + '",' +
-    #                              '"Value": "' + config_options[ce].value + '",' +
-    #                              '"OID": "' + config_options[ce].oid + '",' +
-    #                              '"Content": "' + content + '",' +
-    #                              '"OUTPUT": "' + gate + '"}')
-    #     outJson.append(dictn.copy())
+        ln = ext_value.bit_size
+        ku = 'max_size'
+        camelcase = _snake_to_camelcase(ku)
+        pln = int(config_options[ku].value)
+        if pln > 0 and ln > pln:
+            _lint_cert_add_error_to_row(r, "{} is required maximum".format(camelcase))
+        ku = 'min_size'
+        camelcase = _snake_to_camelcase(ku)
+        pln = int(config_options[ku].value)
+        if pln > 0 and ln < pln:
+            _lint_cert_add_error_to_row(r, "{} is required minimum".format(camelcase))
 
     return r
 
@@ -816,81 +639,38 @@ def lint_aia(config_options, cert):
     r = OutputRow("Authority Info Access")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.authority_information_access_value,
+    ext_value = cert.authority_information_access_value
+    _process_common_extension_options(config_options, ext_value,
                                       'authority_information_access' in cert.critical_extensions,
                                       r)
-
-    # cert.authority_information_access_value['key_identifier']
-    # cert.authority_information_access_value['authority_cert_issuer']
-    # cert.authority_information_access_value['authority_cert_serial_number']
-
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    critical = False
-
-    for e in extensions:
-        if e['extn_id'].native == "authority_information_access":
-            found = True
-            break
-
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match  between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-        ca_issuers_present = False
-        ocsp_found = False
-        http_found = False
-        ldap_found = False
+    if ext_value is not None:
+        found_set = {}
         http_before_ldap = False
-        ocsp_http = False
-        for item in e['extn_value'].native:
-            if item['access_method'] == 'ca_issuers':
-                ca_issuers_present = True
-                if 'http' in item['access_location']:
-                    http_found = True
-                elif 'ldap' in item['access_location']:
-                    ldap_found = True
-                    if http_found:
+        http = False
+        for child in ext_value:
+            if child['access_method'].native == 'ca_issuers':
+                found_set.update({"ca_issuers_present": ""})
+                if child['access_location'].name == 'universal_resource_identifier':
+                    found_set.update({"ca_issuers_http": child['access_location'].native})
+                    http = True
+                elif 'ldap://' in child['access_location'].native:
+                    found_set.update({"ca_issuers_ldap": child['access_location'].native})
+                    if http: #todo check http before ldap logic, https?
                         http_before_ldap = True
-            elif item['access_method'] == 'ocsp':
-                ocsp_found = True
-                if 'http' in item['access_location']:
-                    ocsp_http = True
-
-        reason = "ca_repository_present not present"
-        output_array.append(
-            {"Item": "ca_issuers_present", "Result": ca_issuers_present, "Content": item['access_method'],
-             "Reason": reason})
-
-        reason = "AIA CA Repository HTTP is not found"
-        output_array.append(
-            {"Item": "ca_issuers_http", "Result": http_found, "Content": item['access_location'], "Reason": reason})
-
-        reason = "AIA CA Repository LDAP is not found"
-        output_array.append(
-            {"Item": "ca_issuers_ldap", "Result": ldap_found, "Content": item['access_location'], "Reason": reason})
-
-        reason = "AIA CA Repository LDAP is before HTTP"
-        output_array.append(
-            {"Item": "ca_issuers_http_before_ldap", "Result": http_before_ldap, "Content": item['access_location'],
-             "Reason": reason})
-
-        reason = "AIA OCSP not present"
-        output_array.append(
-            {"Item": "ocsp_present", "Result": ocsp_found, "Content": item['access_location'], "Reason": reason})
-
-        reason = "AIA OCSP HTTP is not found"
-        output_array.append(
-            {"Item": "ocsp_https", "Result": ocsp_http, "Content": item['access_location'], "Reason": reason})
-
-    # todo, cert example: "ca_issuers_directory_name"
-
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+                elif 'https://' in child['access_location'].native:
+                    found_set.update({"ca_issuers_https": child['access_location'].native})
+                    http = True
+                elif 'ldaps://' in child['access_location'].native:
+                    found_set.update({"ca_issuers_ldaps": child['access_location'].native})
+                elif child['access_location'].name == 'dictionary_name':
+                    found_set.update({"ca_issuers_directory_name": child['access_location'].native})
+            elif child['access_method'].native == 'ocsp':
+                found_set.update({"ocsp_present": child['access_location'].native})
+                if child['access_location'].name == 'universal_resource_identifier':
+                    found_set.update({"ocsp_https": child['access_location'].native})
+        if http_before_ldap:
+            found_set.update({"ca_issuers_http_before_ldap": ""})
+        _process_more_cert_options(found_set, r, config_options)
 
     return r
 
@@ -899,66 +679,16 @@ def lint_san(config_options, cert):
     r = OutputRow("Subject Alt Name")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.subject_alt_name_value,
+    ext_value = cert.subject_alt_name_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'subject_alt_name' in cert.critical_extensions,
                                       r)
 
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    critical = False
-
-    for e in extensions:
-        if e['extn_id'].native == "subject_alt_name":
-            found = True
-            break
-
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match  between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-
-        # todo this is wrong
-        c_oid = "1.2.3.4.5"
-        # e['extn_value'].native[0]['type_id']
-
-        reason = "Profile oid does not match the one in the certificate"
-        #oid_found = False
-        #for ce in config_options:
-         #   if c_oid == config_options['rfc822_name'].oid:
-          #      oid_found = True
-          #      break need redesign tempate.json to accommodate section wide PASS/FAILL
-        output_array.append(
-            {"Item": "rfc822_name", "Result": c_oid == config_options['rfc822_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "x400_address", "Result": c_oid == config_options['x400_address'].oid, "Content": c_oid,
-                             "Reason": reason})
-        output_array.append(
-            {"Item": "directory_name", "Result": c_oid == config_options['directory_name'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append(
-            {"Item": "edi_party_name", "Result": c_oid == config_options['edi_party_name'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append(
-            {"Item": "uniform_resource_identifier", "Result": c_oid == config_options['uniform_resource_identifier'].oid,
-             "Content": c_oid, "Reason": reason})
-        output_array.append(
-            {"Item": "ip_address", "Result": c_oid == config_options['ip_address'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "registered_id", "Result": c_oid == config_options['registered_id'].oid, "Content": c_oid,
-                             "Reason": reason})
-        output_array.append(
-            {"Item": "other_name_upn", "Result": c_oid == config_options['other_name_upn'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append(
-            {"Item": "other_name_piv_fasc_n", "Result": c_oid == config_options['other_name_piv_fasc_n'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append({"Item": "uniform_resource_identifier_chuid",
-                             "Result": c_oid == config_options['uniform_resource_identifier_chuid'].oid, "Content": c_oid,
-                             "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+    if ext_value is not None:
+        found_set = {}
+        for child in ext_value:
+            found_set.update({child.name: ""}) #todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
+        _process_more_cert_options(found_set, r, config_options)
 
     return r
 
@@ -967,59 +697,16 @@ def lint_ian(config_options, cert):
     r = OutputRow("Issuer Alt Name")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.issuer_alt_name_value,
+    ext_value = cert.issuer_alt_name_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'issuer_alt_name' in cert.critical_extensions,
                                       r)
 
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    critical = False
-
-    for e in extensions:
-        if e['extn_id'].native == "issuer_alt_name":
-            found = True
-            break
-
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match  between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-
-        c_oid = e['extn_value'].native[0]['type_id']
-        reason = "Profile oid does not match the one in the certificate"
-        output_array.append(
-            {"Item": "rfc822_name", "Result": c_oid == config_options['rfc822_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "x400_address", "Result": c_oid == config_options['x400_address'].oid, "Content": c_oid,
-                             "Reason": reason})
-        output_array.append(
-            {"Item": "directory_name", "Result": c_oid == config_options['directory_name'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append(
-            {"Item": "edi_party_name", "Result": c_oid == config_options['edi_party_name'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append(
-            {"Item": "uniform_resource_identifier", "Result": c_oid == config_options['uniform_resource_identifier'].oid,
-             "Content": c_oid, "Reason": reason})
-        output_array.append(
-            {"Item": "ip_address", "Result": c_oid == config_options['ip_address'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append({"Item": "registered_id", "Result": c_oid == config_options['registered_id'].oid, "Content": c_oid,
-                             "Reason": reason})
-        output_array.append(
-            {"Item": "other_name", "Result": c_oid == config_options['other_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append(
-            {"Item": "dns_name", "Result": c_oid == config_options['dns_name'].oid, "Content": c_oid, "Reason": reason})
-        output_array.append(
-            {"Item": "other_name_piv_fasc_n", "Result": c_oid == config_options['other_name_piv_fasc_n'].oid, "Content": c_oid,
-             "Reason": reason})
-        output_array.append({"Item": "uniform_resource_identifier_chuid",
-                             "Result": c_oid == config_options['uniform_resource_identifier_chuid'].oid, "Content": c_oid,
-                             "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
+    if ext_value is not None:
+        found_set = {}
+        for child in ext_value:
+            found_set.update({child.name: ""}) #todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
+        _process_more_cert_options(found_set, r, config_options)
 
     return r
 
@@ -1125,7 +812,8 @@ def lint_eku(config_options, cert):
     r = OutputRow("Extended Key Usage")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.extended_key_usage_value,
+    ext_value = cert.extended_key_usage_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'extended_key_usage' in cert.critical_extensions,
                                       r)
 
@@ -1141,63 +829,6 @@ def lint_eku(config_options, cert):
                 _do_presence_test(r, config_options, ce, eku_display_map.get(config_options[ce].oid, "Unknown EKU"),
                                   config_options[ce].oid in eku_oids)
 
-
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    # critical = False
-    #
-    # for e in extensions:
-    #     if e['extn_id'].native == "extended_key_usage":
-    #             found = True
-    #             break
-    #
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append({"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),"Reason": reason})
-    #
-    #     c_oid = e['extn_value'].native[0]
-    #     reason = "Profile oid does not match the one in the certificate"
-    #     output_array.append({"Item": "oid_server_auth", "Result": c_oid == config_options['oid_server_auth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_client_auth", "Result": c_oid == config_options['oid_client_auth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_code_signing", "Result": c_oid == config_options['oid_code_signing'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_email_protection", "Result": c_oid == config_options['oid_email_protection'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_time_stamping", "Result": c_oid == config_options['oid_time_stamping'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ocsp_signing", "Result": c_oid == config_options['oid_ocsp_signing'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_any_eku", "Result": c_oid == config_options['oid_any_eku'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_smart_card_logon", "Result": c_oid == config_options['oid_smart_card_logon'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_ike_intermediate", "Result": c_oid == config_options['oid_ipsec_ike_intermediate'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_end_system", "Result": c_oid == config_options['oid_ipsec_end_system'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_tunnel_termination", "Result": c_oid == config_options['oid_ipsec_tunnel_termination'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_ipsec_user", "Result": c_oid == config_options['oid_ipsec_user'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_piv_card_auth", "Result": c_oid == config_options['oid_piv_card_auth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_pivi_content_signing", "Result": c_oid == config_options['oid_pivi_content_signing'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_smartCardLogon", "Result": c_oid == config_options['oid_smartCardLogon'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_pkinit_KPKdc", "Result": c_oid == config_options['oid_pkinit_KPKdc'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "oid_pkinit_KPClientAuth", "Result": c_oid == config_options['oid_pkinit_KPClientAuth'].oid, "Content": c_oid, "Reason": reason})
-    #     output_array.append({"Item": "other", "Result": c_oid == config_options['other'].oid, "Content": c_oid, "Reason": reason})
-    #
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if result is True and config_options[ce].value is '1' or result is False and (config_options[ce].value is '3' or
-    #         config_options[ce].value is '2') :
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                   '"Item": "' + ce + '",' +
-    #                   '"Value": "' + config_options[ce].value + '",' +
-    #                   '"OID": "' + config_options[ce].oid + '",' +
-    #                   '"Content": "' + content + '",' +
-    #                   '"OUTPUT": "' +  gate + '"}')
-    #     outJson.append(dictn.copy())
-    # if "present" in ce:
-    #    prof_ext_oids.add(config_options[ce].oid)
-
     return r
 
 
@@ -1205,54 +836,30 @@ def lint_crldp(config_options, cert):
     r = OutputRow("CRL Distribution Points")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.crl_distribution_points_value,
+    ext_value = cert.crl_distribution_points_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'crl_distribution_points' in cert.critical_extensions,
-                                      r)
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    http = False
-    ldap = False
-    http_before_ldap = False
-    http = False
-    for e in extensions:
-        if e['extn_id'].native == "crl_distribution_points":
-            found = True
-            break
+                                        r)
+    if ext_value is not None:
+        found_set = {}
+        http_before_ldap = False
+        http = False
+        for child in ext_value:
+            for dp in  child.native['distribution_point']:
+                if 'ldap://' in dp:
+                    found_set.update({"http": dp})
+                    http = True
+                elif 'ldap://' in dp:
+                    found_set.update({"ldap": dp})
+                    if http: #todo check http before ldap logic, https?
+                        http_before_ldap = True
+                elif child['distribution_point'].name == 'dictionary_name':
+                    found_set.update({"directory_name": child['distribution_point'].native})
 
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match  between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
+        if http_before_ldap:
+            found_set.update({"http_before_ldap": ""})
+        _process_more_cert_options(found_set, r, config_options)
 
-        for item in e['extn_value'].native:
-            if "http" in str(item['distribution_point']):
-                http = True  # search oid?
-            if "ldap" in str(item['distribution_point']):
-                ldap = True
-                if http:
-                    http_before_ldap = True
-                    # elif dn tell dn
-
-        reason = "CRL Dirstribution Point HTTP is not found"
-        output_array.append(
-            {"Item": "http", "Result": http, "Content": item['distribution_point'][0], "Reason": reason})
-
-        reason = "CRL Dirstribution Point LDAP is not found"
-        output_array.append(
-            {"Item": "ldap", "Result": ldap, "Content": item['distribution_point'][0], "Reason": reason})
-
-        reason = "CRL Dirstribution Point LDAP is before HTTP"
-        output_array.append(
-            {"Item": "http_before_ldap", "Result": http_before_ldap, "Content": item['distribution_point'][0],
-             "Reason": reason})
-
-        # todo, cert example: "directory_name"
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
 
@@ -1261,61 +868,27 @@ def lint_sia(config_options, cert):
     r = OutputRow("Subject info Access")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.subject_information_access_value,
+    ext_value = cert.subject_information_access_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'subject_information_access' in cert.critical_extensions,
                                       r)
-
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-    critical = False
-
-    for e in extensions:
-        if e['extn_id'].native == "subject_information_access":
-            found = True
-            break
-
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    if found:
-        reason = "extension criticality does not match  between profile and certificate"
-        output_array.append(
-            {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-             "Reason": reason})
-
-        ca_repository_present = False
-        http_found = False
-        ldap_found = False
+    if ext_value is not None:
+        found_set = {}
         http_before_ldap = False
-        for item in e['extn_value'].native:
-            if item['access_method'] == 'ca_repository':
-                ca_repository_present = True
-                if 'http' in item['access_location']:
-                    http_found = True
-                elif 'ldap' in item['access_location']:
-                    ldap_found = True
-                    if http_found:
+        http = False
+        for child in ext_value:
+            if child['access_method'].native == 'ca_repository':
+                found_set.update({"ca_repository_present": child['access_location'].native})
+                if child['access_location'].name == 'universal_resource_identifier':
+                    found_set.update({"ca_repository_http": ""})
+                    http = True
+                elif 'ldap://' in child['access_location'].native:
+                    found_set.update({"ca_repository_ldap": child['access_location'].native})
+                    if http: #todo check http before ldap logic, https?
                         http_before_ldap = True
-        reason = "ca_repository_present not present"
-        output_array.append(
-            {"Item": "ca_repository_present", "Result": ca_repository_present, "Content": item['access_method'],
-             "Reason": reason})
-
-        reason = "SIA CA Repository HTTP is not found"
-        output_array.append(
-            {"Item": "ca_repository_http", "Result": http_found, "Content": item['access_location'], "Reason": reason})
-
-        reason = "SIA CA Repository LDAP is not found"
-        output_array.append(
-            {"Item": "ca_repository_ldap", "Result": ldap_found, "Content": item['access_location'], "Reason": reason})
-
-        reason = "SIA CA Repository LDAP is before HTTP"
-        output_array.append(
-            {"Item": "ca_repository_http_before_ldap", "Result": http_before_ldap, "Content": item['access_location'],
-             "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
-
+        if http_before_ldap:
+            found_set.update({"ca_repository_http_before_ldap": ""})
+        _process_more_cert_options(found_set, r, config_options)
     return r
 
 
@@ -1329,28 +902,6 @@ def lint_pkup(config_options, cert):
                                       is_critical,
                                       r)
 
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    #
-    # oids = []
-    # for e in extensions:  # not in cert, mimicing aia
-    #     oids.append(e['extn_id'].dotted)
-    #     if e['extn_id'].native == "private_key_usage_period":
-    #         found = True
-    #         break
-    #
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": str(oids), "Reason": reason})
-    #
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append(
-    #         {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-    #          "Reason": reason})
-    #
-    # json_dump(output_array, config_options, cfg_sect, outJson)
-
     return r
 
 
@@ -1358,31 +909,10 @@ def lint_sub_dir_attr(config_options, cert):
     r = OutputRow("Subject Directory Attributes")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.subject_directory_attributes_value,
+    ext_value = cert.subject_directory_attributes_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'subject_directory_attributes' in cert.critical_extensions,
                                       r)
-    #
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    #
-    # oids = []
-    # for e in extensions:  # not in cert, mimicing aia
-    #     oids.append(e['extn_id'].dotted)
-    #     if e['extn_id'].native == "subject_directory_attribute":
-    #         found = True
-    #         break
-    #
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": str(oids), "Reason": reason})
-    #
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append(
-    #         {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-    #          "Reason": reason})
-    #
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
 
@@ -1397,32 +927,11 @@ def lint_signature_algorithm(config_options, cert):
     found = False
     for ce in config_options:
         if config_options[ce].oid == oid:
-            found = True
-            break
-
-    cert_leaf1 = cert['tbs_certificate']['signature']['algorithm'].dotted
-    reason = "the certificate signature algorithm not found in profile or the signature algorithm and TBS certificate signature algorithm are not the same"
-    output_array.append({"Item": ce, "Result": found and cert_leaf.dotted == cert_leaf1,
-                         "Content": "signature algorithm:" + oid + ". tbs certificate sig algorithm: " + cert_leaf1,
-                         "Reason": reason})
-
-    # for opa in output_array:
-    #     gate = "PASS"
-    #     ce = opa["Item"]
-    #     result = opa["Result"]
-    #     content = ""
-    #     if result is True and config_options[ce].value is '1':
-    #         gate = "FAIL: " + opa["Reason"]
-    #         content = opa["Content"]
-    #     dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-    #                              '"Item": "' + ce + '",' +
-    #                              '"Value": "' + config_options[ce].value + '",' +
-    #                              '"OID": "' + config_options[ce].oid + '",' +
-    #                              '"Content": "' + content + '",' +
-    #                              '"OUTPUT": "' + gate + '"}')
-    #     outJson.append(dictn.copy())
-    #     # if "present" in ce:
-    #     #    prof_ext_oids.add(config_options[ce].oid)
+            _lint_cert_add_content_line(r, oid)  # todo: export table content of cert or profile?
+            if config_options[ce].value == '1':
+                _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase(ce)))
+            elif not cert['tbs_certificate']['signature']['algorithm'].dotted == oid:
+                _lint_cert_add_error_to_row(r, "{} is required to equal to {}".format(_snake_to_camelcase(ce), cert['tbs_certificate']['signature']['algorithm'].dotted))
 
     return r
 
@@ -1440,16 +949,6 @@ def lint_version(config_options, cert):
     if int(cert['tbs_certificate']['version']) < min_version_num:
         _lint_cert_add_error_to_row(r, "Minimum permitted version is {}".format(min_version))
 
-    # output_array = []
-    # cert_leaf = cert['tbs_certificate']['version'].native
-    #
-    # reason = "Certifcate Version is less than the minimum certificate versoin specified in the profile"
-    # output_array.append(
-    #     {"Item": "min_version", "Result": int(cert_leaf[1:]) >= int(config_options['min_version'].value), "Content": cert_leaf,
-    #      "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
-
     return r
 
 
@@ -1457,28 +956,10 @@ def lint_ocsp_nocheck(config_options, cert):
     r = OutputRow("OCSP NoCheck")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.ocsp_no_check_value,
+    ext_value = cert.ocsp_no_check_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'ocsp_no_check' in cert.critical_extensions,
                                       r)
-
-    output_array = []
-    extensions = cert['tbs_certificate']['extensions']
-    found = False
-
-    for e in extensions:  # not in cert, mimicing aia
-        if e['extn_id'].native == "ocsp_no_ckeck":
-            found = True
-            break
-
-    reason = "Profile oid is not in the certificate"
-    output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-
-    if found:
-        reason = "extension criticality does not match  between profile and certificate"
-        output_array.append({"Item": "critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-                             "Reason": reason})
-
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
 
@@ -1487,49 +968,12 @@ def lint_inhibit_any(config_options, cert):
     r = OutputRow("Inhibit Any Policy")
     print("\n--- " + r.row_name + " ---")
 
-    _process_common_extension_options(config_options, cert.inhibit_any_policy_value,
+    ext_value = cert.inhibit_any_policy_value
+    _process_common_extension_options(config_options, ext_value, 
                                       'inhibit_any_policy' in cert.critical_extensions,
                                       r)
-    #
-    # output_array = []
-    # extensions = cert['tbs_certificate']['extensions']
-    # found = False
-    # critical = False
-    #
-    # for e in extensions:  # not in cert, mimicing aia
-    #     if e['extn_id'].native == "inhibit_any_policy":
-    #         found = True
-    #         break
-    # reason = "Profile oid is not in the certificate"
-    # output_array.append({"Item": "present", "Result": found, "Content": e['extn_id'].dotted, "Reason": reason})
-    #
-    # if found:
-    #     reason = "extension criticality does not match  between profile and certificate"
-    #     output_array.append(
-    #         {"Item": "is_critical", "Result": e['critical'].native, "Content": str(e['critical'].native),
-    #          "Reason": reason})
-    #
-    # json_dump(output_array, config_options, cfg_sect, outJson)
 
     return r
-
-# def json_dump(output_array, config_options, cfg_sect, outJson):
-#     for opa in output_array:
-#         gate = "PASS"
-#         ce = opa["Item"]
-#         result = opa["Result"]
-#         content = ""
-#         if result is True and config_options[ce].value is '1' or result is False and config_options[ce].value is '2':
-#             gate = "FAIL: " + opa["Reason"]
-#             content = opa["Content"]
-#         dictn = ast.literal_eval('{"Section": "' + cfg_sect + '",' +
-#                                  '"Item": "' + ce + '",' +
-#                                  '"Value": "' + config_options[ce].value + '",' +
-#                                  '"OID": "' + config_options[ce].oid + '",' +
-#                                  '"Content": "' + content + '",' +
-#                                  '"OUTPUT": "' + gate + '"}')
-#         outJson.append(dictn.copy())
-#     return
 
 
 conformance_check_functions = OrderedDict([
@@ -1570,12 +1014,9 @@ conformance_check_functions = OrderedDict([
 ])
 
 
-def check_cert_conformance(input_cert, profile_file, end_of_line=None, indent=None):
+def check_cert_conformance(input_cert, json_profile, end_of_line=None, indent=None):
     if not isinstance(input_cert, x509.Certificate):
         raise TypeError("input_cert must be an x509.Certificate")
-
-    if not isinstance(profile_file, str):
-        raise TypeError("profile_file must be str")
 
     global _lint_cert_newline
     lint_cert_newline_reset = _lint_cert_newline
@@ -1588,9 +1029,6 @@ def check_cert_conformance(input_cert, profile_file, end_of_line=None, indent=No
 
     if indent is not None:
         _lint_cert_indent = indent
-
-    with open('profiles/{}.json'.format(profile_file)) as json_data:
-        json_profile = json.load(json_data)
 
     cert_profile = {}
 
@@ -1633,9 +1071,8 @@ def check_cert_conformance(input_cert, profile_file, end_of_line=None, indent=No
     return output_rows, other_extensions_rows
 
 
-def process_one_certificate(cert, profile_file, output_file):
-
-    output_rows, other_extensions_rows = check_cert_conformance(cert, profile_file, "<br>", '&nbsp;&nbsp;&nbsp;&nbsp;')
+def process_one_certificate(cert, json_profile, output_file):
+    output_rows, other_extensions_rows = check_cert_conformance(cert, json_profile, "<br>", '&nbsp;&nbsp;&nbsp;&nbsp;')
 
     strap_start = "<!DOCTYPE html>\n<html>\n<title>CPCT Output</title>\n<xmp theme=\"cerulean\" style=\"display:none;\">\n"
     strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
@@ -1664,52 +1101,34 @@ def process_one_certificate(cert, profile_file, output_file):
 
 if __name__ == "__main__":
 
-    filePath = "testcerts/test.cer"
-    with open(filePath, 'rb') as cert_file:
-        encoded = cert_file.read()
+# the main setup is to load many profiles and many certs for different testing scenerios
+ with open('output/test.html', 'w') as output_file:
+       for filePath in glob.glob("testcerts/*.cer"):
+            #filePath = "testcerts/test.cer"
+            with open(filePath, 'rb') as cert_file:
+                encoded = cert_file.read()
 
-    input_cert = None
+            input_cert = None
 
-    try:
-        input_cert = parse_cert(encoded)
-    except:
-        # todo add proper exception handlers
-        print("Failed to parse the certificate")
+            try:
+                input_cert = parse_cert(encoded)
+            except:
+                # todo add proper exception handlers
+                print("Failed to parse the certificate")
 
-    if input_cert is None:
-        exit(0)
+            if input_cert is None:
+                exit(0)
 
-    print("\nSubject:\n{}\n".format(get_pretty_dn(input_cert.subject, "\n", "=")))
-    print("Issuer:\n{}\n".format(get_pretty_dn(input_cert.issuer, "\n", "=")))
+            print("\nSubject:\n{}\n".format(get_pretty_dn(input_cert.subject, "\n", "=")))
+            print("Issuer:\n{}\n".format(get_pretty_dn(input_cert.issuer, "\n", "=")))
 
-    with open('output/test.html', 'w') as output_file:
-        process_one_certificate(input_cert, "devtest", output_file)
+            for profile_file in glob.glob("profiles/*.json"):
+                with open(profile_file) as json_data:
+                    json_profile = json.load(json_data)
+                    process_one_certificate(input_cert, json_profile, output_file)
 
 
-    # with open('profiles/template.json') as json_data:
-    #     json_profile = json.load(json_data)
-    #
-    # cert_profile = {}
-    #
-    # for entry in json_profile:
-    #     if entry['Section'] not in cert_profile:
-    #         cert_profile[entry['Section']] = {}
-    #     pce = config_entry()
-    #     pce.value = entry['Value']
-    #     pce.oid = entry['OID']
-    #     cert_profile[entry['Section']][entry['Item']] = pce
-    # outJson = []
-    # for cfg_sect in cert_profile:
-    #     # print(cfg_sect)
-    #     if cfg_sect in conformance_check_functions:
-    #         conformance_check_functions[cfg_sect](cert_profile[cfg_sect], input_cert, cfg_sect, outJson)
-    #         if "critical" in cert_profile[cfg_sect] and "present" in cert_profile[cfg_sect]: #why critical?
-    #             prof_ext_oids.add(cert_profile[cfg_sect]["present"].oid)
-    #     elif not cfg_sect == "other_extensions":
-    #         print("Invalid config section:  {}".format(cfg_sect))
-    # lint_other_extensions(cert_profile["other_extensions"], input_cert, cfg_sect, outJson)
-    # #output
-    # json.dump(outJson, sys.stdout, indent=2)
+
 
 
 
