@@ -125,7 +125,10 @@ def _process_more_cert_options(found_set, r, config_options):
             camelcase = _snake_to_camelcase(ku)  # alternatively use a map between profile key and display text
 
             if   ku in found_set and config_options[ku].value == '1':
-                    _lint_cert_add_content_line(r, camelcase + " " + found_set[ku])
+                    semi = ""
+                    if len(found_set[ku]) > 0:
+                        semi = ": "
+                    _lint_cert_add_content_line(r, camelcase + semi + found_set[ku])
                     _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif not ku in found_set and config_options[ku].value == '2':
                 _lint_cert_add_error_to_row(r, "{} is required".format(_snake_to_camelcase(ku)))
@@ -487,8 +490,8 @@ def lint_policy_constraints(config_options, cert):
             if config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ku].value == '2':
-                max = config_options[mku].value
-                if max > 0 and ext_value['inhibit_policy_mapping'] > max:
+                max = int(config_options[mku].value)
+                if max > 0 and ext_value['inhibit_policy_mapping'].native > max:
                     _lint_cert_add_error_to_row(r, "{} is more than maximum permitted".format(mcamelcase))
         elif config_options[ku].value == '2':
             _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
@@ -554,8 +557,8 @@ def lint_basic_constraints(config_options, cert):
             if config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ku].value == '2':
-                max = config_options[mku].value
-                if max > 0 and ext_value['path_len_constraint'] > max:
+                max = int(config_options[mku].value)
+                if max > 0 and ext_value['path_len_constraint'].native > max:
                     _lint_cert_add_error_to_row(r, "{} is more than maximum permitted".format(mcamelcase))
         elif config_options[ku].value == '2':
             _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
@@ -1101,8 +1104,7 @@ def process_one_certificate(cert, json_profile, output_file):
 
 if __name__ == "__main__":
 
-# the main setup is to load many profiles and many certs for different testing scenerios
- with open('output/test.html', 'w') as output_file:
+# the main setup is to load many profiles and many certs for different testing cases
        for filePath in glob.glob("testcerts/*.cer"):
             #filePath = "testcerts/test.cer"
             with open(filePath, 'rb') as cert_file:
@@ -1125,7 +1127,8 @@ if __name__ == "__main__":
             for profile_file in glob.glob("profiles/*.json"):
                 with open(profile_file) as json_data:
                     json_profile = json.load(json_data)
-                    process_one_certificate(input_cert, json_profile, output_file)
+                    with open('output/' + filePath.replace('/', '_') + profile_file.replace('/', '_') + '.html', 'w') as output_file:
+                        process_one_certificate(input_cert, json_profile, output_file)
 
 
 
