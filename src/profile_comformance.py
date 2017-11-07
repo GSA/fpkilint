@@ -154,7 +154,7 @@ def lint_name_constraints(config_options, cert):
                 max = item[2].native
                 if not max:
                     max = "Max"
-                s += "\n\t[{}]Subtree({}..{}): {} Name={}".format(i, item[1].native, max, item[0].name, item[0].native)
+                s += "\n\t[{}]Subtree({}..{}): \n\t\t{} Name={}".format(i, item[1].native, max, item[0].name, item[0].native)
                 i += 1
             found_set.update({"permitted": s})
         else:
@@ -168,7 +168,7 @@ def lint_name_constraints(config_options, cert):
                 max = item[2].native
                 if not max:
                     max = "Max"
-                s += "\n\t[{}]Subtree({}..{}): {} Name={}".format(i, item[1].native, max, item[0].name,
+                s += "\n\t[{}]Subtree({}..{}): \n\t\t{} Name={}".format(i, item[1].native, max, item[0].name,
                                                                     item[0].native)
                 i += 1
             found_set.update({"excluded": s})
@@ -468,7 +468,8 @@ def lint_skid(config_options, cert):
 
     if ext_value is not None:
         skid = ext_value.native
-        _lint_cert_add_content_line(r, 'sha1')
+        s = '{} ({} octets)'.format(' '.join('%02X' % c for c in ext_value.contents), len(ext_value.contents))
+        _lint_cert_add_content_line(r, 'sha1: {}'.format(s))
         if not skid == cert['tbs_certificate']['subject_public_key_info'].sha1:
             ku = "require_method_one"
             if config_options[ku].value == '1':
@@ -678,7 +679,7 @@ def lint_aia(config_options, cert):
         for child in ext_value:
             if child['access_method'].native == 'ca_issuers':
                 found_set.update({"ca_issuers_present": ""})
-                if child['access_location'].name == 'universal_resource_identifier':
+                if 'http://' in child['access_location'].native:
                     found_set.update({"ca_issuers_http": child['access_location'].native})
                     http = True
                 elif 'ldap://' in child['access_location'].native:
@@ -690,7 +691,7 @@ def lint_aia(config_options, cert):
                     http = True
                 elif 'ldaps://' in child['access_location'].native:
                     found_set.update({"ca_issuers_ldaps": child['access_location'].native})
-                elif child['access_location'].name == 'dictionary_name':
+                elif child['access_location'].name == 'dictionary_name': #todo: prove it
                     found_set.update({"ca_issuers_directory_name": child['access_location'].native})
             elif child['access_method'].native == 'ocsp':
                 found_set.update({"ocsp_present": child['access_location'].native})
@@ -715,7 +716,16 @@ def lint_san(config_options, cert):
     if ext_value is not None:
         found_set = {}
         for child in ext_value:
-            found_set.update({child.name: ""}) #todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
+            if child.name == 'other_name':
+                value = child.native['value']
+                if isinstance(value, str):
+                    v = value
+                else:
+                    v = '{} ({} octets)'.format(' '.join('%02X' % c for c in value), len(value))
+                s = "type id=" + child.native['type_id'] + ", value=" + v
+                found_set.update({child.name: s})
+            else:
+                found_set.update({child.name: child.native}) #todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
         _process_more_cert_options(found_set, r, config_options)
 
     return r
@@ -876,6 +886,7 @@ def lint_crldp(config_options, cert):
             i = 1
             for dp in  child.native['distribution_point']:
                 _lint_cert_add_content_line(r,"({}) CRL Distribution Point: {}".format(i, dp))
+                i +=1
                 if 'ldap://' in dp:
                     found_set.update({"http": dp})
                     http = True
