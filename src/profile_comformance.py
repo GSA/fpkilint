@@ -943,6 +943,9 @@ def lint_sub_dir_attr(config_options, cert):
     _process_common_extension_options(config_options, ext_value, 
                                       'subject_directory_attributes' in cert.critical_extensions,
                                       r)
+    if ext_value:
+        s = '{} ({} octets)'.format(' '.join('%02X' % c for c in ext_value.contents), len(ext_value.contents))
+        _lint_cert_add_content_line(r, s)
 
     return r
 
@@ -1002,7 +1005,7 @@ def lint_inhibit_any(config_options, cert):
                                       'inhibit_any_policy' in cert.critical_extensions,
                                       r)
     if ext_value:
-        s = 'Name and Serial:  {} ({} octets)'.format(' '.join('%02X' % c for c in ext_value.contents), len(ext_value.contents))
+        s = '{} ({} octets)'.format(' '.join('%02X' % c for c in ext_value.contents), len(ext_value.contents))
         _lint_cert_add_content_line(r, s)
     return r
 
