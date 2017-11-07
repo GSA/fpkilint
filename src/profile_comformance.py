@@ -123,12 +123,13 @@ def _process_more_cert_options(found_set, r, config_options):
     for ku in config_options:
         if not ku == 'present' and not ku == 'is_critical':
             camelcase = _snake_to_camelcase(ku)  # alternatively use a map between profile key and display text
-
+            semi = ""
+            if ku in found_set:
+                if len(found_set[ku]) > 0:
+                    semi = ": "
+                _lint_cert_add_content_line(r, camelcase + semi + found_set[ku])
             if   ku in found_set and config_options[ku].value == '1':
-                    semi = ""
-                    if len(found_set[ku]) > 0:
-                        semi = ": "
-                    _lint_cert_add_content_line(r, camelcase + semi + found_set[ku])
+
                     _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif not ku in found_set and config_options[ku].value == '2':
                 _lint_cert_add_error_to_row(r, "{} is required".format(_snake_to_camelcase(ku)))
@@ -145,10 +146,34 @@ def lint_name_constraints(config_options, cert):
     if ext_value is not None:
         found_set = {}
 
-        if ext_value['permitted_subtrees']:
-            found_set.update({"permitted": ""})
-        if ext_value['excluded_subtrees']:
-            found_set.update({"excluded": ""})
+        perm = ext_value['permitted_subtrees']
+        if perm:
+            i = 1
+            s =""
+            for item in perm:
+                max = item[2].native
+                if not max:
+                    max = "Max"
+                s += "\n\t[{}]Subtree({}..{}): {} Name={}".format(i, item[1].native, max, item[0].name, item[0].native)
+                i += 1
+            found_set.update({"permitted": s})
+        else:
+            found_set.update({"permitted": "Permitted None"})
+
+        excl =  ext_value['excluded_subtrees']
+        if excl:
+            i = 1
+            s = ""
+            for item in excl:
+                max = item[2].native
+                if not max:
+                    max = "Max"
+                s += "\n\t[{}]Subtree({}..{}): {} Name={}".format(i, item[1].native, max, item[0].name,
+                                                                    item[0].native)
+                i += 1
+            found_set.update({"excluded": s})
+        else:
+            found_set.update({"excluded": "Excluded None"})
         _process_more_cert_options(found_set, r, config_options)
 
     return r
@@ -206,21 +231,20 @@ def lint_policy_mappings(config_options, cert):
                                       r)
 
     if ext_value is not None:
+        permitted_policies = None
         if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
             permitted_policies = config_options['permitted'].value.split()
+        for policy in ext_value:
+            _lint_cert_add_content_line(r, "Issuer Domain={} Subject Domain={}".format(policy.native['issuer_domain_policy']
+                                               ,policy.native['subject_domain_policy']))
 
-            for policy in ext_value:
-                _lint_cert_add_content_line(r, policy.native['issuer_domain_policy'])
+            if permitted_policies is not None and \
+                            policy.native['issuer_domain_policy'] not in permitted_policies: #todo: check permitted value format
+                _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['issuer_domain_policy']))
 
-                if permitted_policies is not None and \
-                                policy.native['issuer_domain_policy'] not in permitted_policies: #todo: check permitted value format
-                    _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['issuer_domain_policy']))
-            for policy in ext_value:
-                _lint_cert_add_content_line(r, policy.native['subject_domain_policy'])
-
-                if permitted_policies is not None and \
-                                policy.native['subject_domain_policy'] not in permitted_policies:
-                    _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['subject_domain_policy']))
+            if permitted_policies is not None and \
+                            policy.native['subject_domain_policy'] not in permitted_policies:
+                _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['subject_domain_policy']))
     return r
 
 
@@ -469,8 +493,9 @@ def lint_policy_constraints(config_options, cert):
         mku = 'require_explicit_policy_max'
         mcamelcase = _snake_to_camelcase(mku)
         rep = ext_value['require_explicit_policy']
-        _lint_cert_add_content_line(r, "Require Explicit Policy: {}".format(str(rep)))
+
         if rep:
+            _lint_cert_add_content_line(r, "Require Explicit Policy Skip Certs={}".format(str(rep)))
             if config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ku].value == '2':
@@ -485,8 +510,9 @@ def lint_policy_constraints(config_options, cert):
         mku = 'inhibit_policy_mapping_max'
         mcamelcase = _snake_to_camelcase(mku)
         ipm = ext_value['inhibit_policy_mapping']
-        _lint_cert_add_content_line(r, "Inhibit Policy Mapping: {}".format(str(ipm)))
+
         if ipm:
+            _lint_cert_add_content_line(r, "Inhibit Policy Mapping Skip Certs={}".format(str(ipm)))
             if config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ku].value == '2':
@@ -510,7 +536,7 @@ def lint_serial_number(config_options, cert):
     # todo i.e. len(cert['tbs_certificate']['serial_number'].contents)
     # todo if the spreadsheet is not clear enough: "No minimum, minimum length (bytes), No max, max length (bytes)"
     # todo then please ask...
-    s = 'Serial Number:  {} ({} octets)'.format(' '.join('%02X' % c for c in serial_number), len(serial_number))
+    s = '{} ({} octets)'.format(' '.join('%02X' % c for c in serial_number), len(serial_number))
     _lint_cert_add_content_line(r, s)
     ln = len(serial_number)
     ku = 'min_length'
@@ -539,9 +565,9 @@ def lint_basic_constraints(config_options, cert):
     if ext_value is not None:
         ku = 'ca_true'
         camelcase = _snake_to_camelcase(ku)
-        _lint_cert_add_content_line(r, camelcase)
 
         if ext_value['ca']:
+            _lint_cert_add_content_line(r, "Subject Type=CA")
             if config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
         elif config_options[ku].value == '2':
@@ -549,11 +575,11 @@ def lint_basic_constraints(config_options, cert):
 
         ku = 'path_length_constraint_req'
         camelcase = _snake_to_camelcase(ku)
-        _lint_cert_add_content_line(r, camelcase)
+
         mku = 'path_length_constraint_max'
         mcamelcase = _snake_to_camelcase(mku)
-        _lint_cert_add_content_line(r, mcamelcase)
         if ext_value['path_len_constraint']:
+            _lint_cert_add_content_line(r, "Path Length Constraint={}".format(ext_value['path_len_constraint']))
             if config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ku].value == '2':
@@ -601,7 +627,6 @@ def lint_subject_public_key_info(config_options, cert):
 
     if ext_value is not None:
         c_oid = ext_value['algorithm'][0].dotted
-        _lint_cert_add_content_line(r, c_oid) #todo: export table content of cert or profile?
         if c_oid == "1.2.840.113549.1.1.1":
             if config_options['alg_rsa'].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_rsa')))
@@ -848,7 +873,9 @@ def lint_crldp(config_options, cert):
         http_before_ldap = False
         http = False
         for child in ext_value:
+            i = 1
             for dp in  child.native['distribution_point']:
+                _lint_cert_add_content_line(r,"({}) CRL Distribution Point: {}".format(i, dp))
                 if 'ldap://' in dp:
                     found_set.update({"http": dp})
                     http = True
@@ -924,13 +951,12 @@ def lint_signature_algorithm(config_options, cert):
     r = OutputRow("Signature Algorithm")
     print("\n--- " + r.row_name + " ---")
 
-    output_array = []
     cert_leaf = cert['signature_algorithm']['algorithm']
     oid = cert_leaf.dotted
     found = False
     for ce in config_options:
         if config_options[ce].oid == oid:
-            _lint_cert_add_content_line(r, oid)  # todo: export table content of cert or profile?
+            _lint_cert_add_content_line(r, cert_leaf.native)  # todo: export table content of cert or profile?
             if config_options[ce].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase(ce)))
             elif not cert['tbs_certificate']['signature']['algorithm'].dotted == oid:
@@ -975,7 +1001,9 @@ def lint_inhibit_any(config_options, cert):
     _process_common_extension_options(config_options, ext_value, 
                                       'inhibit_any_policy' in cert.critical_extensions,
                                       r)
-
+    if ext_value:
+        s = 'Name and Serial:  {} ({} octets)'.format(' '.join('%02X' % c for c in ext_value.contents), len(ext_value.contents))
+        _lint_cert_add_content_line(r, s)
     return r
 
 
@@ -1129,10 +1157,3 @@ if __name__ == "__main__":
                     json_profile = json.load(json_data)
                     with open('output/' + filePath.replace('/', '_') + profile_file.replace('/', '_') + '.html', 'w') as output_file:
                         process_one_certificate(input_cert, json_profile, output_file)
-
-
-
-
-
-
-
