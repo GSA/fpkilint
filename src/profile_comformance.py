@@ -119,7 +119,6 @@ def _process_common_extension_options(config_options, extension, extension_is_cr
     return
 
 def _process_more_cert_options(found_set, r, config_options):
-    #todo: add content
     for ku in config_options:
         if not ku == 'present' and not ku == 'is_critical':
             camelcase = _snake_to_camelcase(ku)  # alternatively use a map between profile key and display text
@@ -213,7 +212,6 @@ def lint_other_extensions(config_options, cert):
         if e['extn_id'].dotted not in _lint_processed_extensions:
             # init_row_name = None, init_content = None, init_analysis = None, init_config_section = None):
             extension_name = e.native['extn_id']
-            # todo soemthing more readable
             r = OutputRow(extension_name, "", "", "other_extensions")
             if e['critical'].native is True:
                 others_critical += 1
@@ -254,7 +252,7 @@ def lint_policy_mappings(config_options, cert):
         for policy in ext_value:
             _lint_cert_add_content_line(r, "Issuer Domain={} Subject Domain={}".format(policy.native['issuer_domain_policy']
                                                ,policy.native['subject_domain_policy']))
-
+#todo: testing cert
             if permitted_policies is not None and \
                             policy.native['issuer_domain_policy'] not in permitted_policies: #todo: check permitted value format
                 _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['issuer_domain_policy']))
@@ -355,9 +353,9 @@ def lint_subject(config_options, cert):
                     _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ce].value == '2':
                 _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
-        elif ce == "subject_base_dn":
+        elif ce == "base_dn":
             camelcase = _snake_to_camelcase(ce)
-            if 'base_dn' in subject.native:  #todo: dict compare
+            if 'base_dn' in subject.native:  #todo: dict compare, need testing cert
                 c_base_dn_dic = json.dumps(subject.native['base_dn'])
                 p_base_dn_dict = json.dumps(config_options[ce].value)
                 if not c_base_dn_dic == p_base_dn_dict:
@@ -429,9 +427,9 @@ def lint_issuer(config_options, cert):
                     _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif config_options[ce].value == '2':
                 _lint_cert_add_error_to_row(r, "{} is required".format(camelcase))
-        elif ce == "issuer_base_dn":
+        elif ce == "base_dn":
             camelcase = _snake_to_camelcase(ce)
-            if 'base_dn' in issuer.native:  #todo: dict compare
+            if 'base_dn' in issuer.native:  #todo: dict compare, testing cert
                 c_base_dn_dic = json.dumps(issuer.native['base_dn'])
                 p_base_dn_dict = json.dumps(config_options[ce].value)
                 if not c_base_dn_dic == p_base_dn_dict:
@@ -549,11 +547,6 @@ def lint_serial_number(config_options, cert):
 
     serial_number = cert['tbs_certificate']['serial_number'].contents
 
-    # todo we don't care about the length of the string representation of the binary converted to an int.
-    # todo the length that matters is the length of the binary.
-    # todo i.e. len(cert['tbs_certificate']['serial_number'].contents)
-    # todo if the spreadsheet is not clear enough: "No minimum, minimum length (bytes), No max, max length (bytes)"
-    # todo then please ask...
     s = '{} ({} octets)'.format(' '.join('%02X' % c for c in serial_number), len(serial_number))
     _lint_cert_add_content_line(r, s)
     ln = len(serial_number)
@@ -631,6 +624,7 @@ def lint_cert_policies(config_options, cert):
             _lint_cert_add_content_line(r, policy.native['policy_identifier'])
 
             if permitted_policies is not None and \
+                            'any_policy' not in permitted_policies and \
                             policy.native['policy_identifier'] not in permitted_policies:
                 _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['policy_identifier']))
 
@@ -654,7 +648,7 @@ def lint_subject_public_key_info(config_options, cert):
         elif c_oid == "1.2.840.10040.4.1":
             if config_options['alg_dsa'].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_dsa')))
-        elif c_oid in config_options['alg_ec_named_curve'].value:
+        elif c_oid in config_options['alg_ec_named_curve'].value: #todo: template value entry
             if config_options['alg_ec_named_curve'].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase('alg_ec_named_curve')))
         else:
@@ -769,8 +763,7 @@ def lint_ian(config_options, cert):
                 s = "type id=" + child.native['type_id'] + ", value=" + v
                 found_set.update({child.name: s})
             else:
-                found_set.update({
-                                     child.name: child.native})  # todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
+                found_set.update({child.name: child.native})  # todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
 
 
         _process_more_cert_options(found_set, r, config_options)
@@ -949,7 +942,7 @@ def lint_sia(config_options, cert):
         for child in ext_value:
             if child['access_method'].native == 'ca_repository':
                 found_set.update({"ca_repository_present": child['access_location'].native})
-                if child['access_location'].name == 'universal_resource_identifier':
+                if 'http://' in child['access_location'].native:
                     found_set.update({"ca_repository_http": ""})
                     http = True
                 elif 'ldap://' in child['access_location'].native:
@@ -999,7 +992,7 @@ def lint_signature_algorithm(config_options, cert):
     found = False
     for ce in config_options:
         if config_options[ce].oid == oid:
-            _lint_cert_add_content_line(r, cert_leaf.native)  # todo: export table content of cert or profile?
+            _lint_cert_add_content_line(r, cert_leaf.native)
             if config_options[ce].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(_snake_to_camelcase(ce)))
             elif not cert['tbs_certificate']['signature']['algorithm'].dotted == oid:
