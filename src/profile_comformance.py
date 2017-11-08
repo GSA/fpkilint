@@ -508,7 +508,7 @@ def lint_policy_constraints(config_options, cert):
         camelcase = _snake_to_camelcase(ku)
         mku = 'require_explicit_policy_max'
         mcamelcase = _snake_to_camelcase(mku)
-        rep = ext_value['require_explicit_policy']
+        rep = ext_value['require_explicit_policy'].native
 
         if rep:
             _lint_cert_add_content_line(r, "Require Explicit Policy Skip Certs={}".format(str(rep)))
@@ -525,7 +525,7 @@ def lint_policy_constraints(config_options, cert):
         camelcase = _snake_to_camelcase(ku)
         mku = 'inhibit_policy_mapping_max'
         mcamelcase = _snake_to_camelcase(mku)
-        ipm = ext_value['inhibit_policy_mapping']
+        ipm = ext_value['inhibit_policy_mapping'].native
 
         if ipm:
             _lint_cert_add_content_line(r, "Inhibit Policy Mapping Skip Certs={}".format(str(ipm)))
