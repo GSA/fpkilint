@@ -128,8 +128,7 @@ def _process_more_cert_options(found_set, r, config_options):
                 if len(found_set[ku]) > 0:
                     semi = ": "
                 _lint_cert_add_content_line(r, camelcase + semi + found_set[ku])
-            if   ku in found_set and config_options[ku].value == '1':
-
+                if ku in found_set and config_options[ku].value == '1':
                     _lint_cert_add_error_to_row(r, "{} is not permitted".format(camelcase))
             elif not ku in found_set and config_options[ku].value == '2':
                 _lint_cert_add_error_to_row(r, "{} is required".format(_snake_to_camelcase(ku)))
@@ -154,11 +153,20 @@ def lint_name_constraints(config_options, cert):
                 max = item[2].native
                 if not max:
                     max = "Max"
-                s += "\n\t[{}]Subtree({}..{}): \n\t\t{} Name={}".format(i, item[1].native, max, item[0].name, item[0].native)
+                if item[0].name == 'directory_name':
+                    v = "("
+                    comma = ""
+                    for rqn in item[0].chosen.chosen:
+                        v += "{}{}={}".format(comma, rqn.native[0]['type'], rqn.native[0]['value'])
+                        comma =", "
+                    v += ")"
+                else:
+                    v = item[0].native
+                s += "<br>\t[{}]Subtree({}..{}): <br>\t\t{} Name={}".format(i, item[1].native, max, item[0].name, v)
                 i += 1
             found_set.update({"permitted": s})
         else:
-            found_set.update({"permitted": "Permitted None"})
+            found_set.update({"permitted": "None"})
 
         excl =  ext_value['excluded_subtrees']
         if excl:
@@ -168,12 +176,21 @@ def lint_name_constraints(config_options, cert):
                 max = item[2].native
                 if not max:
                     max = "Max"
-                s += "\n\t[{}]Subtree({}..{}): \n\t\t{} Name={}".format(i, item[1].native, max, item[0].name,
-                                                                    item[0].native)
+                if item[0].name == 'directory_name':
+                    v = "("
+                    comma = ""
+                    for rqn in item[0].chosen.chosen:
+                        v += "{}{}={}".format(comma, rqn.native[0]['type'], rqn.native[0]['value'])
+                        comma =", "
+                    v +=")"
+                else:
+                    v = item[0].native
+                s += "<br>\t[{}]Subtree({}..{}): <br>\t\t{} Name={}".format(i, item[1].native, max, item[0].name,
+                                                                    v)
                 i += 1
             found_set.update({"excluded": s})
         else:
-            found_set.update({"excluded": "Excluded None"})
+            found_set.update({"excluded": "None"})
         _process_more_cert_options(found_set, r, config_options)
 
     return r
@@ -743,7 +760,19 @@ def lint_ian(config_options, cert):
     if ext_value is not None:
         found_set = {}
         for child in ext_value:
-            found_set.update({child.name: ""}) #todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
+            if child.name == 'other_name':
+                value = child.native['value']
+                if isinstance(value, str):
+                    v = value
+                else:
+                    v = '{} ({} octets)'.format(' '.join('%02X' % c for c in value), len(value))
+                s = "type id=" + child.native['type_id'] + ", value=" + v
+                found_set.update({child.name: s})
+            else:
+                found_set.update({
+                                     child.name: child.native})  # todo: confirm shared keys: other_name_upn, other_name_piv_fasc_n, uniform_resource_identifier_chuid
+
+
         _process_more_cert_options(found_set, r, config_options)
 
     return r
