@@ -905,22 +905,27 @@ def lint_crldp(config_options, cert):
         http_before_ldap = False
         http = False
         for child in ext_value:
-            i = 1
-            for dp in  child.native['distribution_point']:
-                _lint_cert_add_content_line(r,"({}) CRL Distribution Point: {}".format(i, dp))
-                i +=1
-                if 'ldap://' in dp:
-                    found_set.update({"http": dp})
-                    http = True
-                elif 'ldap://' in dp:
-                    found_set.update({"ldap": dp})
-                    if http: #todo check http before ldap logic, https?
-                        http_before_ldap = True
-                elif child['distribution_point'].name == 'dictionary_name':
-                    found_set.update({"directory_name": child['distribution_point'].native})
+              for dps in  child.native['distribution_point']:
+                  uris = set()
+                  if isinstance(dps, str):
+                        uris.add(dps)
+                  elif isinstance(dps, list):
+                        uris = dps
+                  elif isinstance(dps, OrderedDict):
+                        uris.add(json.dumps(dps))
 
-        if http_before_ldap:
-            found_set.update({"http_before_ldap": ""})
+                  for dp in uris:
+                        if 'http://' in dp:
+                            found_set.update({"http": dp})
+                            http = True
+                        elif 'ldap://' in dp:
+                            found_set.update({"ldap": dp})
+                            http_before_ldap = http
+                        else:
+                            found_set.update({"directory_name": dp})
+
+
+        found_set.update({"http_before_ldap": str(http_before_ldap)})
         _process_more_cert_options(found_set, r, config_options)
 
 
@@ -947,7 +952,7 @@ def lint_sia(config_options, cert):
                     http = True
                 elif 'ldap://' in child['access_location'].native:
                     found_set.update({"ca_repository_ldap": child['access_location'].native})
-                    if http: #todo check http before ldap logic, https?
+                    if http: 
                         http_before_ldap = True
         if http_before_ldap:
             found_set.update({"ca_repository_http_before_ldap": ""})
