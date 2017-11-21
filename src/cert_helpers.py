@@ -74,7 +74,7 @@ def get_pretty_dn_name_component(name_type):
         'given_name': 'GN',
         'initials': 'Initials',
         'generation_qualifier': 'Generation Qualifier',
-        'unique_identifier': 'UID',
+        'unique_identifier': 'Unique ID',
         'dn_qualifier': 'DN Qual',
         'pseudonym': 'Pseudonym',
         'email_address': 'Email',
@@ -84,11 +84,25 @@ def get_pretty_dn_name_component(name_type):
         'domain_component': 'DC',
         'name_distinguisher': 'Name Distinguisher',
         'organization_identifier': 'Organization Identifier',
+        '0.9.2342.19200300.100.1.1': 'User ID',
+        '2.23.133.2.3': 'TPMVersion',
+        '2.23.133.2.2': 'TPMModel',
+        '2.23.133.2.1': 'TPMManufacturer',
     }.get(name_type.native, name_type.native)
 
 
+_directory_string_type_display_map = {
+    'printable_string': 'Printable',
+    'utf8_string': 'UTF8',
+    'bmp_string': 'BMP',
+    'teletex_string': 'Teletex',
+    'universal_string': 'Universal',
+    'ia5_string': 'IA5',
+}
+
+
 # type = Name e.g. subject = tbs_cert['subject']
-def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_oid=None):
+def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_oid=None, include_string_type=None):
 
     if not isinstance(name, x509.Name):
         raise TypeError("name must be an x509.Name")
@@ -99,6 +113,14 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
 
     if type_value_separator is None:
         type_value_separator = "="
+
+    if include_oid is None:
+        include_oid = False
+
+    if include_string_type is None:
+        include_string_type = False
+
+    string_type = ''
 
     rdn_seq = name.chosen  # type = RDNSequence
     if len(rdn_seq):
@@ -113,20 +135,30 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
                 if s is not "":
                     s += rdn_separator
                 s += get_pretty_dn_name_component(name2['type'])
-                if include_oid is not None:
+                if include_oid is True:
                     s += ' ({})'.format(name2['type'])
-                s += '{}{}'.format(type_value_separator, name2.native['value'])
+
+                if include_string_type is True:
+                    string_type = '({}) '.format(_directory_string_type_display_map.get(name2['value'].name,
+                                                                                        "Undefined"))
+
+                s += '{}{}{}'.format(type_value_separator, string_type, name2.native['value'])
     else:
-        s = ""
+        s = "None"
 
     return s
 
+
 def get_extension_from_certificate(cert, oid):
+
+    if not isinstance(oid, str):
+        raise TypeError("oid must be dotted oid string")
 
     extensions = cert['tbs_certificate']['extensions']
 
     for e in extensions:
-        if e['extn_id'] == oid:
+        if e['extn_id'].dotted == oid:
             return e, e['critical']
 
     return None, False
+
