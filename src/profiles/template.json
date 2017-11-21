@@ -1,5 +1,35 @@
 [
     {
+        "Section":  "profile",
+        "Item":  "name",
+        "Value":  "Template Profile",
+        "OID":  ""
+    },
+    {
+        "Section":  "profile",
+        "Item":  "version",
+        "Value":  "0.0",
+        "OID":  ""
+    },
+    {
+        "Section":  "profile",
+        "Item":  "date",
+        "Value":  "11/15/2017",
+        "OID":  ""
+    },
+    {
+        "Section":  "profile",
+        "Item":  "cert_type",
+        "Value":  "Default Template",
+        "OID":  ""
+    },
+    {
+        "Section":  "profile",
+        "Item":  "more_info_url",
+        "Value":  "https://github.com/GSA/fpkilint",
+        "OID":  ""
+    },
+    {
         "Section":  "signature_algorithm",
         "Item":  "alg_md2_rsa",
         "Value":  "0",
@@ -567,7 +597,7 @@
         "Section":  "aia",
         "Item":  "present",
         "Value":  "0",
-        "OID":  ""
+        "OID":  "1.3.6.1.5.5.7.1.1"
     },
     {
         "Section":  "aia",
@@ -619,6 +649,12 @@
     },
     {
         "Section":  "aia",
+        "Item":  "ca_issuers_http_p7c",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "aia",
         "Item":  "ocsp_present",
         "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.48.1"
@@ -633,7 +669,7 @@
         "Section":  "sia",
         "Item":  "present",
         "Value":  "0",
-        "OID":  ""
+        "OID":  "1.3.6.1.5.5.7.1.11"
     },
     {
         "Section":  "sia",
@@ -1120,6 +1156,30 @@
         "Item":  "oid_pkinit_KPClientAuth",
         "Value":  "0",
         "OID":  "1.3.6.1.5.2.3.4"
+    },
+    {
+        "Section":  "eku",
+        "Item":  "oid_msft_document_signing",
+        "Value":  "0",
+        "OID":  "1.3.6.1.4.1.311.10.3.12"
+    },
+    {
+        "Section":  "eku",
+        "Item":  "oid_adobe_document_signing",
+        "Value":  "0",
+        "OID":  "1.2.840.113583.1.1.5"
+    },
+    {
+        "Section":  "eku",
+        "Item":  "oid_msft_efs",
+        "Value":  "0",
+        "OID":  "1.3.6.1.4.1.311.10.3.4"
+    },
+    {
+        "Section":  "eku",
+        "Item":  "oid_life_time_signing",
+        "Value":  "0",
+        "OID":  "1.3.6.1.4.1.311.10.3.13"
     },
     {
         "Section":  "eku",
