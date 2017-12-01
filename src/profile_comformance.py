@@ -3,8 +3,9 @@ import json
 import datetime
 import pytz
 import textwrap
+from collections import OrderedDict
 import subprocess
-
+from certificate_policies import policies_display_map
 
 _lint_cert_newline = '\n'
 # _lint_cert_indent = '&nbsp;&nbsp;&nbsp;&nbsp;'
@@ -54,7 +55,7 @@ def der2ascii(binary_der):
     return ascii_string
 
 
-def _lint_cert_add_content_line(r, content_string):
+def _lint_cert_add_content_to_row(r, content_string):
     if len(r.content) > 0:
         r.content += _lint_cert_newline
 
@@ -103,12 +104,12 @@ def _process_common_extension_options(config_options, extension, extension_is_cr
             _lint_cert_add_error_to_row(r, "{} must not be marked critical".format(r.row_name))
 
         if extension_is_critical is True:
-            _lint_cert_add_content_line(r, "Critical = TRUE")
+            _lint_cert_add_content_to_row(r, "Critical = TRUE")
 
     return
 
 
-def _get_der_display_string(byte_value, preface=None, multi_line=None):
+def get_der_display_string(byte_value, preface=None, multi_line=None):
     if not isinstance(byte_value, bytes):
         return "You must pass in bytes..."
 
@@ -147,7 +148,7 @@ general_name_display_map = {
     'registered_id': 'Registered ID',
     'edi_party_name': 'EDI Party Name',
     'dns_name': 'DNS Name',
-    'directory_name': 'Directory Address',
+    'directory_name': 'Directory Name',
     'rfc822_name': 'Email',
     'ip_address': 'IP Address',
     'other_name': 'Other Name',
@@ -203,9 +204,9 @@ def get_general_name_string(general_name, multiline=None):
         if isinstance(general_name.native['value'], str):
             general_name_string += general_name.native['value']
         elif isinstance(general_name.native['value'], bytes):
-            general_name_string += _get_der_display_string(general_name.native['value'], "", multiline)
+            general_name_string += get_der_display_string(general_name.native['value'], "", multiline)
         else:
-            general_name_string += _get_der_display_string(general_name.chosen.children[1].contents, "DER: ", multiline)
+            general_name_string += get_der_display_string(general_name.chosen.children[1].contents, "DER: ", multiline)
 
     elif general_name.name == 'dns_name':
         general_name_string += general_name.native
@@ -213,9 +214,9 @@ def get_general_name_string(general_name, multiline=None):
         if isinstance(general_name.native, str):
             general_name_string += general_name.native
         elif isinstance(general_name.native, bytes):
-            general_name_string += _get_der_display_string(general_name.native, "Binary:", multiline)
+            general_name_string += get_der_display_string(general_name.native, "Binary:", multiline)
         else:
-            general_name_string += _get_der_display_string(general_name.contents, "DER: ", multiline)
+            general_name_string += get_der_display_string(general_name.contents, "DER: ", multiline)
 
     return general_name_string
 
@@ -247,7 +248,6 @@ def get_general_name_type(general_name):
 
 
 def get_short_name_from_dn(name):
-
     rdns = [
         'common_name',
         '0.9.2342.19200300.100.1.1',
@@ -274,11 +274,10 @@ def get_short_name_from_dn(name):
             else:
                 return tmp_name
 
-    return name[len(name)-1]
+    return name[len(name) - 1]
 
 
 def get_short_name_from_cert(cert, name_for_subject=None):
-
     if name_for_subject is None:
         name_for_subject = True
 
@@ -330,13 +329,27 @@ def lint_policy_mappings(config_options, cert):
 
     if cert.policy_mappings_value is not None:
 
+        mapping_count = 0
         for mapping in cert.policy_mappings_value:
-            _lint_cert_add_content_line(r, "{} > {}".format(mapping.native['issuer_domain_policy'],
-                                                            mapping.native['subject_domain_policy']))
+            mapping_count += 1
+            policy_display_string = "[{}]{}{}".format(mapping_count, _lint_cert_indent,
+                                                      mapping['issuer_domain_policy'].dotted)
+            # if mapping['issuer_domain_policy'].dotted in policies_display_map:
+            #     policy_display_string = "{}{}({})".format(policy_display_string, _lint_cert_indent,
+            #                                              policies_display_map[mapping['issuer_domain_policy'].dotted])
+            _lint_cert_add_content_to_row(r, policy_display_string)
+
+            policy_display_string = "{}{}maps to {}".format(_lint_cert_indent, _lint_cert_indent,
+                                                            mapping['subject_domain_policy'].dotted)
+            if mapping['subject_domain_policy'].dotted in policies_display_map:
+                policy_display_string = "{}{}({})".format(policy_display_string, _lint_cert_indent,
+                                                          policies_display_map[mapping['subject_domain_policy'].dotted])
+            _lint_cert_add_content_to_row(r, policy_display_string)
 
     # todo
 
     return r
+
 
 # -- name constraints extension OID and syntax
 #
@@ -364,7 +377,7 @@ def lint_name_constraints(config_options, cert):
                                       'name_constraints' in cert.critical_extensions, r)
 
     if cert.name_constraints_value is not None:
-        # _lint_cert_add_content_line(r, der2ascii(cert.name_constraints_value.contents))
+        # _lint_cert_add_content_to_row(r, der2ascii(cert.name_constraints_value.contents))
 
         found_set = {}
 
@@ -381,7 +394,7 @@ def lint_name_constraints(config_options, cert):
                     comma = ""
                     for rqn in item[0].chosen.chosen:
                         v += "{}{}={}".format(comma, rqn.native[0]['type'], rqn.native[0]['value'])
-                        comma =", "
+                        comma = ", "
                     v += ")"
                 else:
                     v = item[0].native
@@ -391,7 +404,7 @@ def lint_name_constraints(config_options, cert):
         else:
             found_set.update({"permitted": "None"})
 
-        excl =  cert.name_constraints_value['excluded_subtrees']
+        excl = cert.name_constraints_value['excluded_subtrees']
         if excl:
             i = 1
             s = ""
@@ -404,19 +417,19 @@ def lint_name_constraints(config_options, cert):
                     comma = ""
                     for rqn in item[0].chosen.chosen:
                         v += "{}{}={}".format(comma, rqn.native[0]['type'], rqn.native[0]['value'])
-                        comma =", "
-                    v +=")"
+                        comma = ", "
+                    v += ")"
                 else:
                     v = item[0].native
                 s += "<br>\t[{}]Subtree({}..{}): <br>\t\t{} Name={}".format(i, item[1].native, max, item[0].name,
-                                                                    v)
+                                                                            v)
                 i += 1
             found_set.update({"excluded": s})
         else:
             found_set.update({"excluded": "None"})
 
-        _lint_cert_add_content_line(r, found_set['permitted'])
-        _lint_cert_add_content_line(r, found_set['excluded'])
+        _lint_cert_add_content_to_row(r, found_set['permitted'])
+        _lint_cert_add_content_to_row(r, found_set['excluded'])
 
     # todo
 
@@ -433,7 +446,7 @@ def lint_piv_naci(config_options, cert):
                                       is_critical, r)
 
     if pivnaci is not None:
-        _lint_cert_add_content_line(r, der2ascii(pivnaci['extn_value'].contents))
+        _lint_cert_add_content_to_row(r, der2ascii(pivnaci['extn_value'].contents))
 
     return r
 
@@ -461,7 +474,7 @@ def lint_key_usage(config_options, cert):
     if cert.key_usage_value is not None:
 
         for ku in cert.key_usage_value.native:
-            _lint_cert_add_content_line(r, key_usage_display_map[ku])
+            _lint_cert_add_content_to_row(r, key_usage_display_map[ku])
 
             if ku in config_options and config_options[ku].value == '1':
                 _lint_cert_add_error_to_row(r, "{} is not permitted".format(key_usage_display_map[ku]))
@@ -482,39 +495,51 @@ def lint_akid(config_options, cert):
 
     if cert.authority_key_identifier_value is not None:
 
-        # todo don't use native to better handle isser/serial case
-        akid = cert.authority_key_identifier_value.native
+        akid = cert.authority_key_identifier_value
 
-        if akid['key_identifier'] is not None:
-            _lint_cert_add_content_line(r, 'Key ID: {}'.format(''.join('%02X' % c for c in akid['key_identifier'])))
-        if akid['authority_cert_issuer'] is not None and akid['authority_cert_serial_number'] is not None:
+        akid_has_keyid = False
+        akid_has_issuer = False
+        akid_has_serial = False
+
+        if isinstance(akid['key_identifier'], x509.OctetString):
+            akid_has_keyid = True
+            _lint_cert_add_content_to_row(r, 'Key ID: {}'.format(
+                ''.join('%02X' % c for c in akid['key_identifier'].contents)))
+
+        if isinstance(akid['authority_cert_issuer'], x509.GeneralNames):
+
+            akid_has_issuer = True
+
             if len(r.content) > 0:
-                r.content += _lint_cert_newline
-            _lint_cert_add_content_line(r, "Issuer:{}".format(akid['authority_cert_issuer']))
-            _lint_cert_add_content_line(r, "Serial:{}".format(akid['authority_cert_serial_number']))
+                _lint_cert_add_content_to_row(r, "")
 
-        key_id = '0'
-        name_and_serial = '0'
+            if len(akid['authority_cert_issuer']) == 0:
+                _lint_cert_add_content_to_row(r, "NULL")
+                _lint_cert_add_error_to_row(r, "Authority cert issuer was present but contained no GeneralNames?")
+            elif len(akid['authority_cert_issuer']) == 1 and akid['authority_cert_issuer'][0].name == 'directory_name':
+                separator = "," + _lint_cert_newline + _lint_cert_indent
+                issuer_name = get_pretty_dn(akid['authority_cert_issuer'][0].chosen, separator, " = ")
+                _lint_cert_add_content_to_row(r, "Issuer DN:")
+                _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent, issuer_name))
+            else:
+                _lint_cert_add_content_to_row(r, "Issuer Names:")
+                for general_name in akid['authority_cert_issuer']:
+                    _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent,
+                                                                   get_general_name_string(general_name)))
 
-        if 'key_id' in config_options and len(config_options['key_id'].value) > 0:
-            key_id = config_options['key_id'].value
+        if isinstance(akid['authority_cert_serial_number'], x509.Integer):
+            akid_has_serial = True
+            serial_number = ' '.join('%02X' % c for c in akid['authority_cert_serial_number'].contents)
+            _lint_cert_add_content_to_row(r, "Serial:")
+            _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent, serial_number))
 
-        if 'name_and_serial' in config_options and len(config_options['name_and_serial'].value) > 0:
-            name_and_serial = config_options['name_and_serial'].value
+        # process options
+        _do_presence_test(r, config_options, 'key_id', 'Key ID', akid_has_keyid)
+        _do_presence_test(r, config_options, 'name_and_serial', 'Name and serial number',
+                          akid_has_issuer and akid_has_serial)
 
-        if key_id != '0':
-
-            if akid['key_identifier'] is not None and key_id == '1':
-                _lint_cert_add_error_to_row(r, "Key ID is not permitted")
-            if akid['key_identifier'] is None and key_id == '2':
-                _lint_cert_add_error_to_row(r, "Key ID is required")
-
-        if name_and_serial != '0':
-
-            if akid['authority_cert_issuer'] is not None and name_and_serial == '1':
-                _lint_cert_add_error_to_row(r, "Name and serial is not permitted")
-            if akid['authority_cert_issuer'] is None and name_and_serial == '2':
-                _lint_cert_add_error_to_row(r, "Name and serial is required")
+        if akid_has_issuer != akid_has_serial:
+            _lint_cert_add_error_to_row(r, "Issuer and serial number must appear as a tuple")
 
     return r
 
@@ -528,7 +553,7 @@ def lint_skid(config_options, cert):
 
     if cert.key_identifier_value is not None:
         skid = cert.key_identifier_value.native
-        _lint_cert_add_content_line(r, 'Key ID: {}'.format(''.join('%02X' % c for c in skid)))
+        _lint_cert_add_content_to_row(r, 'Key ID: {}'.format(''.join('%02X' % c for c in skid)))
 
         require_method_one = '0'
         if 'require_method_one' in config_options and len(config_options['require_method_one'].value) > 0:
@@ -551,13 +576,30 @@ def lint_policy_constraints(config_options, cert):
 
     if cert.policy_constraints_value is not None:
 
-        if cert.policy_constraints_value.native['require_explicit_policy'] is not None:
-            _lint_cert_add_content_line(r, "Require Explicit Policy; skipCerts = {}".format(cert.policy_constraints_value.native['require_explicit_policy']))
+        policy_constraints_native = cert.policy_constraints_value.native
 
-        if cert.policy_constraints_value.native['inhibit_policy_mapping'] is not None:
-            _lint_cert_add_content_line(r, "Inhibit Policy Mapping; skipCerts = {}".format(cert.policy_constraints_value.native['inhibit_policy_mapping']))
+        if policy_constraints_native['require_explicit_policy'] is not None:
+            _lint_cert_add_content_to_row(r, "Require Explicit Policy; skipCerts = {}".format(
+                policy_constraints_native['require_explicit_policy']))
 
-    # todo
+        if policy_constraints_native['inhibit_policy_mapping'] is not None:
+            _lint_cert_add_content_to_row(r, "Inhibit Policy Mapping; skipCerts = {}".format(
+                policy_constraints_native['inhibit_policy_mapping']))
+
+
+        _do_presence_test(r, config_options, 'require_explicit_policy_present',
+                          'Require explicit policy', policy_constraints_native['require_explicit_policy'] is not None)
+
+        _do_presence_test(r, config_options, 'inhibit_policy_mapping_present',
+                          'Inhibit policy mapping', policy_constraints_native['inhibit_policy_mapping'] is not None)
+
+        if policy_constraints_native['require_explicit_policy'] is not None:
+            # todo require_explicit_policy_max
+            print("x")
+
+        if policy_constraints_native['inhibit_policy_mapping'] is not None:
+            # todo inhibit_policy_mapping_max
+            print("x")
 
     return r
 
@@ -573,13 +615,13 @@ def lint_basic_constraints(config_options, cert):
 
         bc = cert.basic_constraints_value
 
-        _lint_cert_add_content_line(r, "CA={}".format(bc.native['ca']))
+        _lint_cert_add_content_to_row(r, "CA = {}".format(bc.native['ca']))
 
         _do_presence_test(r, config_options, 'ca_true',
                           'CA flag', bc.native['ca'] is True)
 
         if bc.native['path_len_constraint'] is not None:
-            _lint_cert_add_content_line(r, "Path Length Constraint={}".format(bc.native['path_len_constraint']))
+            _lint_cert_add_content_to_row(r, "Path Length Constraint = {}".format(bc.native['path_len_constraint']))
 
             path_length_constraint_max = 99
             if 'path_length_constraint_max' in config_options and len(
@@ -599,7 +641,15 @@ def lint_basic_constraints(config_options, cert):
     return r
 
 
-def lint_cert_policies(config_options, cert):
+qualifiers_display_map = {
+    'certification_practice_statement': 'CPS',
+    'user_notice': 'User Notice',
+    'notice_ref': 'Ref',
+    'explicit_text': 'Text',
+}
+
+
+def lint_policies(config_options, cert):
     r = OutputRow("Certificate Policies")
 
     _process_common_extension_options(config_options,
@@ -613,12 +663,52 @@ def lint_cert_policies(config_options, cert):
         if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
             permitted_policies = config_options['permitted'].value.split()
 
+        policy_count = 0
         for policy in cert.certificate_policies_value:
-            _lint_cert_add_content_line(r, policy.native['policy_identifier'])
+
+            policy_count += 1
+            policy_display_string = "[{}]{}{}".format(policy_count, _lint_cert_indent,
+                                                      policy['policy_identifier'].dotted)
+            if policy['policy_identifier'].dotted in policies_display_map:
+                policy_display_string = "{}{}({})".format(policy_display_string, _lint_cert_indent,
+                                                          policies_display_map[policy['policy_identifier'].dotted])
+            _lint_cert_add_content_to_row(r, policy_display_string)
+
+            if policy.native['policy_qualifiers'] is not None:
+                for qualifier in policy.native['policy_qualifiers']:
+
+                    qualifier_type = qualifiers_display_map.get(qualifier['policy_qualifier_id'],
+                                                                qualifier['policy_qualifier_id'])
+
+                    qualifier_string = "{}{}".format(_lint_cert_indent, qualifier_type)
+
+                    if qualifier['policy_qualifier_id'] == 'certification_practice_statement':
+
+                        if qualifier['qualifier'] is not None:
+                            qualifier_string += ": " + qualifier['qualifier']
+
+                    elif qualifier['policy_qualifier_id'] == 'user_notice':
+
+                        if qualifier['qualifier'] is not None:
+
+                            if qualifier['qualifier']['notice_ref'] is not None:
+                                qualifier_string += " " + qualifiers_display_map.get('notice_ref', "Ref") \
+                                                    + ": " + qualifier['qualifier']['notice_ref']
+                                if qualifier['qualifier']['explicit_text'] is not None:
+                                    qualifier_string += _lint_cert_indent + _lint_cert_indent
+
+                            if qualifier['qualifier']['explicit_text'] is not None:
+                                qualifier_string += " " + qualifiers_display_map.get('explicit_text', "Text") \
+                                                    + ": " + qualifier['qualifier']['explicit_text']
+
+                    elif qualifier['qualifier'] is not None and isinstance(qualifier['qualifier'], str):
+                        qualifier_string += ": " + qualifier['qualifier']
+
+                    _lint_cert_add_content_to_row(r, qualifier_string)
 
             if permitted_policies is not None and \
-                            policy.native['policy_identifier'] not in permitted_policies:
-                _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy.native['policy_identifier']))
+                            policy['policy_identifier'].dotted not in permitted_policies:
+                _lint_cert_add_error_to_row(r, "{} is not a permitted".format(policy['policy_identifier'].dotted))
 
     return r
 
@@ -630,7 +720,7 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
     types_found = []
 
     for general_name in alt_name_value:
-        _lint_cert_add_content_line(r, get_general_name_string(general_name, True))
+        _lint_cert_add_content_to_row(r, get_general_name_string(general_name, True))
         types_found.append(get_general_name_type(general_name))
         if general_name.name == 'other_name' and 'other_name' not in types_found:
             types_found.append('other_name')
@@ -814,6 +904,7 @@ eku_display_map = {
     '1.3.6.1.5.2.3.4': 'id-pkinit-KPClientAuth',
     '1.3.6.1.5.2.3.5': 'id-pkinit-KPKdc',
     '1.2.840.113583.1.1.5': 'Adobe PDF Signing',
+    '2.23.133.8.1': 'Endorsement Key Certificate',
 }
 
 
@@ -829,7 +920,8 @@ def lint_eku(config_options, cert):
         eku_oids = []
         for eku in cert.extended_key_usage_value:
             eku_oids.append(eku.dotted)
-            _lint_cert_add_content_line(r, "{} ({})".format(eku_display_map.get(eku.dotted, "Unknown EKU"), eku.dotted))
+            _lint_cert_add_content_to_row(r,
+                                          "{} ({})".format(eku_display_map.get(eku.dotted, "Unknown EKU"), eku.dotted))
 
         for ce in config_options:
             if "oid_" in ce:
@@ -839,30 +931,30 @@ def lint_eku(config_options, cert):
 
     return r
 
-    # id-ce-cRLDistributionPoints OBJECT IDENTIFIER ::=  { id-ce 31 }
-    #
-    # CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
-    #
-    # DistributionPoint ::= SEQUENCE {
-    #      distributionPoint       [0]     DistributionPointName OPTIONAL,
-    #      reasons                 [1]     ReasonFlags OPTIONAL,
-    #      cRLIssuer               [2]     GeneralNames OPTIONAL }
-    #
-    # DistributionPointName ::= CHOICE {
-    #      fullName                [0]     GeneralNames,
-    #      nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
-    #
-    # If the distributionPoint field contains a directoryName, the entry
-    # for that directoryName contains the current CRL for the associated
-    # reasons and the CRL is issued by the associated cRLIssuer.
-    #
-    # If the DistributionPointName contains a general name of type URI, the
-    # following semantics MUST be assumed: the URI is a pointer to the
-    # current CRL for the associated reasons and will be issued by the
-    # associated cRLIssuer.
-    #
-    # If the DistributionPointName contains the single value
-    # nameRelativeToCRLIssuer, the value provides a distinguished name
+# id-ce-cRLDistributionPoints OBJECT IDENTIFIER ::=  { id-ce 31 }
+#
+# CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint
+#
+# DistributionPoint ::= SEQUENCE {
+#      distributionPoint       [0]     DistributionPointName OPTIONAL,
+#      reasons                 [1]     ReasonFlags OPTIONAL,
+#      cRLIssuer               [2]     GeneralNames OPTIONAL }
+#
+# DistributionPointName ::= CHOICE {
+#      fullName                [0]     GeneralNames,
+#      nameRelativeToCRLIssuer [1]     RelativeDistinguishedName }
+#
+# If the distributionPoint field contains a directoryName, the entry
+# for that directoryName contains the current CRL for the associated
+# reasons and the CRL is issued by the associated cRLIssuer.
+#
+# If the DistributionPointName contains a general name of type URI, the
+# following semantics MUST be assumed: the URI is a pointer to the
+# current CRL for the associated reasons and will be issued by the
+# associated cRLIssuer.
+#
+# If the DistributionPointName contains the single value
+# nameRelativeToCRLIssuer, the value provides a distinguished name
 
 
 crldp_display_map = {
@@ -890,11 +982,11 @@ def lint_crldp(config_options, cert):
 
             dpname = dp['distribution_point']
             dp_num += 1
-            _lint_cert_add_content_line(r, "[{}] {}:".format(dp_num, crldp_display_map[dpname.name]))
+            _lint_cert_add_content_to_row(r, "[{}] {}:".format(dp_num, crldp_display_map[dpname.name]))
 
             if dpname.name != 'full_name':
-                #todo find a sample cert with nameRelativeToCRLIssuer, should be able to pass to pretty dn function
-                _lint_cert_add_content_line(r, "{}{}".format(_lint_cert_indent, der2ascii(dpname.chosen.contents)))
+                # todo find a sample cert with nameRelativeToCRLIssuer, should be able to pass to pretty dn function
+                _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent, der2ascii(dpname.chosen.contents)))
 
             else:
                 for general_name in dpname.chosen:
@@ -916,7 +1008,7 @@ def lint_crldp(config_options, cert):
                         general_name_string = general_name_string.replace(_lint_cert_newline, indent_str)
                         # general_name_string = indent_str + general_name_string
 
-                    _lint_cert_add_content_line(r, "{}{}".format(_lint_cert_indent, general_name_string))
+                    _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent, general_name_string))
 
         if first_http > 0 and first_ldap > 0:
 
@@ -936,23 +1028,6 @@ def lint_crldp(config_options, cert):
         _do_presence_test(r, config_options, 'directory_name', 'Directory Address', first_directory_name > 0)
 
     return r
-
-
-# [1]Authority Info Access
-#      Access Method=Certification Authority Issuer (1.3.6.1.5.5.7.48.2)
-#      Alternative Name:
-#           URL=http://sspweb.managed.entrust.com/AIA/CertsIssuedToEMSSSPCA.p7c
-# [2]Authority Info Access
-#      Access Method=Certification Authority Issuer (1.3.6.1.5.5.7.48.2)
-#      Alternative Name:
-#           URL=ldap://sspdir.managed.entrust.com/ou=Entrust Managed Services SSP CA,ou=Certification Authorities,
-# o=Entrust,c=US?cACertificate;binary,crossCertificatePair;binary (ldap://sspdir.managed.entrust.com/
-# ou=Entrust%20Managed%20Services%20SSP%20CA,ou=Certification%20Authorities,o=Entrust,
-# c=US?cACertificate;binary,crossCertificatePair;binary)
-# [3]Authority Info Access
-#      Access Method=On-line Certificate Status Protocol (1.3.6.1.5.5.7.48.1)
-#      Alternative Name:
-#           URL=http://ocsp.managed.entrust.com/OCSP/EMSSSPCAResponder
 
 
 access_method_display_map = {
@@ -991,7 +1066,7 @@ def lint_aia(config_options, cert):
             dp_num += 1
 
             method_display_string = access_method_display_map.get(access_method.native, "Unknown Access Method")
-            _lint_cert_add_content_line(r, "[{}] {}:".format(dp_num, method_display_string))
+            _lint_cert_add_content_to_row(r, "[{}] {}:".format(dp_num, method_display_string))
 
             if access_method.native == 'ocsp':
                 ocsp_found = True
@@ -1014,7 +1089,7 @@ def lint_aia(config_options, cert):
                         first_ldap = dp_num
                     if access_location.native[0:8] == 'https://':
                         aia_https = True
-                    if access_location.native[0:8] == 'https://':
+                    if access_location.native[0:8] == 'ldaps://':
                         aia_ldaps = True
 
                 elif access_method.native == 'ocsp':
@@ -1028,7 +1103,7 @@ def lint_aia(config_options, cert):
                 general_name_string = general_name_string.replace(_lint_cert_newline, indent_str)
                 # general_name_string = indent_str + general_name_string
 
-            _lint_cert_add_content_line(r, "{}{}".format(_lint_cert_indent, general_name_string))
+            _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent, general_name_string))
 
         # linting
         if first_http > 0 and first_ldap > 0:
@@ -1072,10 +1147,98 @@ def lint_sia(config_options, cert):
                                       cert.subject_information_access_value,
                                       'subject_information_access' in cert.critical_extensions, r)
 
-    if cert.subject_information_access_value is None:
-        return r
+   # id-ad-caRepository OBJECT IDENTIFIER ::= { id-ad 5 }
+   # id-ad-timeStamping OBJECT IDENTIFIER ::= { id-ad 3 }
+
+    if cert.subject_information_access_value is not None:
+        sia = cert.subject_information_access_value
+
+        access_method_number = 0
+        first_http = 0
+        first_ldap = 0
+        first_directory_name = 0
+        ca_repository_found = False
+        time_stamping_found = False
+        sia_https = False
+        sia_ldaps = False
+
+        sia_not_p7c = 0
+
+        for access_description in sia:
+            access_method = access_description['access_method']  # AccessMethod
+            access_location = access_description['access_location']  # GeneralName
+            access_method_number += 1
+
+            method_display_string = access_method_display_map.get(access_method.native, "Unknown Access Method")
+            _lint_cert_add_content_to_row(r, "[{}] {}:".format(access_method_number, method_display_string))
+
+            if access_method.native == 'ca_repository':
+                ca_repository_found = True
+            elif access_method.native == 'time_stamping':
+                time_stamping_found = True
+
+            general_name_string = get_general_name_string(access_location, True)
+            indent_str = "{}{}".format(_lint_cert_newline, _lint_cert_indent)
+
+            if access_location.name == 'uniform_resource_identifier':
+
+                if access_method.native == 'ca_repository':
+                    # if access_location.native[0:4] == 'http':
+                    if access_location.native.startswith('http'):
+                        if first_http == 0:
+                            first_http = access_method_number
+                        if not access_location.native.endswith('.p7c'):
+                            sia_not_p7c += 1
+                    if access_location.native[0:4] == 'ldap' and first_ldap == 0:
+                        first_ldap = access_method_number
+                    if access_location.native[0:8] == 'https://':
+                        sia_https = True
+                    if access_location.native[0:8] == 'ldap://':
+                        sia_ldaps = True
+
+            elif access_location.name == 'directory_name':
+                if first_directory_name == 0:
+                    first_directory_name = access_method_number
+
+                general_name_string = general_name_string.replace(_lint_cert_newline, indent_str)
+                # general_name_string = indent_str + general_name_string
+
+            _lint_cert_add_content_to_row(r, "{}{}".format(_lint_cert_indent, general_name_string))
+
+        # linting
+        if first_http > 0 and first_ldap > 0:
+
+            if 'ca_repository_http_before_ldap' in config_options and \
+                            len(config_options['ca_repository_http_before_ldap'].value) > 0:
+
+                http_before_ldap = int(config_options['ca_repository_http_before_ldap'].value)
+
+                if http_before_ldap == '1' and first_http < first_ldap:
+                    # require ldap first but http came first
+                    _lint_cert_add_error_to_row(r, "LDAP URI must appear before the HTTP URI")
+                elif http_before_ldap == '2' and first_ldap < first_http:
+                    # require http first but ldap came first
+                    _lint_cert_add_error_to_row(r, "HTTP URI must appear before the LDAP URI")
+
+        _do_presence_test(r, config_options, 'ca_repository_present',
+                          'CA Repository access method', ca_repository_found)
+
+        if ca_repository_found is True:
+            _do_presence_test(r, config_options, 'ca_repository_http', 'HTTP Repository', first_http > 0)
+            _do_presence_test(r, config_options, 'ca_repository_ldap', 'LDAP Repository', first_ldap > 0)
+
+            _do_presence_test(r, config_options, 'ca_repository_https', 'HTTPS Repository (TLS)', sia_https)
+            _do_presence_test(r, config_options, 'ca_repository_ldaps', 'LDAPS Repository (TLS)', sia_ldaps)
+
+            _do_presence_test(r, config_options, 'ca_repository_directory_name', 'Directory Address',
+                              first_directory_name > 0)
+            _do_presence_test(r, config_options, 'ca_repository_http_p7c',
+                              'HTTP Repository ending in .p7c', sia_not_p7c == 0)
+
+        _do_presence_test(r, config_options, 'time_stamping_present', 'Time Stamping', time_stamping_found)
 
     return r
+
 
 # id-ce-privateKeyUsagePeriod OBJECT IDENTIFIER ::=  { id-ce 16 }
 #
@@ -1095,7 +1258,7 @@ def lint_pkup(config_options, cert):
                                       is_critical, r)
 
     if pkup is not None:
-        _lint_cert_add_content_line(r, der2ascii(pkup['extn_value'].contents))
+        _lint_cert_add_content_to_row(r, der2ascii(pkup['extn_value'].contents))
 
     return r
 
@@ -1110,7 +1273,7 @@ def lint_sub_dir_attr(config_options, cert):
                                       is_critical, r)
 
     if subject_directory_attributes is not None:
-        _lint_cert_add_content_line(r, der2ascii(subject_directory_attributes['extn_value'].contents))
+        _lint_cert_add_content_to_row(r, der2ascii(subject_directory_attributes['extn_value'].contents))
 
     return r
 
@@ -1125,9 +1288,9 @@ def lint_ocsp_nocheck(config_options, cert):
     if cert.ocsp_no_check_value is not None:
         # The value of the extension SHALL be NULL.
         if len(cert.ocsp_no_check_value.contents) is 0:
-            _lint_cert_add_content_line(r, "NULL")
+            _lint_cert_add_content_to_row(r, "NULL")
         else:
-            _lint_cert_add_content_line(r, _get_der_display_string(cert.ocsp_no_check_value.contents))
+            _lint_cert_add_content_to_row(r, get_der_display_string(cert.ocsp_no_check_value.contents))
             _lint_cert_add_error_to_row(r, "Extension content is not NULL")
 
     return r
@@ -1141,7 +1304,7 @@ def lint_inhibit_any(config_options, cert):
                                       'inhibit_any_policy' in cert.critical_extensions, r)
 
     if cert.inhibit_any_policy_value is not None:
-        _lint_cert_add_content_line(r, "SkipCerts = {}".format(cert.inhibit_any_policy_value.native))
+        _lint_cert_add_content_to_row(r, "SkipCerts = {}".format(cert.inhibit_any_policy_value.native))
 
     return r
 
@@ -1174,7 +1337,7 @@ def lint_signature_algorithm(config_options, cert):
     sig_alg = cert['signature_algorithm']['algorithm']
     tbs_alg = cert['tbs_certificate']['signature']['algorithm']
 
-    _lint_cert_add_content_line(r, "{} ({})".format(sig_alg.native.replace('_', '-'), sig_alg.dotted))
+    _lint_cert_add_content_to_row(r, "{} ({})".format(sig_alg.native.replace('_', '-'), sig_alg.dotted))
 
     if sig_alg != tbs_alg:
         _lint_cert_add_error_to_row(r, "Signature algorithm ({}) does not match TBSCertificate::signature ({})".format(
@@ -1213,9 +1376,9 @@ def lint_serial_number(config_options, cert):
     r = OutputRow("Serial Number")
 
     serial_number = cert['tbs_certificate']['serial_number'].contents
-    _lint_cert_add_content_line(r, '{}{}({} octets)'.format(' '.join('%02X' % c for c in serial_number),
-                                                            _lint_cert_newline,
-                                                            len(serial_number)))
+    _lint_cert_add_content_to_row(r, '{}{}({} octets)'.format(' '.join('%02X' % c for c in serial_number),
+                                                              _lint_cert_newline,
+                                                              len(serial_number)))
 
     min_length = 0
     max_length = 0
@@ -1248,6 +1411,7 @@ public_key_algorithm_display_map = {
     '1.2.840.10046.2.1': 'DH',
 }
 
+
 # alg_rsa	INT	0, 1, 2	Optional, Disallowed, Required
 # alg_ec	INT	0, 1, 2	Optional, Disallowed, Required
 # alg_ec_named_curve	Multi-OID	Null, <OID>, …	Any | Permitted List
@@ -1262,18 +1426,31 @@ def lint_subject_public_key_info(config_options, cert):
     public_key_info = cert['tbs_certificate']['subject_public_key_info']
     public_key_alg = public_key_info['algorithm']['algorithm'].dotted
 
-    _lint_cert_add_content_line(r, '{}-{} ({})'.format(public_key_algorithm_display_map.get(public_key_alg, "Unknown"),
-                                                       public_key_info.bit_size,
-                                                       public_key_alg))
-    _lint_cert_add_content_line(r, "")
+    _lint_cert_add_content_to_row(r,
+                                  '{}-{} ({})'.format(public_key_algorithm_display_map.get(public_key_alg, "Unknown"),
+                                                      public_key_info.bit_size,
+                                                      public_key_alg))
+    _lint_cert_add_content_to_row(r, "")
     pub_key_bytes = public_key_info['public_key'].contents
     # strip leading 00 so it matches microsoft cert viewer
     if pub_key_bytes[0] is 0:
         pub_key_bytes = pub_key_bytes[1:]
     # 43 chars to match ms cert viewer
     pub_key_text = textwrap.fill(' '.join('%02X' % c for c in pub_key_bytes), 43)
-    _lint_cert_add_content_line(r, pub_key_text.replace('\n', _lint_cert_newline))
+    _lint_cert_add_content_to_row(r, pub_key_text.replace('\n', _lint_cert_newline))
 
+    if public_key_info.algorithm == 'rsa':
+        if 'parameters' in public_key_info['algorithm']:
+            if public_key_info['algorithm']['parameters'] is not None and len(
+                    public_key_info['algorithm']['parameters'].contents) > 0:
+                _lint_cert_add_content_to_row(r, "{}**Parameters**:{}".format(_lint_cert_newline, _lint_cert_newline))
+                _lint_cert_add_content_to_row(r, der2ascii(public_key_info['algorithm']['parameters'].contents))
+
+        pub_key = public_key_info.unwrap()
+        modulus = pub_key.native['modulus']
+        public_exponent = pub_key.native['public_exponent']
+
+    # todo add parameters
     min_size = 0
     max_size = 0
 
@@ -1366,7 +1543,7 @@ def lint_validity(config_options, cert):
     return r
 
 
-_printable_string_char_set = {
+printable_string_char_set = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
     'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
     's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\'', '(', ')', '+',
@@ -1388,17 +1565,11 @@ def _lint_check_printable_strings(r, name):
 
         for rdn2 in rdn_list:
             for name2 in rdn2:
-                # if name2['type'].dotted == '0.9.2342.19200300.100.1.1':
-                #     print("no value")
-                # if isinstance(name2['value'], asn1crypto.core.Any):
-                #     print("it's any")
-
                 if isinstance(name2['value'], x509.DirectoryString) and name2['value'].name == 'printable_string':
                     for c in name2.native['value']:
-                        if c not in _printable_string_char_set:
+                        if c not in printable_string_char_set:
                             r = get_pretty_dn_name_component(name2['type'])
-                            _lint_cert_add_error_to_row(r,
-                                                        "{}: \'{}\' is not permitted in PrintableString".format(r, c))
+                            _lint_cert_add_error_to_row(r, "{}: \'{}\' is not permitted in PrintableString".format(r, c))
 
     return
 
@@ -1499,7 +1670,7 @@ def lint_other_extensions(config_options, cert):
             r = OutputRow(extension_name, "", "", "other_extensions")
             if e['critical'].native is True:
                 others_critical += 1
-                _lint_cert_add_content_line(r, "Critical = TRUE")
+                _lint_cert_add_content_to_row(r, "Critical = TRUE")
                 if 'other_critical_extensions_present' in config_options and \
                                 config_options['other_critical_extensions_present'].value is '1':
                     _lint_cert_add_error_to_row(r, "Additional critical extensions are not permitted")
@@ -1514,14 +1685,12 @@ def lint_other_extensions(config_options, cert):
                 # der_string += textwrap.fill(' '.join('%02X' % c for c in e.contents), 43)
                 # der_string = der_string.replace('\n', _lint_cert_newline)
                 der_string = der2ascii(e['extn_value'].contents)
-                _lint_cert_add_content_line(r, der_string)
+                _lint_cert_add_content_to_row(r, der_string)
 
             rows.append(r)
 
     return rows
 
-
-from collections import OrderedDict
 
 conformance_check_functions = OrderedDict([
     ('version', lint_version),
@@ -1546,7 +1715,7 @@ conformance_check_functions = OrderedDict([
     ('ian', lint_ian),
     ('aia', lint_aia),
 
-    ('cert_policies', lint_cert_policies),
+    ('cert_policies', lint_policies),
     ('policy_mappings', lint_policy_mappings),
     ('policy_constraints', lint_policy_constraints),
     ('inhibit_any', lint_inhibit_any),
@@ -1701,39 +1870,13 @@ def process_add_certificate(cert, profile_file, output_file):
 # united
 
 def process_one_certificate(cert, profile_file, output_file_name, document_title):
-    strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cerulean\" style=\"display:none;\"\n>"
+    strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cyborg\" style=\"display:none;\"\n>"
     strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
 
     with open(output_file_name, 'w') as output_file:
         output_file.write(strap_start.format(document_title))
         process_add_certificate(cert, profile_file, output_file)
         output_file.write(strap_end)
-
-        # output_rows, other_extensions_rows, profile_info = check_cert_conformance(cert, profile_file, "<br>", '&nbsp;&nbsp;&nbsp;&nbsp;')
-        #
-        # strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cerulean\" style=\"display:none;\"\n>"
-        # strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
-        #
-        # header = "| **Field** | **Content** | **Analysis** |\n"
-        # cols = "|:-------- |: ------------------------------------------- |:------------------------------------------------------ |\n"
-        #
-        # output_file.write(strap_start.format(get_page_title_from_dn(cert.subject)))
-        # output_file.write(header)
-        # output_file.write(cols)
-        #
-        # final_sorted_rows = []
-        # for key, r in conformance_check_functions.items():
-        #     if key in output_rows:
-        #         final_sorted_rows.append(output_rows[key])
-        # for r in other_extensions_rows:
-        #     final_sorted_rows.append(r)
-        #
-        # for r in final_sorted_rows:
-        #     output_file.write("| **{}** ".format(r.row_name))
-        #     output_file.write("| {} ".format(r.content))
-        #     output_file.write("| {}&nbsp;|\n".format(r.analysis))
-        #
-        # output_file.write(strap_end)
 
 
 # example input list
@@ -1744,8 +1887,9 @@ def process_one_certificate(cert, profile_file, output_file_name, document_title
 #     ["testcerts/piv/pivauth.cer", "PIV_Identity"],
 #     ]
 
+
 def process_certificate_list(list_of_certs, output_file_name, doc_title):
-    strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cerulean\" style=\"display:none;\"\n>"
+    strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cyborg\" style=\"display:none;\"\n>"
     strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
 
     with open(output_file_name, 'w') as output_file:
