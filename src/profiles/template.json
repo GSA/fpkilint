@@ -702,6 +702,36 @@
         "OID":  ""
     },
     {
+        "Section":  "sia",
+        "Item":  "ca_repository_directory_name",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "sia",
+        "Item":  "ca_repository_https",
+        "Value":  "1",
+        "OID":  ""
+    },
+    {
+        "Section":  "sia",
+        "Item":  "ca_repository_ldaps",
+        "Value":  "1",
+        "OID":  ""
+    },
+    {
+        "Section":  "sia",
+        "Item":  "ca_repository_http_p7c",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "sia",
+        "Item":  "time_stamping_present",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
         "Section":  "cert_policies",
         "Item":  "present",
         "Value":  "0",
