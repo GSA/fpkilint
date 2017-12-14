@@ -149,16 +149,29 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
     return s
 
 
+def get_extension_list_from_certificate(cert, oid=None):
+
+    if oid and not isinstance(oid, str):
+        raise TypeError("oid must be dotted oid string")
+
+    extensions = cert['tbs_certificate']['extensions']
+    extension_list = list()
+
+    for e in extensions:
+        if oid is None or e['extn_id'].dotted == oid:
+            extension_list.append([e, e['critical'].native])
+
+    return extension_list
+
+
 def get_extension_from_certificate(cert, oid):
 
     if not isinstance(oid, str):
         raise TypeError("oid must be dotted oid string")
 
-    extensions = cert['tbs_certificate']['extensions']
+    ext_list = get_extension_list_from_certificate(cert, oid)
 
-    for e in extensions:
-        if e['extn_id'].dotted == oid:
-            return e, e['critical']
+    if len(ext_list) is 0:
+        return None, False
 
-    return None, False
-
+    return ext_list[0][0], ext_list[0][1]
