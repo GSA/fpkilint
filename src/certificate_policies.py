@@ -322,6 +322,7 @@ policies_display_map = {
     '1.3.6.1.4.1.103.100.1.1.3.2': 'lockheed-mediumSoftware-SHA1',
     '1.3.6.1.4.1.103.100.1.1.3.3': 'lockheed-mediumHardware-SHA2',
     '1.3.6.1.4.1.103.100.1.1.3.4': 'lockheed-mediumSoftware-SHA2',
+    '1.3.6.1.4.1.103.100.1.1.3.5': 'lockheed-mediumDerived',
     '1.3.6.1.4.1.103.100.1.1.3.6': 'lockheed-mediumDevice',
 
     '2.16.528.1.1003.1.2.5.1': 'netherlands-mod-Authenticity',
@@ -371,6 +372,7 @@ policies_display_map = {
     '2.16.840.1.101.2.1.11.5': 'id-US-dod-medium',
     '2.16.840.1.101.2.1.11.6': 'id-US-dod-type1',
     '2.16.840.1.101.2.1.11.9': 'id-US-dod-mediumHardware',
+
     '1.3.6.1.4.1.49758.1.1.1.1': 'nextgenid-lowSoftware',
     '1.3.6.1.4.1.49758.1.1.1.2': 'nextgenid-lowHardware',
     '1.3.6.1.4.1.49758.1.1.1.3': 'nextgenid-mediumSoftware',
@@ -382,4 +384,8 @@ policies_display_map = {
     '1.3.6.1.4.1.49758.1.1.1.9': 'nextgenid-IceCAP-contentSigning',
     '1.3.6.1.4.1.49758.1.1.1.23': 'nextgenid-medium-device-software',
     '1.3.6.1.4.1.49758.1.1.1.24': 'nextgenid-medium-device-hardware',
+
+    '1.3.6.1.4.1.311.21.30': 'microsoft-tpm-ekverifykey',
+    '1.3.6.1.4.1.311.21.31': 'microsoft-tpm-ekverifycert',
+    '1.3.6.1.4.1.311.21.32': 'microsoft-tpm-ekverifycreds',
 }
