@@ -8,25 +8,7 @@ from binary_utils import *
 
 lint_cert_newline = '\n'
 lint_cert_indent = '    '
-
-key_usage_display_map = {
-    'digital_signature': 'digitalSignature (0)',
-    'non_repudiation': 'nonRepudiation (1)',
-    'key_encipherment': 'keyEncipherment (2)',
-    'data_encipherment': 'dataEncipherment (3)',
-    'key_agreement': 'keyAgreement (4)',
-    'key_cert_sign': 'keyCertSign (5)',
-    'crl_sign': 'cRLSign (6)',
-    'encipher_only': 'encipherOnly (7)',
-    'decipher_only': ' decipherOnly (8)',
-}
-
-qualifiers_display_map = {
-    'certification_practice_statement': 'CPS URI',
-    'user_notice': 'User Notice',
-    'notice_ref': 'Ref',
-    'explicit_text': 'Text',
-}
+_lint_warning_prefix = 'WARN'
 
 eku_display_map = {
     # https://tools.ietf.org/html/rfc5280#page-45
@@ -133,11 +115,6 @@ eku_display_map = {
     '2.23.133.8.1': 'Endorsement Key Certificate',
 }
 
-crldp_display_map = {
-    'full_name': 'Full Name',
-    'name_relative_to_crl_issuer': 'Name Relative to Issuer',
-}
-
 
 class ConfigEntry:
     def __init__(self):
@@ -158,6 +135,7 @@ class OutputRow:
         self.analysis = ""
         self.config_section = ""
         self.extension_oid = None
+        self.extension_is_critical = False
 
         if init_row_name is not None:
             self.row_name = init_row_name
@@ -198,10 +176,42 @@ def der2asn(binary_der):
     return ascii_string
 
 
-def _lint_format_time(x509_time, name_string):
+def format_x509_time(x509_time, name_string):
     return "{}:  {}{}{}{}[{}] {}{}".format(name_string, x509_time.native, lint_cert_newline,
                                            lint_cert_indent, lint_cert_indent,
                                            x509_time.name, x509_time.chosen, lint_cert_newline)
+
+
+# _utc_ref = "https://tools.ietf.org/html/rfc5280#section-4.1.2.5.1"
+# _generalized_ref = "https://tools.ietf.org/html/rfc5280#section-4.1.2.5.2"
+
+# below makes the assumption that if you put a date between 1950 and 1985 in a cert that you really meant
+# 2050 to 2085 and should have used generalized time instead of utc
+_must_not_be_right = datetime.datetime(1985, 12, 31)
+_must_not_be_right = _must_not_be_right.replace(tzinfo=pytz.UTC)
+
+
+def lint_and_format_x509_time(x509_time, name_string, r):
+
+    if not x509_time.chosen.contents.endswith(b'Z'):
+        r.add_error("{} is not expressed in GMT (RFC5280).".format(name_string))
+    else:
+        if x509_time.name == 'utc_time':
+            if len(x509_time.chosen.contents) == 11:
+                r.add_error("{} does not include seconds. (RFC5280)".format(name_string))
+            elif len(x509_time.chosen.contents) != 13:
+                r.add_error("{} format is not YYMMDDHHMMSSZ. (RFC5280)".format(name_string))
+
+            if x509_time.native < _must_not_be_right:
+                r.add_error("notBefore is required to be GeneralizedTime for dates beyond 2049")
+
+        elif x509_time.name == 'general_time':
+            if len(x509_time.chosen.contents) == 13:
+                r.add_error("{} does not include seconds. (RFC5280)".format(name_string))
+            elif len(x509_time.chosen.contents) != 15:
+                r.add_error("{} format is not YYYYMMDDHHMMSSZ. (RFC5280)".format(name_string))
+
+    return format_x509_time(x509_time, name_string)
 
 
 def _lint_get_extension_options(config_options):
@@ -242,21 +252,17 @@ def _process_common_extension_options(config_options, cert, r):
             r.add_error("{} instances of {} found in certificate.".format(len(extension_list), r.row_name))
             r.add_error("Only the first instance is shown", "**WARN**")
 
-        # extension_is_critical = False
-        extension_is_critical = extension_list[0][1]
-        # for ext, crit in extension_list:
-        #     if crit:
-        #         extension_is_critical = True
+        r.extension_is_critical = extension_list[0][1]
 
         if option_present is LINT_CERT_DISALLOWED:
             r.add_error("{} is not permitted".format(r.row_name))
-        if option_is_critical is LINT_CERT_REQUIRED and extension_is_critical is False:
+        if option_is_critical is LINT_CERT_REQUIRED and r.extension_is_critical is False:
             r.add_error("{} must be marked critical".format(r.row_name))
-        if option_is_critical is LINT_CERT_DISALLOWED and extension_is_critical is True:
+        if option_is_critical is LINT_CERT_DISALLOWED and r.extension_is_critical is True:
             r.add_error("{} must not be marked critical".format(r.row_name))
 
-        if extension_is_critical is True:
-            r.add_content("Critical = TRUE")
+        # if r.extension_is_critical is True:
+        #     r.add_content("Critical = TRUE")
 
     return
 
@@ -276,13 +282,9 @@ def _do_presence_test(r, config_options, cfg_str, display_str, is_present):
     return
 
 
-
 def lint_policy_mappings(config_options, cert):
     r = OutputRow("Policy Mappings")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.policy_mappings_value,
-    #                                   'policy_mappings' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.policy_mappings_value is not None:
@@ -387,27 +389,12 @@ def output_name_constraints_subtrees(r, general_subtrees, subtree_type="Permitte
         name = get_general_name_string(general_subtree['base'], False)
         r.add_content("{}{}{}".format(indent, indent, name))
 
-        # if general_subtree[0].name == 'directory_name':
-        #     v = "("
-        #     comma = ""
-        #     for rqn in general_subtree[0].chosen.chosen:
-        #         v += "{}{}={}".format(comma, rqn.native[0]['type'], rqn.native[0]['value'])
-        #         comma = ", "
-        #     v += ")"
-        # else:
-        #     v = general_subtree[0].native
-        #
-        # s += "<br>\t[{}]Subtree({}..{}): <br>\t\t{} Name={}".format(subtree_index, general_subtree[1].native, max, general_subtree[0].name, v)
-
     return
 
 
 def lint_name_constraints(config_options, cert):
     r = OutputRow("Name Constraints")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.name_constraints_value,
-    #                                   'name_constraints' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.name_constraints_value is not None:
@@ -430,9 +417,6 @@ def lint_piv_naci(config_options, cert):
 
     pivnaci, is_critical = get_extension_from_certificate(cert, '2.16.840.1.101.3.6.9.1')
 
-    # _process_common_extension_options(config_options,
-    #                                   pivnaci,
-    #                                   is_critical, r)
     _process_common_extension_options(config_options, cert, r)
 
     if pivnaci is not None:
@@ -441,27 +425,51 @@ def lint_piv_naci(config_options, cert):
     return r
 
 
+# key_usage_display_map = {
+#     'digital_signature': 'digitalSignature (0)',
+#     'non_repudiation': 'nonRepudiation (1)',
+#     'key_encipherment': 'keyEncipherment (2)',
+#     'data_encipherment': 'dataEncipherment (3)',
+#     'key_agreement': 'keyAgreement (4)',
+#     'key_cert_sign': 'keyCertSign (5)',
+#     'crl_sign': 'cRLSign (6)',
+#     'encipher_only': 'encipherOnly (7)',
+#     'decipher_only': ' decipherOnly (8)',
+# }
+
+key_usage_display_map = OrderedDict([
+    ('digital_signature', 'digitalSignature (0)'),
+    ('non_repudiation', 'nonRepudiation (1)'),
+    ('key_encipherment', 'keyEncipherment (2)'),
+    ('data_encipherment', 'dataEncipherment (3)'),
+    ('key_agreement', 'keyAgreement (4)'),
+    ('key_cert_sign', 'keyCertSign (5)'),
+    ('crl_sign', 'cRLSign (6)'),
+    ('encipher_only', 'encipherOnly (7)'),
+    ('decipher_only', 'decipherOnly (8)'),
+])
+
 def lint_key_usage(config_options, cert):
     r = OutputRow("Key Usage")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.key_usage_value,
-    #                                   'key_usage' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.key_usage_value is not None:
 
-        for ku in cert.key_usage_value.native:
-            r.add_content(key_usage_display_map.get(ku, "Unknown Bit ({})".format(ku)))
-
-            if ku not in key_usage_display_map:
-                r.add_error("Bit ({}) is not permitted.".format(ku))
-            elif ku in config_options and config_options[ku].value == '1':
-                r.add_error("{} is not permitted".format(key_usage_display_map[ku]))
-
         for ku in key_usage_display_map.keys():
-            if ku in config_options and config_options[ku].value == '2' and ku not in cert.key_usage_value.native:
+            if ku in cert.key_usage_value.native:
+
+                r.add_content(key_usage_display_map[ku])
+
+                if ku in config_options and config_options[ku].value == LINT_CERT_DISALLOWED:
+                    r.add_error("{} is not permitted".format(key_usage_display_map[ku]))
+
+            elif ku in config_options and config_options[ku].value == LINT_CERT_REQUIRED:
                 r.add_error("{} is required".format(key_usage_display_map[ku]))
+
+        for ku in cert.key_usage_value.native:
+            if ku not in key_usage_display_map:
+                r.add_error("Unknown bit ({}) is not permitted.".format(ku))
 
     return r
 
@@ -469,9 +477,6 @@ def lint_key_usage(config_options, cert):
 def lint_akid(config_options, cert):
     r = OutputRow("Authority Key Identifier")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.authority_key_identifier_value,
-    #                                   'authority_key_identifier' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.authority_key_identifier_value is not None:
@@ -528,9 +533,6 @@ def lint_akid(config_options, cert):
 def lint_skid(config_options, cert):
     r = OutputRow("Subject Key Identifier")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.key_identifier_value,
-    #                                   'key_identifier' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.key_identifier_value is not None:
@@ -546,15 +548,15 @@ def lint_skid(config_options, cert):
         if require_method_one == '1' and match is False:
             r.add_error("Was not generated using RFC5280 method 1 (SHA1 of subjectPublicKeyInfo)")
 
+        if r.extension_is_critical:
+            r.add_error('Conforming CAs MUST mark this extension as non-critical (RFC5280)', _lint_warning_prefix)
+
     return r
 
 
 def lint_policy_constraints(config_options, cert):
     r = OutputRow("Policy Constraints")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.policy_constraints_value,
-    #                                   'policy_constraints' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.policy_constraints_value is not None:
@@ -576,7 +578,6 @@ def lint_policy_constraints(config_options, cert):
                           'Inhibit policy mapping', policy_constraints_native['inhibit_policy_mapping'] is not None)
 
         if policy_constraints_native['require_explicit_policy'] is not None:
-            # todo find a sample cert for this
 
             if 'require_explicit_policy_max' in config_options and len(
                     config_options['require_explicit_policy_max'].value) > 0:
@@ -602,9 +603,6 @@ def lint_policy_constraints(config_options, cert):
 def lint_basic_constraints(config_options, cert):
     r = OutputRow("Basic Constraints")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.basic_constraints_value,
-    #                                   'basic_constraints' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.basic_constraints_value is not None:
@@ -706,7 +704,34 @@ def get_string_type(asn_string):
     if not asn_string or not isinstance(asn_string, AbstractString):
         return None
 
-    return asn1_tag_to_type.get(asn_string.tag, None)
+    if isinstance(asn_string, IA5String):
+        return 'IA5'
+    if isinstance(asn_string, PrintableString):
+        return 'Printable'
+    if isinstance(asn_string, UTF8String):
+        return 'UTF8'
+    if isinstance(asn_string, TeletexString):
+        return 'Teletex'
+    if isinstance(asn_string, BMPString):
+        return 'BMP'
+    if isinstance(asn_string, NumericString):
+        return 'Numeric'
+    if isinstance(asn_string, GraphicString):
+        return 'Graphic'
+    if isinstance(asn_string, VisibleString):
+        return 'Visible'
+    if isinstance(asn_string, GeneralString):
+        return 'General'
+    if isinstance(asn_string, UniversalString):
+        return 'Universal'
+    if isinstance(asn_string, VideotexString):
+        return 'Videotex'
+    if isinstance(asn_string, CharacterString):
+        return 'Character'
+
+    print(asn_string.__class__.__name__ + 'in get_string_type(asn_string)')
+
+    return None
 
 
 printable_string_char_set = {
@@ -715,6 +740,29 @@ printable_string_char_set = {
     's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\'', '(', ')', '+',
     '-', '.', '/', ':', '=', '?', ' ', ','
 }
+
+# teletex_character_table = [
+#     #0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 0
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 1
+#     [1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 2
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 3
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 4
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],  # 5
+#     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 6
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1],  # 7
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 8
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 9
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0],  # A
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],  # B
+#     [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],  # C
+#     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # D
+#     [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # E
+#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],  # F
+# ]
+
+teletex_bad_character_set = {35, 36, 92, 94, 96, 123, 125, 126, 169, 170, 172, 173, 174, 175, 185, 186, 192, 201,
+                             208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 229, 255}
 
 
 def find_illegal_characters(asn_string):
@@ -725,28 +773,38 @@ def find_illegal_characters(asn_string):
 
     illegal_characters = []
 
-    # todo maybe this should use .contents instead
     if string_type == 'Printable':
         for c in asn_string.native:
             if c not in printable_string_char_set:
                 illegal_characters.append(c)
     elif string_type == 'IA5':
-        for c in asn_string.native:
-            if not 0x20 <= ord(c) <= 0x7f:
-                illegal_characters.append(c)
+        # for c in asn_string.native:
+        #     if not 0x20 <= ord(c) <= 0x7f:
+        #         illegal_characters.append(c)
+        for c in asn_string.contents:
+            if not 0x20 <= c <= 0x7f:
+                illegal_characters.append(chr(c))
     elif string_type == 'BMP':
         print('bmp')
     elif string_type == 'Visible':
         print('visible')
     elif string_type == 'UTF8':
-        print('utf8')
+        0
+        # do illegal characters always generate exceptions?
+        # print('utf8')
     elif string_type == 'Teletex':
-        # todo class NotReallyTeletexString(TeletexString) ?
-        print('teletex')
+        # https://www.itu.int/rec/T-REC-T.61-198811-S/en
+        # Code page 1036, CP1036, or IBM 01036
+        for c in asn_string.contents:
+            # for c in asn_string.contents:
+            #     if not teletex_character_table[(c & 0xF0) >> 4][c & 0x0F]:
+            #         illegal_characters.append(chr(c))
+            if c in teletex_bad_character_set:
+                illegal_characters.append(chr(c))
     elif string_type == 'Universal':
         print('universal')
     elif string_type == 'General':
-        print('ia5')
+        print('general')
     else:
         print('No case for ' + string_type)
 
@@ -773,6 +831,33 @@ def lint_asn_string(asn_string, string_description, r):
 
         error_string += ') found in {}'.format(string_description)
         r.add_error(error_string)
+        print(error_string)
+
+
+def lint_dn_strings(name, r):
+    if not isinstance(name, x509.Name):
+        raise TypeError("name must be an x509.Name")
+
+    rdn_seq = name.chosen  # type = RDNSequence
+    if len(rdn_seq):
+        for rdn in rdn_seq:
+            for name in rdn:
+                value = name['value']
+                if isinstance(value, x509.DirectoryString):
+                    lint_asn_string(value.chosen, get_pretty_dn_name_component(name['type']), r)
+                elif isinstance(value, Any):
+                    if value.parsed and isinstance(value.parsed, AbstractString):
+                        lint_asn_string(value.parsed, name['type'], r)
+
+    return
+
+
+qualifiers_display_map = {
+    'certification_practice_statement': 'CPS URI',
+    'user_notice': 'User Notice',
+    'notice_ref': 'Ref',
+    'explicit_text': 'Explicit Text',
+}
 
 
 def lint_policies(config_options, cert):
@@ -819,9 +904,9 @@ def lint_policies(config_options, cert):
                 policy_qualifiers = policy['policy_qualifiers']
                 for qual in policy_qualifiers:
                     # {'1.3.6.1.5.5.7.2.1': 'certification_practice_statement', '1.3.6.1.5.5.7.2.2': 'user_notice'}
-                    qualifer_description = qualifiers_display_map.get(qual['policy_qualifier_id'].native,
-                                                                      'Policy Qualifier Text')
-                    lint_asn_string(qual['qualifier'], qualifer_description, r)
+                    qualifier_description = qualifiers_display_map.get(qual['policy_qualifier_id'].native,
+                                                                       'Policy Qualifier Text')
+                    lint_asn_string(qual['qualifier'], qualifier_description, r)
 
                 for qualifier in policy.native['policy_qualifiers']:
 
@@ -852,7 +937,6 @@ def lint_policies(config_options, cert):
 
                     r.add_content(qualifier_string)
 
-
             if permitted_policies is not None and \
                             policy['policy_identifier'].dotted not in permitted_policies:
                 r.add_error("{} is not permitted".format(policy['policy_identifier'].dotted))
@@ -873,7 +957,8 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
 
     for general_name in alt_name_value:
         r.add_content(get_general_name_string(general_name, True))
-        types_found.append(get_general_name_type(general_name))
+        name_type = get_general_name_type(general_name)
+        types_found.append(name_type)
 
         if general_name.name == 'other_name' and 'other_name' not in types_found:
             types_found.append('other_name')
@@ -881,6 +966,11 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
             # get_general_name_type tags uniform_resource_identifier with http/ldap on the end, this is needed for the
             # presence test below
             types_found.append('uniform_resource_identifier')
+
+        if general_name.name == 'directory_name':
+            lint_dn_strings(general_name.chosen, r)
+        else:
+            lint_asn_string(general_name.chosen, general_name_display_map.get(name_type, 'Alternate Name'), r)
 
     _do_presence_test(r, config_options, 'other_name',
                       general_name_display_map['other_name'],
@@ -962,9 +1052,6 @@ def lint_ian(config_options, cert):
 def lint_eku(config_options, cert):
     r = OutputRow("Extended Key Usage")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.extended_key_usage_value,
-    #                                   'extended_key_usage' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.extended_key_usage_value is not None:
@@ -982,6 +1069,9 @@ def lint_eku(config_options, cert):
                 _do_presence_test(r, config_options, ce,
                                   eku_display_string,
                                   config_options[ce].oid in eku_oids)
+
+        if r.extension_is_critical and '2.5.29.37.0' in eku_oids:
+            r.add_error('EKU should not be critical if anyExtendedKeyUsage is present (RFC5280)', _lint_warning_prefix)
 
     return r
 
@@ -1011,12 +1101,40 @@ def lint_eku(config_options, cert):
 # If the DistributionPointName contains the single value
 # nameRelativeToCRLIssuer, the value provides a distinguished name
 
+crldp_display_map = {
+    'full_name': 'Full Name',
+    'name_relative_to_crl_issuer': 'Name Relative to Issuer',
+}
+
+# class ReasonFlags(BitString):
+#     _map = {
+#         0: 'unused',
+#         1: 'key_compromise',
+#         2: 'ca_compromise',
+#         3: 'affiliation_changed',
+#         4: 'superseded',
+#         5: 'cessation_of_operation',
+#         6: 'certificate_hold',
+#         7: 'privilege_withdrawn',
+#         8: 'aa_compromise',
+#     }
+
+reason_flags_display_map = OrderedDict([
+    (0, 'Unspecified (0)'),
+    (1, 'Key Compromise (1)'),
+    (2, 'CA Compromise (2)'),
+    (3, 'Affiliation Changed (3)'),
+    (4, 'Superseded (4)'),
+    (5, 'Cessation of Operation (5)'),
+    (6, 'Certificate Hold (6)'),
+    (7, 'Privilege Withdrawn (7)'),
+    (8, 'AA Compromise (8)'),
+])
+
 
 def lint_crldp(config_options, cert):
     r = OutputRow("CRL Distribution Points")
-    # _process_common_extension_options(config_options,
-    #                                   cert.crl_distribution_points_value,
-    #                                   'crl_distribution_points' in cert.critical_extensions, r)
+
     _process_common_extension_options(config_options, cert, r)
 
     if cert.crl_distribution_points_value is not None:
@@ -1027,26 +1145,31 @@ def lint_crldp(config_options, cert):
         first_http = 0
         first_ldap = 0
         first_directory_name = 0
+        indent_str = lint_cert_indent + lint_cert_indent
 
         for dp in crldp:
 
             dp_num += 1
+            r.add_content("[{}] Distribution Point".format(dp_num))
+
+            if not dp['distribution_point'] and not dp['crl_issuer']:
+                r.add_error("Either distributionPoint or cRLIssuer must be present in [{}]".format(dp_num))
 
             if dp['distribution_point']:
 
                 dpname = dp['distribution_point']
 
-                r.add_content("[{}] {}:".format(dp_num, crldp_display_map[dpname.name]))
+                r.add_content(lint_cert_indent + crldp_display_map[dpname.name])
 
                 if dpname.name != 'full_name':
                     # todo find a sample cert with nameRelativeToCRLIssuer, should be able to pass to pretty dn function
                     r.add_content("{}{}".format(lint_cert_indent, der2asn(dpname.chosen.contents)))
+                    print('nameRelativeToCRLIssuer')
 
                 else:
                     for general_name in dpname.chosen:
 
                         general_name_string = get_general_name_string(general_name, True)
-                        indent_str = "{}{}".format(lint_cert_newline, lint_cert_indent)
 
                         if general_name.name == 'uniform_resource_identifier':
 
@@ -1059,16 +1182,31 @@ def lint_crldp(config_options, cert):
                             if first_directory_name == 0:
                                 first_directory_name = dp_num
 
-                            general_name_string = general_name_string.replace(lint_cert_newline, indent_str)
-                            # general_name_string = indent_str + general_name_string
+                            general_name_string = general_name_string.replace(lint_cert_newline,
+                                                                              lint_cert_newline + indent_str)
 
-                        r.add_content("{}{}".format(lint_cert_indent, general_name_string))
+                        r.add_content("{}{}".format(indent_str, general_name_string))
 
             if dp['reasons']:
-                print("reasons")
+                # todo add template option for allowing reason flags in crldp
+                r.add_content(lint_cert_indent + "Reason Flag(s):")
+                for bit in reason_flags_display_map.keys():
+                    if dp['reasons'][bit]:
+                        r.add_content(indent_str + reason_flags_display_map[bit])
 
-            if dp['crl_issuer']:
-                print("crl issuer")
+                r.add_error("RFC5280 recommends against segmenting CRLs by reason code. "
+                            "This may lead to unintended certificate trust by clients that ignore these flags.",
+                            "WARN")
+
+            if dp['crl_issuer'] and isinstance(dp['crl_issuer'], x509.GeneralNames):
+                print(get_pretty_dn(cert.subject))
+                r.add_content(lint_cert_indent + "CRL Issuer:")
+                for general_name in dp['crl_issuer']:
+
+                    general_name_string = indent_str + get_general_name_string(general_name, True)
+                    general_name_string = general_name_string.replace(lint_cert_newline,
+                                                                      lint_cert_newline + indent_str)
+                    r.add_content(general_name_string)
 
         if first_http > 0 and first_ldap > 0:
 
@@ -1337,10 +1475,10 @@ def lint_pkup(config_options, cert):
 
         if pkup['not_before'] is not None:
             not_before = x509.Time({'general_time': pkup['not_before']})
-            r.add_content(_lint_format_time(not_before, "Not Before"))
+            r.add_content(lint_and_format_x509_time(not_before, "Not Before", r))
         if pkup['not_after'] is not None:
             not_after = x509.Time({'general_time': pkup['not_after']})
-            r.add_content(_lint_format_time(not_after, "Not After"))
+            r.add_content(lint_and_format_x509_time(not_after, "Not After", r))
 
     return r
 
@@ -1445,13 +1583,32 @@ def lint_signature_algorithm(config_options, cert):
     return r
 
 
+# ('issuer_unique_id', OctetBitString, {'implicit': 1, 'optional': True}),
+# ('subject_unique_id', OctetBitString, {'implicit': 2, 'optional': True}),
+
 def lint_version(config_options, cert):
     r = OutputRow("Version", cert['tbs_certificate']['version'].native)
+
+    cert_version = int(cert['tbs_certificate']['version'])
+
+    if cert_version == 0:
+        print('v1')
+        if cert['tbs_certificate']['issuer_unique_id'] or cert['tbs_certificate']['subject_unique_id']:
+            r.add_error('UniqueIdentifier(s) must not be present in a v1 certificate')
+
+    if not cert['tbs_certificate']['extensions']:
+        # no extensions
+        if cert_version == 2:
+            r.add_error('Certificates without extensions should be v2', _lint_warning_prefix)
+    else:
+        # has extensions
+        if cert_version != 2:
+            r.add_error('Extensions must not appear in {} certificates'.format(cert['tbs_certificate']['version'].native))
 
     if 'min_version' in config_options and len(config_options['min_version'].value) > 0:
         min_version_num = int(config_options['min_version'].value)
 
-        if int(cert['tbs_certificate']['version']) < min_version_num:
+        if cert_version < min_version_num:
             r.add_error("Minimum permitted version is v{}".format(str(min_version_num + 1)))
 
     return r
@@ -1482,6 +1639,11 @@ def lint_serial_number(config_options, cert):
 
     if len(serial_number) > 1 and serial_number[0] == 0 and serial_number[1] & 0x80 != 0x80:
         r.add_error("Invalid encoding. INTEGER must be encoded with the minimum number of octets")
+
+    if cert['tbs_certificate']['serial_number'].native == 0:
+        r.add_error('Serial number may not be zero (RFC5280)')
+    elif cert['tbs_certificate']['serial_number'].native < 0:
+        r.add_error('Serial number may not be negative (RFC5280)')
 
     return r
 
@@ -1528,15 +1690,20 @@ def lint_subject_public_key_info(config_options, cert):
     r.add_content(pub_key_text.replace('\n', lint_cert_newline))
 
     if public_key_info.algorithm == 'rsa':
+        pub_key = public_key_info.unwrap()
+        modulus = pub_key.native['modulus']
+        if modulus < 0:
+            r.add_error("RSA modulus is negative")
+
+        public_exponent = pub_key.native['public_exponent']
+        if public_exponent < 0:
+            r.add_error("RSA public exponent is negative")
+
         if 'parameters' in public_key_info['algorithm']:
             if public_key_info['algorithm']['parameters'] is not None and len(
                     public_key_info['algorithm']['parameters'].contents) > 0:
                 r.add_content("{}**Parameters**:{}".format(lint_cert_newline, lint_cert_newline))
                 r.add_content(der2asn(public_key_info['algorithm']['parameters'].contents))
-
-                # pub_key = public_key_info.unwrap()
-                # modulus = pub_key.native['modulus']
-                # public_exponent = pub_key.native['public_exponent']
 
     min_size = 0
     max_size = 0
@@ -1581,8 +1748,8 @@ def lint_validity(config_options, cert):
     nb = cert['tbs_certificate']['validity']['not_before']
     na = cert['tbs_certificate']['validity']['not_after']
 
-    r.add_content(_lint_format_time(nb, 'Not Before'))
-    r.add_content(_lint_format_time(na, 'Not After'))
+    r.add_content(lint_and_format_x509_time(nb, 'Not Before', r))
+    r.add_content(lint_and_format_x509_time(na, 'Not After', r))
 
     if na.native < nb.native:
         r.add_error("notAfter is before notBefore")
@@ -1595,67 +1762,40 @@ def lint_validity(config_options, cert):
     if 'validity_period_maximum' in config_options and len(config_options['validity_period_maximum'].value) > 0:
         validity_period_maximum = int(config_options['validity_period_maximum'].value)
 
-    if 'validity_period_generalized_time' in config_options and len(
-            config_options['validity_period_generalized_time'].value):
-        validity_period_generalized_time = int(config_options['validity_period_generalized_time'].value)
-
     if validity_period_maximum > 0:
         # lifespan must be less than validity_period_maximum
         max_validity = datetime.timedelta(days=validity_period_maximum)
         if lifespan > max_validity:
             r.add_error("Validity period exceeds {} days".format(str(validity_period_maximum)))
 
-    # below makes the assumption that if you put a date between 1950 and 1985 in a cert that you really meant
-    # 2050 to 2085 and should have used generalized time instead of utc
-    must_not_be_right = datetime.datetime(1985, 12, 31)
-    must_not_be_right = must_not_be_right.replace(tzinfo=pytz.UTC)
+    # if 'validity_period_generalized_time' in config_options and len(
+    #         config_options['validity_period_generalized_time'].value):
+    #     validity_period_generalized_time = int(config_options['validity_period_generalized_time'].value)
+    #
+    # # below makes the assumption that if you put a date between 1950 and 1985 in a cert that you really meant
+    # # 2050 to 2085 and should have used generalized time instead of utc
+    # must_not_be_right = datetime.datetime(1985, 12, 31)
+    # must_not_be_right = must_not_be_right.replace(tzinfo=pytz.UTC)
+    #
+    # if nb.name == 'utc_time':
+    #     if nb.native < must_not_be_right or validity_period_generalized_time is LINT_CERT_REQUIRED:
+    #         r.add_error("notBefore is required to be GeneralizedTime for dates beyond 2049")
+    # elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
+    #     r.add_error("notBefore is not permitted to be GeneralizedTime")
+    #
+    # if na.name == 'utc_time':
+    #     if na.native < must_not_be_right or validity_period_generalized_time is LINT_CERT_REQUIRED:
+    #         r.add_error("notAfter is required to be GeneralizedTime for dates beyond 2049")
+    # elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
+    #     r.add_error("notAfter is not permitted to be GeneralizedTime")
 
-    if nb.name == 'utc_time':
-        if nb.native < must_not_be_right or validity_period_generalized_time is LINT_CERT_REQUIRED:
-            r.add_error("notBefore is required to be GeneralizedTime")
-    elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
-        r.add_error("notBefore is not permitted to be GeneralizedTime")
+    _do_presence_test(r, config_options, 'validity_period_generalized_time',
+                      'notBefore encoded as GeneralizedTime', nb.name == 'general_time')
 
-    if na.name == 'utc_time':
-        if na.native < must_not_be_right or validity_period_generalized_time is LINT_CERT_REQUIRED:
-            r.add_error("notAfter is required to be GeneralizedTime")
-    elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
-        r.add_error("notAfter is not permitted to be GeneralizedTime")
+    _do_presence_test(r, config_options, 'validity_period_generalized_time',
+                      'notAfter encoded as GeneralizedTime', na.name == 'general_time')
 
     return r
-
-
-printable_string_char_set = {
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
-    'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-    's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\'', '(', ')', '+',
-    '-', '.', '/', ':', '=', '?', ' ', ','
-}
-
-def _lint_check_printable_strings(r, name):
-    if not isinstance(name, x509.Name):
-        raise TypeError("name must be an x509.Name")
-
-    rdn_seq = name.chosen  # type = RDNSequence
-    if len(rdn_seq):
-        rdn_list = list()
-        for rdn in rdn_seq:
-            rdn_list.append(rdn)
-
-        rdn_list.reverse()
-
-        for rdn2 in rdn_list:
-            for name2 in rdn2:
-                if isinstance(name2['value'], x509.DirectoryString):
-                    lint_asn_string(name2['value'].chosen, get_pretty_dn_name_component(name2['type']), r)
-
-                if isinstance(name2['value'], x509.DirectoryString) and name2['value'].name == 'printable_string':
-                    for c in name2.native['value']:
-                        if c not in printable_string_char_set:
-                            nc = get_pretty_dn_name_component(name2['type'])
-                            r.add_error("{}: \'{}\' is not permitted in PrintableString".format(nc, c))
-
-    return
 
 
 def lint_dn(config_options, dn, row_name):
@@ -1676,7 +1816,7 @@ def lint_dn(config_options, dn, row_name):
             elif found is False and config_options[ce].value is '2':
                 r.add_error("{} is missing".format(ce))
 
-    _lint_check_printable_strings(r, dn)
+    lint_dn_strings(dn, r)
 
     return r
 
@@ -1757,7 +1897,7 @@ def lint_other_extensions(config_options, cert):
             r.extension_oid = e['extn_id'].dotted
             if r.extension_oid in rows:
                 rows[r.extension_oid].add_error('Multiple instances of this extension found in the certificate.')
-                rows[r.extension_oid].add_error('Only the first instance is shown.', 'WARN')
+                rows[r.extension_oid].add_error('Only the first instance is shown.', _lint_warning_prefix)
 
             if e['critical'].native is True:
                 others_critical += 1
@@ -1774,9 +1914,7 @@ def lint_other_extensions(config_options, cert):
             if e.contents is not None:
                 if e['extn_id'].dotted == '1.3.6.1.4.1.11129.2.4.2':
                     print('sct')
-                # der_string = 'DER:\n'
-                # der_string += textwrap.fill(' '.join('%02X' % c for c in e.contents), 43)
-                # der_string = der_string.replace('\n', lint_cert_newline)
+
                 der_string = None
                 try:
                     der_string = der2asn(e['extn_value'].contents)
