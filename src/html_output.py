@@ -6,6 +6,8 @@ from profile_conformance import *
 url_regex = re.compile(r'(?i)\b((?:(https?|s?ftp|ldaps?)://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))')
 slash_regex = re.compile(r'\S/[^/ \t\n\r\f\v<]')
 
+# ^/[a-z0-9]+$
+# ^/\b([a-z0-9]+)\b(?<!ignoreme|ignoreme2|ignoreme3)
 
 def text_to_html(text_string, text_indent=None, text_new_line=None):
 
@@ -14,12 +16,13 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
     if not text_new_line:
         text_new_line = '\n'
 
-    html_new_line = '<br>'
+    html_new_line = '<br/>'
     html_indent = '&nbsp;&nbsp;&nbsp;&nbsp;'
 
-    text_string = html.escape(text_string)
-
     uris_to_replace = []
+
+    # if text_string.find('[6 PRIMITIVE] {') is not -1:
+    #     print(text_string)
 
     uri_match = True
     while uri_match:
@@ -27,6 +30,11 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
         if uri_match:
             uris_to_replace.append(uri_match.group(0).strip())
             break
+
+    # this was moved from above to between the uri match and replace due to &quot;
+    # matching url_regex e.g. "http://stuff/" -> http://stuff/&quot
+    # if this ends up causing problems will need to figure out a better fix
+    text_string = html.escape(text_string)
 
     for original_uri in uris_to_replace:
         slash_match = True
@@ -40,6 +48,7 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
 
         text_string = text_string.replace(original_uri, display_uri)
 
+
     text_string = text_string.replace("'", "&#39;")
     text_string = text_string.replace("`", "&#96;")
     text_string = text_string.replace("|", "&verbar;")  # &#124;
@@ -51,20 +60,17 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
 
     return text_string
 
+_header = "\n| **Field** | **Content** | **Analysis** |\n"
+_cols = "|:-------- |: -------------------------------------- |:--------------------------------------------------- |\n"
 
 def process_add_certificate(cert, profile_file, output_file):
     # could make these default params if desired
     _add_profile_url = True
     _add_profile_string = True
 
-    # output_rows, other_extensions_rows, profile_info = check_cert_conformance(cert, profile_file, "<br>",
-    #                                                                           '&nbsp;&nbsp;&nbsp;&nbsp;')
     output_rows, other_extensions_rows, profile_info = check_cert_conformance(cert, profile_file)
 
-    header = "\n| **Field** | **Content** | **Analysis** |\n"
-    cols = "|:-------- |: ------------------------------------------- |:------------------------------------------------------ |\n"
-
-    output_file.write("\n<br>\n")
+    output_file.write("\n<br/>\n")
 
     cert_type = None
     profile_string = None
@@ -92,22 +98,31 @@ def process_add_certificate(cert, profile_file, output_file):
         output_file.write("\n<a href=\"{}\">{}</a>".format(profile_url, profile_url))
 
     output_file.write("\n### {}\n".format(get_short_name_from_cert(cert)))
-    output_file.write(header)
-    output_file.write(cols)
+    output_file.write(_header)
+    output_file.write(_cols)
 
     all_was_good = "<font color=\"green\">OK</font>"
+    extension_is_critical = "Critical = TRUE<br/>"
 
     for i, (key, r) in enumerate(other_extensions_rows.items()):
         output_rows[key] = r
 
     for i, (key, r) in enumerate(output_rows.items()):
-        output_file.write("| **{}** ".format(r.row_name))
-        output_file.write("| {} ".format(text_to_html(r.content, lint_cert_indent, lint_cert_newline)))
-        if r.analysis == "":
-            output_file.write("| {}&nbsp;|\n".format(all_was_good))
-        else:
-            output_file.write("| {}&nbsp;|\n".format(text_to_html(r.analysis, lint_cert_indent, lint_cert_newline)))
 
+        # Field
+        output_file.write("| **{}** ".format(r.row_name))
+
+        # Content
+        output_file.write("| ")
+        if r.extension_is_critical:
+            output_file.write(extension_is_critical)
+        output_file.write(text_to_html(r.content, lint_cert_indent, lint_cert_newline))
+
+        # Analysis
+        if r.analysis == "":
+            output_file.write(" | {}&nbsp;|\n".format(all_was_good))
+        else:
+            output_file.write(" | {}&nbsp;|\n".format(text_to_html(r.analysis, lint_cert_indent, lint_cert_newline)))
 
 # amelia
 # bootstrap
@@ -123,14 +138,15 @@ def process_add_certificate(cert, profile_file, output_file):
 # superhero
 # united
 
+_strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"spruce\" style=\"display:none;\"\n>"
+_strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
+
 def process_one_certificate(cert, profile_file, output_file_name, document_title):
-    strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cyborg\" style=\"display:none;\"\n>"
-    strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
 
     with open(output_file_name, 'w') as output_file:
-        output_file.write(strap_start.format(document_title))
+        output_file.write(_strap_start.format(document_title))
         process_add_certificate(cert, profile_file, output_file)
-        output_file.write(strap_end)
+        output_file.write(_strap_end)
 
 
 # example input list
@@ -143,11 +159,11 @@ def process_one_certificate(cert, profile_file, output_file_name, document_title
 
 
 def process_certificate_list(list_of_certs, output_file_name, doc_title):
-    strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cyborg\" style=\"display:none;\"\n>"
-    strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
+    # strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"spruce\" style=\"display:none;\"\n>"
+    # strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
 
     with open(output_file_name, 'w') as output_file:
-        output_file.write(strap_start.format(doc_title))
+        output_file.write(_strap_start.format(doc_title))
 
         for file_name, profile in list_of_certs:
             # print(file_name)
@@ -159,8 +175,8 @@ def process_certificate_list(list_of_certs, output_file_name, doc_title):
                 if cert is None:
                     print('Failed to parse {}'.format(file_name))
                 else:
-                    output_file.write("\n<br>" + file_name + "<br>\n")
+                    output_file.write("\n<br/>" + file_name + "<br/>\n")
                     process_add_certificate(cert, profile, output_file)
 
-        output_file.write(strap_end)
+        output_file.write(_strap_end)
 
