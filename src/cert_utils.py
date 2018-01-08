@@ -84,7 +84,6 @@ def is_name_type_in_dn(oid_string, name):
 def get_pretty_dn_name_component(name_type):
 
     # name_type = NameType
-
     return {
         'common_name': 'CN',
         'surname': 'SN',
@@ -191,6 +190,10 @@ general_name_display_map = {
     'other_name_upn': 'UPN',
     'other_name_piv_fasc_n': 'FASCN',
     'uniform_resource_identifier_chuid': 'CHUID',
+    'uniform_resource_identifier_http': 'HTTP URI',
+    'uniform_resource_identifier_ldap': 'LDAP URI',
+    'uniform_resource_identifier_https': 'HTTPS URI',
+    'uniform_resource_identifier_ldaps': 'LDAPS URI',
 }
 
 other_name_display_map = {
@@ -286,18 +289,16 @@ def get_general_name_type(general_name):
 def get_short_name_from_dn(name):
     rdns = [
         'common_name',
-        '0.9.2342.19200300.100.1.1',
-        'serial_number',
         'name',
         'given_name',
         'surname',
+        '0.9.2342.19200300.100.1.1',
+        'serial_number',
         'street_address',
         'organizational_unit_name',
         'organization_name',
         'locality_name'
     ]
-
-    # d = name.native.last()
 
     if len(name.contents) <= 2:
         return "NULL"
@@ -331,12 +332,16 @@ def get_short_name_from_cert(cert, name_for_subject=None):
 
     desired_alt_names = [
         'dns_name',
-        'uniform_resource_identifier',
         'rfc822_name',
-        'directory_name',
         'other_name_upn',
-        'other_name_piv_fasc_n',
         'uniform_resource_identifier_chuid',
+        'other_name_piv_fasc_n',
+        'uniform_resource_identifier_http',
+        'uniform_resource_identifier_https',
+        'uniform_resource_identifier_ldap',
+        'uniform_resource_identifier_ldaps',
+        'uniform_resource_identifier',
+        'directory_name',
     ]
 
     alt_name_string = "NULL"
