@@ -145,6 +145,36 @@
     },
     {
         "Section":  "issuer",
+        "Item":  "require_geo_political_or_dc",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "issuer",
+        "Item":  "values_country",
+        "Value":  "",
+        "OID":  "2.5.4.6"
+    },
+    {
+        "Section":  "issuer",
+        "Item":  "values_organization",
+        "Value":  "",
+        "OID":  "2.5.4.10"
+    },
+    {
+        "Section":  "issuer",
+        "Item":  "values_organizational_unit",
+        "Value":  "",
+        "OID":  "2.5.4.11"
+    },
+    {
+        "Section":  "issuer",
+        "Item":  "values_distinguished_name_qualifier",
+        "Value":  "",
+        "OID":  "2.5.4.46"
+    },
+    {
+        "Section":  "issuer",
         "Item":  "rdn_country",
         "Value":  "0",
         "OID":  "2.5.4.6"
@@ -286,6 +316,36 @@
         "Item":  "base_dn",
         "Value":  "",
         "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "require_geo_political_or_dc",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "values_country",
+        "Value":  "CN;US;GB",
+        "OID":  "2.5.4.6"
+    },
+    {
+        "Section":  "subject",
+        "Item":  "values_organization",
+        "Value":  "",
+        "OID":  "2.5.4.10"
+    },
+    {
+        "Section":  "subject",
+        "Item":  "values_organizational_unit",
+        "Value":  "",
+        "OID":  "2.5.4.11"
+    },
+    {
+        "Section":  "subject",
+        "Item":  "values_distinguished_name_qualifier",
+        "Value":  "",
+        "OID":  "2.5.4.46"
     },
     {
         "Section":  "subject",
@@ -974,7 +1034,7 @@
     {
         "Section":  "basic_constraints",
         "Item":  "path_length_constraint_max",
-        "Value":  "0",
+        "Value":  "99",
         "OID":  ""
     },
     {
@@ -1022,7 +1082,7 @@
     {
         "Section":  "policy_constraints",
         "Item":  "require_explicit_policy_max",
-        "Value":  "0",
+        "Value":  "99",
         "OID":  ""
     },
     {
@@ -1034,7 +1094,7 @@
     {
         "Section":  "policy_constraints",
         "Item":  "inhibit_policy_mapping_max",
-        "Value":  "0",
+        "Value":  "99",
         "OID":  ""
     },
     {
