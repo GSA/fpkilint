@@ -62,6 +62,8 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
 
 _header = "\n| **Field** | **Content** | **Analysis** |\n"
 _cols = "|:-------- |: -------------------------------------- |:--------------------------------------------------- |\n"
+_all_was_good = "<font color=\"green\">OK</font>"
+_extension_is_critical = "Critical = TRUE<br/>"
 
 def process_add_certificate(cert, profile_file, output_file):
     # could make these default params if desired
@@ -101,9 +103,6 @@ def process_add_certificate(cert, profile_file, output_file):
     output_file.write(_header)
     output_file.write(_cols)
 
-    all_was_good = "<font color=\"green\">OK</font>"
-    extension_is_critical = "Critical = TRUE<br/>"
-
     for i, (key, r) in enumerate(other_extensions_rows.items()):
         output_rows[key] = r
 
@@ -115,12 +114,12 @@ def process_add_certificate(cert, profile_file, output_file):
         # Content
         output_file.write("| ")
         if r.extension_is_critical:
-            output_file.write(extension_is_critical)
+            output_file.write(_extension_is_critical)
         output_file.write(text_to_html(r.content, lint_cert_indent, lint_cert_newline))
 
         # Analysis
         if r.analysis == "":
-            output_file.write(" | {}&nbsp;|\n".format(all_was_good))
+            output_file.write(" | {}&nbsp;|\n".format(_all_was_good))
         else:
             output_file.write(" | {}&nbsp;|\n".format(text_to_html(r.analysis, lint_cert_indent, lint_cert_newline)))
 
