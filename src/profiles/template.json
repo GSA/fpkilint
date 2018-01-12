@@ -326,7 +326,7 @@
     {
         "Section":  "subject",
         "Item":  "values_country",
-        "Value":  "CN;US;GB",
+        "Value":  "",
         "OID":  "2.5.4.6"
     },
     {
@@ -654,6 +654,12 @@
         "OID":  ""
     },
     {
+        "Section":  "crldp",
+        "Item":  "crl_reasons",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
         "Section":  "aia",
         "Item":  "present",
         "Value":  "0",
@@ -824,6 +830,12 @@
     {
         "Section":  "policy_mappings",
         "Item":  "permitted",
+        "Value":  "",
+        "OID":  ""
+    },
+    {
+        "Section":  "policy_mappings",
+        "Item":  "excluded",
         "Value":  "",
         "OID":  ""
     },
