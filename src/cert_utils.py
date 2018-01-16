@@ -67,11 +67,11 @@ def get_extension_from_certificate(cert, oid):
     return ext_list[0][0], ext_list[0][1]
 
 
-def is_name_type_in_dn(oid_string, name):
-    if not isinstance(name, x509.Name):
+def is_name_type_in_dn(oid_string, x509_name):
+    if not isinstance(x509_name, x509.Name):
         raise TypeError("name must be an x509.Name")
 
-    rdn_seq = name.chosen
+    rdn_seq = x509_name.chosen
     if len(rdn_seq):
         for rdn in rdn_seq:
             for name in rdn:
@@ -79,6 +79,22 @@ def is_name_type_in_dn(oid_string, name):
                     return True
 
     return False
+
+
+def get_rdn_values_from_dn(oid_string, x509_name):
+    if not isinstance(x509_name, x509.Name):
+        raise TypeError("name must be an x509.Name")
+
+    rdn_values = []
+
+    rdn_seq = x509_name.chosen
+    if len(rdn_seq):
+        for rdn in rdn_seq:
+            for name in rdn:
+                if name['type'].dotted == oid_string:
+                    rdn_values.append(name)
+
+    return rdn_values
 
 
 def get_pretty_dn_name_component(name_type):
@@ -210,11 +226,13 @@ other_name_type_map = {
 import urllib.parse
 
 
-def get_general_name_string(general_name, multiline=None, indent_string=None):
+def get_general_name_string(general_name, multiline=None, indent_string=None, type_separator=None):
     if multiline is None:
         multiline = False
-    elif indent_string is None:
+    if indent_string is None:
         indent_string = '    '
+    if type_separator is None:
+        type_separator = ' = '
 
     general_name_string = "{}: ".format(general_name_display_map.get(general_name.name, "Unknown Name Type"))
 
@@ -227,14 +245,14 @@ def get_general_name_string(general_name, multiline=None, indent_string=None):
 
     elif general_name.name == 'directory_name':
 
-        separator = ", "
+        rdn_separator = ", "
 
         if multiline is True:
             general_name_string += '\n'
             general_name_string += indent_string
-            separator = ",{}{}".format('\n', indent_string)
+            rdn_separator = ",{}{}".format('\n', indent_string)
 
-        general_name_string += get_pretty_dn(general_name.chosen, separator, " = ")
+        general_name_string += get_pretty_dn(general_name.chosen, rdn_separator, type_separator)
 
     elif general_name.name == 'other_name':
         other_oid = general_name.chosen['type_id'].dotted
