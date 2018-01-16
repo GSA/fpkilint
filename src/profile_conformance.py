@@ -6,6 +6,40 @@ from collections import OrderedDict
 from certificate_policies import policies_display_map
 from binary_utils import *
 
+from asn1crypto.core import (
+    AbstractString,
+    Any,
+    BitString,
+    BMPString,
+    Boolean,
+    CharacterString,
+    Choice,
+    Concat,
+    GeneralizedTime,
+    GeneralString,
+    GraphicString,
+    IA5String,
+    Integer,
+    Null,
+    NumericString,
+    ObjectIdentifier,
+    OctetBitString,
+    OctetString,
+    ParsableOctetString,
+    PrintableString,
+    Sequence,
+    SequenceOf,
+    Set,
+    SetOf,
+    TeletexString,
+    UniversalString,
+    UTCTime,
+    UTF8String,
+    VisibleString,
+    VideotexString,
+    VOID,
+)
+
 lint_cert_newline = '\n'
 lint_cert_indent = '    '
 _lint_warning_prefix = 'WARN'
@@ -282,6 +316,45 @@ def _do_presence_test(r, config_options, cfg_str, display_str, is_present):
     return
 
 
+def _get_mappings_config(config_string, config_options, r):
+
+    mappings = None
+    any_mapping_from = []
+    any_mapping_to = []
+
+    if config_string in config_options and len(config_options[config_string].value) > 0:
+        mappings = config_options[config_string].value.split(" ")
+
+    if mappings:
+        any_mapping_from = []
+        any_mapping_to = []
+        for i, mapping in enumerate(mappings):
+            mappings[i] = mapping.split(":")
+
+            if not isinstance(mappings[i], list) or len(mappings[i]) is not 2:
+                r.add_error("Bad {} policy mapping configuration.".format(config_string))
+                r.add_error("Configuration takes this form:", "")
+                r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
+                r.add_error("e.g. 1.2.3:2.3.4 1.2.4:2.3.5 ...", "")
+                r.add_error("A wildcard may also be used.", "")
+                r.add_error("e.g. 1.2.3:* 1.2.4:* ...", "")
+                return r
+            if mappings[i][0] == mappings[i][1]:
+                r.add_error("Bad {} policy mapping configuration string in template.".format(config_string))
+                r.add_error("subjectDomain and issuerDomain cannot be identical", "")
+                return r
+
+            if mappings[i][1] == '*':
+                # issuer (mapping from) domain is specified, subject (mapped to) domain is *
+                any_mapping_from.append(mappings[i][0])
+
+            if mappings[i][0] == '*':
+                # issuer (mapping from) domain is *, subject (mapped to) domain is specified
+                any_mapping_to.append(mappings[i][1])
+
+    return mappings, any_mapping_from, any_mapping_to
+
+
 def lint_policy_mappings(config_options, cert):
     r = OutputRow("Policy Mappings")
 
@@ -308,43 +381,84 @@ def lint_policy_mappings(config_options, cert):
             r.add_content(policy_display_string)
             found_mappings.append([mapping['issuer_domain_policy'].dotted, mapping['subject_domain_policy'].dotted])
 
-        permitted_mappings = None
-        if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
-            permitted_mappings = config_options['permitted'].value.split(" ")
+        # permitted_mappings = None
+        # if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
+        #     permitted_mappings = config_options['permitted'].value.split(" ")
+
+        permitted_mappings, any_mapping_from, any_mapping_to = _get_mappings_config('permitted', config_options, r)
 
         if permitted_mappings:
-            any_mapping_from = []
-            any_mapping_to = []
-            for i, mapping in enumerate(permitted_mappings):
-                permitted_mappings[i] = mapping.split(":")
-
-                if not isinstance(permitted_mappings[i], list) or len(permitted_mappings[i]) is not 2:
-                    r.add_error("Bad policy mapping configuration.")
-                    r.add_error("Configuration takes this form:", "")
-                    r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
-                    r.add_error("e.g. 1.2.3:2.3.4 1.2.4:2.3.5 ...", "")
-                    r.add_error("A wildcard may also be used.", "")
-                    r.add_error("e.g. 1.2.3:* 1.2.4:* ...", "")
-                    return r
-                if permitted_mappings[i][0] == permitted_mappings[i][1]:
-                    r.add_error(
-                        "Bad policy mapping configuration string in template. subjectDomain and issuerDomain cannot be identical")
-                    return r
-
-                if permitted_mappings[i][1] == '*':
-                    # issuer (mapping from) domain is specified, subject (mapped to) domain is *
-                    any_mapping_from.append(permitted_mappings[i][0])
-
-                if permitted_mappings[i][0] == '*':
-                    # issuer (mapping from) domain is *, subject (mapped to) domain is specified
-                    any_mapping_to.append(permitted_mappings[i][1])
+            # any_mapping_from = []
+            # any_mapping_to = []
+            # for i, mapping in enumerate(permitted_mappings):
+            #     permitted_mappings[i] = mapping.split(":")
+            #
+            #     if not isinstance(permitted_mappings[i], list) or len(permitted_mappings[i]) is not 2:
+            #         r.add_error("Bad permitted policy mapping configuration.")
+            #         r.add_error("Configuration takes this form:", "")
+            #         r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
+            #         r.add_error("e.g. 1.2.3:2.3.4 1.2.4:2.3.5 ...", "")
+            #         r.add_error("A wildcard may also be used.", "")
+            #         r.add_error("e.g. 1.2.3:* 1.2.4:* ...", "")
+            #         return r
+            #     if permitted_mappings[i][0] == permitted_mappings[i][1]:
+            #         r.add_error("Bad permitted policy mapping configuration string in template. "
+            #                     "subjectDomain and issuerDomain cannot be identical")
+            #         return r
+            #
+            #     if permitted_mappings[i][1] == '*':
+            #         # issuer (mapping from) domain is specified, subject (mapped to) domain is *
+            #         any_mapping_from.append(permitted_mappings[i][0])
+            #
+            #     if permitted_mappings[i][0] == '*':
+            #         # issuer (mapping from) domain is *, subject (mapped to) domain is specified
+            #         any_mapping_to.append(permitted_mappings[i][1])
 
             for i, found_mapping in enumerate(found_mappings):
                 if found_mapping not in permitted_mappings:
                     if found_mapping[0] not in any_mapping_from and found_mapping[1] not in any_mapping_to:
                         r.add_error("Policy mapping [{}] is not permitted".format(i + 1))
 
-                    # todo add support for excluded mappings?
+        # excluded_mappings = None
+        # if 'excluded' in config_options and len(config_options['excluded'].value) > 0:
+        #     excluded_mappings = config_options['excluded'].value.split(" ")
+
+        excluded_mappings, any_mapping_from, any_mapping_to = _get_mappings_config('excluded', config_options, r)
+
+        if excluded_mappings:
+            # any_mapping_from = []
+            # any_mapping_to = []
+            # for i, mapping in enumerate(excluded_mappings):
+            #     excluded_mappings[i] = mapping.split(":")
+            #
+            #     if not isinstance(excluded_mappings[i], list) or len(excluded_mappings[i]) is not 2:
+            #         r.add_error("Bad excluded policy mapping configuration.")
+            #         r.add_error("Configuration takes this form:", "")
+            #         r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
+            #         r.add_error("e.g. 1.2.3:2.3.4 1.2.4:2.3.5 ...", "")
+            #         r.add_error("A wildcard may also be used.", "")
+            #         r.add_error("e.g. 1.2.3:* 1.2.4:* ...", "")
+            #         return r
+            #     if excluded_mappings[i][0] == excluded_mappings[i][1]:
+            #         r.add_error("Bad excluded policy mapping configuration string in template. "
+            #                     "subjectDomain and issuerDomain cannot be identical")
+            #         return r
+            #
+            #     if excluded_mappings[i][1] == '*':
+            #         # issuer (mapping from) domain is specified, subject (mapped to) domain is *
+            #         any_mapping_from.append(excluded_mappings[i][0])
+            #
+            #     if excluded_mappings[i][0] == '*':
+            #         # issuer (mapping from) domain is *, subject (mapped to) domain is specified
+            #         any_mapping_to.append(excluded_mappings[i][1])
+
+            for i, found_mapping in enumerate(found_mappings):
+                if found_mapping in excluded_mappings or \
+                        found_mapping[0] in any_mapping_from or \
+                        found_mapping[1] in any_mapping_to:
+
+                        r.add_error("Policy mapping [{}] is not permitted".format(i + 1))
+
     return r
 
 
@@ -386,7 +500,7 @@ def output_name_constraints_subtrees(r, general_subtrees, subtree_type="Permitte
 
         r.add_content("{}[{}] Subtrees ({}..{})".format(indent, subtree_index, general_subtree[1].native, max))
 
-        name = get_general_name_string(general_subtree['base'], False)
+        name = get_general_name_string(general_subtree['base'], False, None, '=')
         r.add_content("{}{}{}".format(indent, indent, name))
 
     return
@@ -635,105 +749,6 @@ def lint_basic_constraints(config_options, cert):
     return r
 
 
-from asn1crypto.core import (
-    AbstractString,
-    Any,
-    BitString,
-    BMPString,
-    Boolean,
-    Choice,
-    Concat,
-    GeneralizedTime,
-    GeneralString,
-    IA5String,
-    Integer,
-    Null,
-    NumericString,
-    ObjectIdentifier,
-    OctetBitString,
-    OctetString,
-    ParsableOctetString,
-    PrintableString,
-    Sequence,
-    SequenceOf,
-    Set,
-    SetOf,
-    TeletexString,
-    UniversalString,
-    UTCTime,
-    UTF8String,
-    VisibleString,
-    VOID,
-)
-
-
-asn1_tag_to_type = {
-    1: 'Boolean',
-    2: 'Integer',
-    3: 'BitString',
-    4: 'OctetString',
-    5: 'Null',
-    6: 'ObjectIdentifier',
-    7: 'ObjectDescriptor',
-    8: 'InstanceOf',
-    9: 'Real',
-    10: 'Enumerated',
-    11: 'EmbeddedPdv',
-    12: 'UTF8',  # String
-    13: 'RelativeOid',
-    16: 'Sequence,',
-    17: 'Set',
-    18: 'Numeric',  # String
-    19: 'Printable',  # String
-    20: 'Teletex',  # String
-    21: 'VideotexString',
-    22: 'IA5',  # String
-    23: 'UTCTime',
-    24: 'GeneralizedTime',
-    25: 'Graphic',  # String
-    26: 'Visible',  # String
-    27: 'General',  # String
-    28: 'Universal',  # String
-    29: 'CharacterString',
-    30: 'BMP',  # String
-}
-
-
-def get_string_type(asn_string):
-
-    if not asn_string or not isinstance(asn_string, AbstractString):
-        return None
-
-    if isinstance(asn_string, IA5String):
-        return 'IA5'
-    if isinstance(asn_string, PrintableString):
-        return 'Printable'
-    if isinstance(asn_string, UTF8String):
-        return 'UTF8'
-    if isinstance(asn_string, TeletexString):
-        return 'Teletex'
-    if isinstance(asn_string, BMPString):
-        return 'BMP'
-    if isinstance(asn_string, NumericString):
-        return 'Numeric'
-    if isinstance(asn_string, GraphicString):
-        return 'Graphic'
-    if isinstance(asn_string, VisibleString):
-        return 'Visible'
-    if isinstance(asn_string, GeneralString):
-        return 'General'
-    if isinstance(asn_string, UniversalString):
-        return 'Universal'
-    if isinstance(asn_string, VideotexString):
-        return 'Videotex'
-    if isinstance(asn_string, CharacterString):
-        return 'Character'
-
-    print(asn_string.__class__.__name__ + 'in get_string_type(asn_string)')
-
-    return None
-
-
 printable_string_char_set = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
     'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
@@ -741,58 +756,42 @@ printable_string_char_set = {
     '-', '.', '/', ':', '=', '?', ' ', ','
 }
 
-# teletex_character_table = [
-#     #0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 0
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 1
-#     [1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 2
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 3
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 4
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],  # 5
-#     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 6
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1],  # 7
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 8
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # 9
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0],  # A
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],  # B
-#     [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],  # C
-#     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # D
-#     [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # E
-#     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],  # F
-# ]
-
 teletex_bad_character_set = {35, 36, 92, 94, 96, 123, 125, 126, 169, 170, 172, 173, 174, 175, 185, 186, 192, 201,
                              208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 229, 255}
 
 
 def find_illegal_characters(asn_string):
 
-    string_type = get_string_type(asn_string)
-    if not string_type:
+    if not asn_string or not isinstance(asn_string, AbstractString):
+        print('not a string?')
         return None
+
+    # string_type = get_string_type(asn_string)
+    # if not string_type:
+    #     return None
 
     illegal_characters = []
 
-    if string_type == 'Printable':
+    if isinstance(asn_string, PrintableString):
         for c in asn_string.native:
             if c not in printable_string_char_set:
                 illegal_characters.append(c)
-    elif string_type == 'IA5':
+    elif isinstance(asn_string, IA5String):
         # for c in asn_string.native:
         #     if not 0x20 <= ord(c) <= 0x7f:
         #         illegal_characters.append(c)
         for c in asn_string.contents:
             if not 0x20 <= c <= 0x7f:
                 illegal_characters.append(chr(c))
-    elif string_type == 'BMP':
-        print('bmp')
-    elif string_type == 'Visible':
-        print('visible')
-    elif string_type == 'UTF8':
-        0
+    elif isinstance(asn_string, BMPString):
+        print('bmp string')
+    elif isinstance(asn_string, VisibleString):
+        print('visible string')
+    elif isinstance(asn_string, UTF8String):
+        a = 0
         # do illegal characters always generate exceptions?
-        # print('utf8')
-    elif string_type == 'Teletex':
+        # print('utf8 string')
+    elif isinstance(asn_string, TeletexString):
         # https://www.itu.int/rec/T-REC-T.61-198811-S/en
         # Code page 1036, CP1036, or IBM 01036
         for c in asn_string.contents:
@@ -801,12 +800,14 @@ def find_illegal_characters(asn_string):
             #         illegal_characters.append(chr(c))
             if c in teletex_bad_character_set:
                 illegal_characters.append(chr(c))
-    elif string_type == 'Universal':
-        print('universal')
-    elif string_type == 'General':
-        print('general')
+    elif isinstance(asn_string, UniversalString):
+        print('universal string')
+    elif isinstance(asn_string, GeneralString):
+        print('general string')
+    elif isinstance(asn_string, NumericString):
+        print('numeric string')
     else:
-        print('No case for ' + string_type)
+        print('No case for ' + asn_string.__class__.__name__)
 
     return illegal_characters
 
@@ -817,13 +818,13 @@ def lint_asn_string(asn_string, string_description, r):
     bad_chars = find_illegal_characters(asn_string)
 
     if bad_chars:
-        error_string = "Illegal {}String character".format(get_string_type(asn_string))
+        error_string = "Illegal {} character".format(asn_string.__class__.__name__)
         if len(bad_chars) > 1:
             error_string += 's'
         error_string += ' ('
         for i, c in enumerate(bad_chars):
             if i:
-                error_string += ', '
+                error_string += ' '
             if 0x20 <= ord(c) <= 0x7f:
                 error_string += c
             else:
@@ -863,9 +864,6 @@ qualifiers_display_map = {
 def lint_policies(config_options, cert):
     r = OutputRow("Certificate Policies")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.certificate_policies_value,
-    #                                   'certificate_policies' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     permitted_policies = None
@@ -906,7 +904,23 @@ def lint_policies(config_options, cert):
                     # {'1.3.6.1.5.5.7.2.1': 'certification_practice_statement', '1.3.6.1.5.5.7.2.2': 'user_notice'}
                     qualifier_description = qualifiers_display_map.get(qual['policy_qualifier_id'].native,
                                                                        'Policy Qualifier Text')
-                    lint_asn_string(qual['qualifier'], qualifier_description, r)
+
+                    if qual['policy_qualifier_id'].native == 'certification_practice_statement':
+                        lint_asn_string(qual['qualifier'], qualifier_description, r)
+
+                    elif qual['policy_qualifier_id'].native == 'user_notice':
+                        # class NoticeReference(Sequence):
+                        #     _fields = [
+                        #         ('organization', DisplayText),
+                        #         ('notice_numbers', NoticeNumbers),
+                        #     ]
+                        #
+                        # class UserNotice(Sequence):
+                        #     _fields = [
+                        #         ('notice_ref', NoticeReference, {'optional': True}),
+                        #         ('explicit_text', DisplayText, {'optional': True}),
+                        #     ]
+                        lint_asn_string(qual['qualifier']['explicit_text'].chosen, qualifier_description, r)
 
                 for qualifier in policy.native['policy_qualifiers']:
 
@@ -969,8 +983,10 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
 
         if general_name.name == 'directory_name':
             lint_dn_strings(general_name.chosen, r)
-        else:
+        elif isinstance(general_name.chosen, AbstractString):
             lint_asn_string(general_name.chosen, general_name_display_map.get(name_type, 'Alternate Name'), r)
+        # else:
+        #     print(general_name.chosen.__class__.__name__)
 
     _do_presence_test(r, config_options, 'other_name',
                       general_name_display_map['other_name'],
@@ -1187,8 +1203,9 @@ def lint_crldp(config_options, cert):
 
                         r.add_content("{}{}".format(indent_str, general_name_string))
 
+            _do_presence_test(r, config_options, 'crl_reasons', 'CRL Reason Code', dp['reasons'] != x509.VOID)
+
             if dp['reasons']:
-                # todo add template option for allowing reason flags in crldp
                 r.add_content(lint_cert_indent + "Reason Flag(s):")
                 for bit in reason_flags_display_map.keys():
                     if dp['reasons'][bit]:
@@ -1239,9 +1256,6 @@ access_method_display_map = {
 def lint_aia(config_options, cert):
     r = OutputRow("Authority Information Access")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.authority_information_access_value,
-    #                                   'authority_information_access' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.authority_information_access_value is not None:
@@ -1342,9 +1356,7 @@ def lint_aia(config_options, cert):
 
 def lint_sia(config_options, cert):
     r = OutputRow("Subject Information Access")
-    # _process_common_extension_options(config_options,
-    #                                   cert.subject_information_access_value,
-    #                                   'subject_information_access' in cert.critical_extensions, r)
+
     _process_common_extension_options(config_options, cert, r)
 
     # id-ad-caRepository OBJECT IDENTIFIER ::= { id-ad 5 }
@@ -1458,9 +1470,6 @@ def lint_pkup(config_options, cert):
 
     pkup, is_critical = get_extension_from_certificate(cert, '2.5.29.16')
 
-    # _process_common_extension_options(config_options,
-    #                                   pkup,
-    #                                   is_critical, r)
     _process_common_extension_options(config_options, cert, r)
 
     if pkup is not None:
@@ -1488,9 +1497,6 @@ def lint_sub_dir_attr(config_options, cert):
 
     subject_directory_attributes, is_critical = get_extension_from_certificate(cert, '2.5.29.9')
 
-    # _process_common_extension_options(config_options,
-    #                                   subject_directory_attributes,
-    #                                   is_critical, r)
     _process_common_extension_options(config_options, cert, r)
 
     if subject_directory_attributes is not None:
@@ -1502,9 +1508,6 @@ def lint_sub_dir_attr(config_options, cert):
 def lint_ocsp_nocheck(config_options, cert):
     r = OutputRow("OCSP No Check")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.ocsp_no_check_value,
-    #                                   'ocsp_no_check' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.ocsp_no_check_value is not None:
@@ -1521,9 +1524,6 @@ def lint_ocsp_nocheck(config_options, cert):
 def lint_inhibit_any(config_options, cert):
     r = OutputRow("Inhibit Any Policy")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.inhibit_any_policy_value,
-    #                                   'inhibit_any_policy' in cert.critical_extensions, r)
     _process_common_extension_options(config_options, cert, r)
 
     if cert.inhibit_any_policy_value is not None:
@@ -1705,15 +1705,6 @@ def lint_subject_public_key_info(config_options, cert):
                 r.add_content("{}**Parameters**:{}".format(lint_cert_newline, lint_cert_newline))
                 r.add_content(der2asn(public_key_info['algorithm']['parameters'].contents))
 
-    min_size = 0
-    max_size = 0
-
-    if 'min_size' in config_options and len(config_options['min_size'].value) > 0:
-        min_size = int(config_options['min_size'].value)
-
-    if 'max_size' in config_options and len(config_options['max_size'].value) > 0:
-        max_size = int(config_options['max_size'].value)
-
     found = False
 
     # iterate over all alg entries
@@ -1725,15 +1716,34 @@ def lint_subject_public_key_info(config_options, cert):
                     r.add_error("Algorithm not permitted")
                 break
 
-    if public_key_info.algorithm == 'rsa':
-
-        if min_size > public_key_info.bit_size:
-            r.add_error("Smaller than minimum key size ({} bits)".format(min_size))
-        if max_size != 0 and max_size < public_key_info.bit_size:
-            r.add_error("Larger than maximum key size ({} bits)".format(max_size))
-
     if not found:
         r.add_error("Algorithm not included in option set", "WARN")
+
+    min_size = 0
+    max_size = 0
+
+    if public_key_info.algorithm == 'rsa':
+
+        if 'rsa_min_size' in config_options and len(config_options['rsa_min_size'].value) > 0:
+            min_size = int(config_options['rsa_min_size'].value)
+
+        if 'rsa_max_size' in config_options and len(config_options['rsa_max_size'].value) > 0:
+            max_size = int(config_options['rsa_max_size'].value)
+
+    elif public_key_info.algorithm == 'ec':
+        # todo ec named curves
+
+        if 'ec_min_size' in config_options and len(config_options['ec_min_size'].value) > 0:
+            min_size = int(config_options['ec_min_size'].value)
+
+        if 'ec_max_size' in config_options and len(config_options['ec_max_size'].value) > 0:
+            max_size = int(config_options['ec_max_size'].value)
+
+    if min_size > public_key_info.bit_size:
+        r.add_error("Smaller than minimum key size ({} bits)".format(min_size))
+
+    if max_size != 0 and max_size < public_key_info.bit_size:
+        r.add_error("Larger than maximum key size ({} bits)".format(max_size))
 
     return r
 
@@ -1798,6 +1808,9 @@ def lint_validity(config_options, cert):
     return r
 
 
+_geo_or_dc_error = '{} must be a geo-political name (O=X, C=Y) or an Internet domain component (DC=X, DC=Y) name'
+
+
 def lint_dn(config_options, dn, row_name):
     separator = ",{}".format(lint_cert_newline)
     pretty_name = get_pretty_dn(dn, separator, " = ", True)
@@ -1807,14 +1820,32 @@ def lint_dn(config_options, dn, row_name):
         # todo: check for base_dn match if base_dn has value
         print("fill in base dn check code")
 
+    if 'require_geo_political_or_dc' in config_options and config_options['require_geo_political_or_dc'].value == '1':
+        if len(dn) < 2:
+            r.add_error(_geo_or_dc_error.format(row_name))
+        else:
+            rdn1 = dn.chosen[0][0].native['type']
+            rdn2 = dn.chosen[1][0].native['type']
+            # if rdn1 == 'country_name' and rdn2 == 'organization_name':
+            if not ((rdn1 == 'country_name' and is_name_type_in_dn('2.5.4.10', dn))
+                    or (rdn1 == 'domain_component' and rdn2 == 'domain_component')):
+                r.add_error(_geo_or_dc_error.format(row_name))
+
     for ce in config_options:
         if "rdn_" in ce:
             # print(ce + " " + config_options[ce].oid)
             found = is_name_type_in_dn(config_options[ce].oid, dn)
-            if found is True and config_options[ce].value is '1':
+            if found is True and config_options[ce].value == '1':
                 r.add_error("{} is not permitted".format(ce))
-            elif found is False and config_options[ce].value is '2':
+            elif found is False and config_options[ce].value == '2':
                 r.add_error("{} is missing".format(ce))
+        elif "values_" in ce and len(config_options[ce].value):
+            rdn_values = get_rdn_values_from_dn(config_options[ce].oid, dn)
+            if len(rdn_values):
+                permitted_strings = config_options[ce].value.split(";")
+                for rdn_value in rdn_values:
+                    if rdn_value.native['value'] not in permitted_strings:
+                        r.add_error("\'{} = {}\' is not permitted".format(get_pretty_dn_name_component(rdn_value['type']), rdn_value.native['value']))
 
     lint_dn_strings(dn, r)
 
@@ -1980,8 +2011,6 @@ conformance_check_functions = OrderedDict([
     #    ('other_extensions', lint_other_extensions)
 ])
 
-
-# def check_cert_conformance(input_cert, profile_file, end_of_line=None, indent=None):
 
 def check_cert_conformance(input_cert, profile_file):
     if not isinstance(input_cert, x509.Certificate):
