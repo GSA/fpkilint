@@ -1,13 +1,31 @@
-import html
 import re
 from profile_conformance import *
 
+# url_regex = re.compile(r'(?i)\b((?:(https?|s?ftp|ldaps?)://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))')
+url_regex = re.compile(r"(?:http|ftp|ldap)s?://[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;%=]+(?<!')")
+bold_regex = re.compile(r'\*\*.*\*\*')
+oid_regex = re.compile(r'(?:[0-9]+\.){4,}[0-9]+')
+long_hex_string = re.compile(r'[0-9a-fA-F]{42,}')
 
-url_regex = re.compile(r'(?i)\b((?:(https?|s?ftp|ldaps?)://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))')
-slash_regex = re.compile(r'\S/[^/ \t\n\r\f\v<]')
+html_escape_table = {
+    '"': "&quot;",
+    "'": "&apos;",
+    "&": "&amp;",
+    ">": "&gt;",
+    "<": "&lt;",
+}
 
-# ^/[a-z0-9]+$
-# ^/\b([a-z0-9]+)\b(?<!ignoreme|ignoreme2|ignoreme3)
+markdown_escape_table = {
+    "`": "&apos;",  # "&#96;",
+    "'": "&apos;",
+    "|": "&verbar;",
+    "*": "&ast;",
+}
+
+
+def escape_text(text, escape_table):
+    return "".join(escape_table.get(c, c) for c in text)
+
 
 def text_to_html(text_string, text_indent=None, text_new_line=None):
 
@@ -19,51 +37,61 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
     html_new_line = '<br/>'
     html_indent = '&nbsp;&nbsp;&nbsp;&nbsp;'
 
-    uris_to_replace = []
-
-    # if text_string.find('[6 PRIMITIVE] {') is not -1:
-    #     print(text_string)
-
-    uri_match = True
-    while uri_match:
-        uri_match = url_regex.search(text_string)
-        if uri_match:
-            uris_to_replace.append(uri_match.group(0).strip())
-            break
-
-    # this was moved from above to between the uri match and replace due to &quot;
-    # matching url_regex e.g. "http://stuff/" -> http://stuff/&quot
-    # if this ends up causing problems will need to figure out a better fix
-    text_string = html.escape(text_string)
-
-    for original_uri in uris_to_replace:
-        slash_match = True
-        display_uri = original_uri
-        while slash_match:
-            slash_match = slash_regex.search(display_uri)
-            if slash_match:
-                display_uri = display_uri[:slash_match.regs[0][0]+2] + "<wbr>" + display_uri[slash_match.regs[0][0]+2:]
-        display_uri = display_uri.replace("%20", " ")
-        display_uri = "<a href=\"{}\">{}</a>".format(original_uri, display_uri)
-
-        text_string = text_string.replace(original_uri, display_uri)
-
-
-    text_string = text_string.replace("'", "&#39;")
-    text_string = text_string.replace("`", "&#96;")
-    text_string = text_string.replace("|", "&verbar;")  # &#124;
-    text_string = text_string.replace("*", "&ast;")  # &#42;
-    text_string = text_string.replace("&ast;&ast;", "**")
     text_string = text_string.replace("\r", "")
+
+    uris_to_replace = []
+    for uri_match in url_regex.finditer(text_string):
+        if uri_match.group(0).strip() not in uris_to_replace:
+            uris_to_replace.append(uri_match.group(0).strip())
+
+    for n, uri in enumerate(uris_to_replace):
+        text_string = text_string.replace(uri, '\r' + str(n) + '\r')
+
+    text_string = escape_text(text_string, html_escape_table)
+
+    for n, uri in enumerate(uris_to_replace):
+        display_uri = uri
+        display_uri = display_uri.replace("/", "/<wbr>")
+        display_uri = display_uri.replace(",", ",<wbr>")
+        display_uri = display_uri.replace("%20", " ")
+        display_uri = "<a href=\"{}\">{}</a>".format(uri, display_uri)
+        text_string = text_string.replace('\r' + str(n) + '\r', display_uri)
+
+    strings_to_bold = bold_regex.findall(text_string)
+    for string_to_bold in strings_to_bold:
+        text_string = text_string.replace(string_to_bold, "<strong>" + string_to_bold[2:-2] + "</strong>")
+
+    oids_to_break = oid_regex.findall(text_string)
+    for oid in oids_to_break:
+        if len(oid) > 35:
+            new_oid = oid[:34]
+            new_oid += oid[34:].replace('.', '.<wbr>')
+            text_string = text_string.replace(oid, new_oid)
+
+    hex_strings = long_hex_string.findall(text_string)
+    for hex_string in hex_strings:
+        pos = 40
+        new_hex_string = ""
+        while pos < len(hex_string):
+            new_hex_string += hex_string[pos-40:pos]
+            new_hex_string += '<wbr>'
+            pos += 40
+        if pos > len(hex_string):
+            new_hex_string += hex_string[pos-40:]
+        text_string = text_string.replace(hex_string, new_hex_string)
+
+    text_string = escape_text(text_string, markdown_escape_table)
     text_string = text_string.replace(text_indent, html_indent)
     text_string = text_string.replace(text_new_line, html_new_line)
 
     return text_string
 
+
 _header = "\n| **Field** | **Content** | **Analysis** |\n"
 _cols = "|:-------- |: -------------------------------------- |:--------------------------------------------------- |\n"
 _all_was_good = "<font color=\"green\">OK</font>"
 _extension_is_critical = "Critical = TRUE<br/>"
+
 
 def process_add_certificate(cert, profile_file, output_file):
     # could make these default params if desired
@@ -175,6 +203,7 @@ def process_certificate_list(list_of_certs, output_file_name, doc_title):
                     print('Failed to parse {}'.format(file_name))
                 else:
                     output_file.write("\n<br/>" + file_name + "<br/>\n")
+                    output_file.write(binary_to_hex_string(cert.sha1))
                     process_add_certificate(cert, profile, output_file)
 
         output_file.write(_strap_end)
