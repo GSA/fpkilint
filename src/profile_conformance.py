@@ -156,12 +156,6 @@ class ConfigEntry:
         self.oid = ""
 
 
-LINT_CERT_NONE = 0
-LINT_CERT_OPTIONAL = 0
-LINT_CERT_DISALLOWED = 1
-LINT_CERT_REQUIRED = 2
-
-
 class OutputRow:
     def __init__(self, init_row_name=None, init_content=None, init_analysis=None, init_config_section=None):
         self.row_name = ""
@@ -249,8 +243,8 @@ def lint_and_format_x509_time(x509_time, name_string, r):
 
 
 def _lint_get_extension_options(config_options):
-    option_present = LINT_CERT_OPTIONAL
-    option_is_critical = LINT_CERT_OPTIONAL
+    option_present = 0
+    option_is_critical = 0
     option_extension_oid = None
 
     if 'present' in config_options and len(config_options['present'].value) > 0:
@@ -277,8 +271,8 @@ def _process_common_extension_options(config_options, cert, r):
 
     extension_list = get_extension_list_from_certificate(cert, option_extension_oid)
 
-    if len(extension_list) is 0:
-        if option_present is LINT_CERT_REQUIRED:
+    if len(extension_list) == 0:
+        if option_present == 2:
             r.add_error("{} is missing".format(r.row_name))
     else:
 
@@ -288,11 +282,11 @@ def _process_common_extension_options(config_options, cert, r):
 
         r.extension_is_critical = extension_list[0][1]
 
-        if option_present is LINT_CERT_DISALLOWED:
+        if option_present == 1:
             r.add_error("{} is not permitted".format(r.row_name))
-        if option_is_critical is LINT_CERT_REQUIRED and r.extension_is_critical is False:
+        if option_is_critical == 2 and r.extension_is_critical is False:
             r.add_error("{} must be marked critical".format(r.row_name))
-        if option_is_critical is LINT_CERT_DISALLOWED and r.extension_is_critical is True:
+        if option_is_critical == 1 and r.extension_is_critical is True:
             r.add_error("{} must not be marked critical".format(r.row_name))
 
         # if r.extension_is_critical is True:
@@ -575,10 +569,10 @@ def lint_key_usage(config_options, cert):
 
                 r.add_content(key_usage_display_map[ku])
 
-                if ku in config_options and config_options[ku].value == LINT_CERT_DISALLOWED:
+                if ku in config_options and config_options[ku].value == '1':
                     r.add_error("{} is not permitted".format(key_usage_display_map[ku]))
 
-            elif ku in config_options and config_options[ku].value == LINT_CERT_REQUIRED:
+            elif ku in config_options and config_options[ku].value == '2':
                 r.add_error("{} is required".format(key_usage_display_map[ku]))
 
         for ku in cert.key_usage_value.native:
@@ -976,9 +970,11 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
 
         if general_name.name == 'other_name' and 'other_name' not in types_found:
             types_found.append('other_name')
-        elif general_name.name == 'uniform_resource_identifier' and 'uniform_resource_identifier' not in types_found:
-            # get_general_name_type tags uniform_resource_identifier with http/ldap on the end, this is needed for the
-            # presence test below
+        elif name_type != 'uniform_resource_identifier_chuid' and \
+                general_name.name == 'uniform_resource_identifier' and \
+                'uniform_resource_identifier' not in types_found:
+            # get_general_name_type tags uniform_resource_identifier with http/ldap on the end,
+            # this is needed for the presence test below
             types_found.append('uniform_resource_identifier')
 
         if general_name.name == 'directory_name':
@@ -1528,6 +1524,7 @@ def lint_inhibit_any(config_options, cert):
 
     if cert.inhibit_any_policy_value is not None:
         r.add_content("SkipCerts = {}".format(cert.inhibit_any_policy_value.native))
+        # todo max skip cert setting
 
     return r
 
@@ -1752,8 +1749,7 @@ def lint_subject_public_key_info(config_options, cert):
 # validity	validity_period_generalized_time
 def lint_validity(config_options, cert):
     r = OutputRow("Validity Period")
-    validity_period_maximum = LINT_CERT_NONE
-    validity_period_generalized_time = LINT_CERT_OPTIONAL
+    validity_period_maximum = 0
 
     nb = cert['tbs_certificate']['validity']['not_before']
     na = cert['tbs_certificate']['validity']['not_after']
@@ -1777,27 +1773,6 @@ def lint_validity(config_options, cert):
         max_validity = datetime.timedelta(days=validity_period_maximum)
         if lifespan > max_validity:
             r.add_error("Validity period exceeds {} days".format(str(validity_period_maximum)))
-
-    # if 'validity_period_generalized_time' in config_options and len(
-    #         config_options['validity_period_generalized_time'].value):
-    #     validity_period_generalized_time = int(config_options['validity_period_generalized_time'].value)
-    #
-    # # below makes the assumption that if you put a date between 1950 and 1985 in a cert that you really meant
-    # # 2050 to 2085 and should have used generalized time instead of utc
-    # must_not_be_right = datetime.datetime(1985, 12, 31)
-    # must_not_be_right = must_not_be_right.replace(tzinfo=pytz.UTC)
-    #
-    # if nb.name == 'utc_time':
-    #     if nb.native < must_not_be_right or validity_period_generalized_time is LINT_CERT_REQUIRED:
-    #         r.add_error("notBefore is required to be GeneralizedTime for dates beyond 2049")
-    # elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
-    #     r.add_error("notBefore is not permitted to be GeneralizedTime")
-    #
-    # if na.name == 'utc_time':
-    #     if na.native < must_not_be_right or validity_period_generalized_time is LINT_CERT_REQUIRED:
-    #         r.add_error("notAfter is required to be GeneralizedTime for dates beyond 2049")
-    # elif validity_period_generalized_time is LINT_CERT_DISALLOWED:
-    #     r.add_error("notAfter is not permitted to be GeneralizedTime")
 
     _do_presence_test(r, config_options, 'validity_period_generalized_time',
                       'notBefore encoded as GeneralizedTime', nb.name == 'general_time')
