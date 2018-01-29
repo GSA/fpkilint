@@ -488,11 +488,11 @@ def output_name_constraints_subtrees(r, general_subtrees, subtree_type="Permitte
     for general_subtree in general_subtrees:
         subtree_index += 1
 
-        max = general_subtree[2].native
-        if not max:
-            max = "Max"
+        max_value = general_subtree[2].native
+        if not max_value:
+            max_value = "Max"
 
-        r.add_content("{}[{}] Subtrees ({}..{})".format(indent, subtree_index, general_subtree[1].native, max))
+        r.add_content("{}[{}] Subtrees ({}..{})".format(indent, subtree_index, general_subtree[1].native, max_value))
 
         name = get_general_name_string(general_subtree['base'], False, None, '=')
         r.add_content("{}{}{}".format(indent, indent, name))
@@ -533,18 +533,6 @@ def lint_piv_naci(config_options, cert):
     return r
 
 
-# key_usage_display_map = {
-#     'digital_signature': 'digitalSignature (0)',
-#     'non_repudiation': 'nonRepudiation (1)',
-#     'key_encipherment': 'keyEncipherment (2)',
-#     'data_encipherment': 'dataEncipherment (3)',
-#     'key_agreement': 'keyAgreement (4)',
-#     'key_cert_sign': 'keyCertSign (5)',
-#     'crl_sign': 'cRLSign (6)',
-#     'encipher_only': 'encipherOnly (7)',
-#     'decipher_only': ' decipherOnly (8)',
-# }
-
 key_usage_display_map = OrderedDict([
     ('digital_signature', 'digitalSignature (0)'),
     ('non_repudiation', 'nonRepudiation (1)'),
@@ -556,6 +544,7 @@ key_usage_display_map = OrderedDict([
     ('encipher_only', 'encipherOnly (7)'),
     ('decipher_only', 'decipherOnly (8)'),
 ])
+
 
 def lint_key_usage(config_options, cert):
     r = OutputRow("Key Usage")
@@ -946,7 +935,7 @@ def lint_policies(config_options, cert):
                     r.add_content(qualifier_string)
 
             if permitted_policies is not None and \
-                            policy['policy_identifier'].dotted not in permitted_policies:
+                    policy['policy_identifier'].dotted not in permitted_policies:
                 r.add_error("{} is not permitted".format(policy['policy_identifier'].dotted))
 
             if policy['policy_identifier'].dotted in found_policies:
@@ -1828,7 +1817,16 @@ def lint_dn(config_options, dn, row_name):
 
 
 def lint_subject(config_options, cert):
-    return lint_dn(config_options, cert.subject, "Subject DN")
+
+    r = lint_dn(config_options, cert.subject, "Subject DN")
+
+    if 'is_self_issued' in config_options and config_options['is_self_issued'].value != '0':
+        if config_options['is_self_issued'].value == '1' and cert.subject == cert.issuer:
+            r.add_error("Certificate issuer and subject names match. Certificate may not be self issued.")
+        elif config_options['is_self_issued'].value == '2' and cert.subject != cert.issuer:
+            r.add_error("Certificate issuer and subject names do not match. Certificate must be self issued.")
+
+    return r
 
 
 def lint_issuer(config_options, cert):
@@ -1914,7 +1912,7 @@ def lint_other_extensions(config_options, cert):
             else:
                 others_non_critical += 1
                 if 'other_non_critical_extensions_present' in config_options and \
-                                config_options['other_non_critical_extensions_present'].value is '1':
+                        config_options['other_non_critical_extensions_present'].value is '1':
                     r.add_error("Additional non-critical extensions are not permitted")
 
             if e.contents is not None:
@@ -2016,6 +2014,8 @@ def check_cert_conformance(input_cert, profile_file):
 
     output_rows = OrderedDict()  # {}
     profile_info_section = None
+    other_extensions_section = None
+    other_extensions_rows = None
 
     for config_section in cert_profile:
         # print(config_section)
@@ -2036,7 +2036,8 @@ def check_cert_conformance(input_cert, profile_file):
         else:
             print("ERROR - Unrecognized config section:  {}".format(config_section))
 
-    other_extensions_rows = lint_other_extensions(other_extensions_section, input_cert)
+    if other_extensions_section:
+        other_extensions_rows = lint_other_extensions(other_extensions_section, input_cert)
 
     # sort the rows in order they appear in conformance_check_functions
     for key in conformance_check_functions:
@@ -2044,5 +2045,4 @@ def check_cert_conformance(input_cert, profile_file):
             output_rows.move_to_end(key)
 
     return output_rows, other_extensions_rows, profile_info_section
-
 
