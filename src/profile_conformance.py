@@ -369,6 +369,7 @@ def lint_policy_mappings(config_options, cert):
 
             policy_display_string = "{}{}maps to {}".format(lint_cert_indent, lint_cert_indent,
                                                             mapping['subject_domain_policy'].dotted)
+
             if mapping['subject_domain_policy'].dotted in policies_display_map:
                 policy_display_string = "{}{}({})".format(policy_display_string, lint_cert_indent,
                                                           policies_display_map[mapping['subject_domain_policy'].dotted])
@@ -1513,7 +1514,14 @@ def lint_inhibit_any(config_options, cert):
 
     if cert.inhibit_any_policy_value is not None:
         r.add_content("SkipCerts = {}".format(cert.inhibit_any_policy_value.native))
-        # todo max skip cert setting
+
+        if 'inhibit_any_max' in config_options and len(
+                config_options['inhibit_any_max'].value) > 0:
+            inhibit_any_max = int(config_options['inhibit_any_max'].value)
+
+            if cert.inhibit_any_policy_value.native > inhibit_any_max:
+                r.add_error("Skip cert value exceeds permitted maximum of {}"
+                            .format(inhibit_any_max))
 
     return r
 
@@ -1672,8 +1680,8 @@ def lint_subject_public_key_info(config_options, cert):
     if pub_key_bytes[0] is 0:
         pub_key_bytes = pub_key_bytes[1:]
     # 43 chars to match ms cert viewer
-    pub_key_text = textwrap.fill(' '.join('%02X' % c for c in pub_key_bytes), 43)
-    r.add_content(pub_key_text.replace('\n', lint_cert_newline))
+    pub_key_text = lint_cert_newline.join(textwrap.wrap(' '.join('%02X' % c for c in pub_key_bytes), 43))
+    r.add_content(pub_key_text)
 
     if public_key_info.algorithm == 'rsa':
         pub_key = public_key_info.unwrap()
@@ -1824,7 +1832,7 @@ def lint_subject(config_options, cert):
         if config_options['is_self_issued'].value == '1' and cert.subject == cert.issuer:
             r.add_error("Certificate issuer and subject names match. Certificate may not be self issued.")
         elif config_options['is_self_issued'].value == '2' and cert.subject != cert.issuer:
-            r.add_error("Certificate issuer and subject names do not match. Certificate must be self issued.")
+            r.add_error("Certificate issuer and subject names do not match.")
 
     return r
 
@@ -2045,4 +2053,5 @@ def check_cert_conformance(input_cert, profile_file):
             output_rows.move_to_end(key)
 
     return output_rows, other_extensions_rows, profile_info_section
+
 
