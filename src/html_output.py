@@ -5,7 +5,7 @@ from profile_conformance import *
 url_regex = re.compile(r"(?:http|ftp|ldap)s?://[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;%=]+(?<!')")
 bold_regex = re.compile(r'\*\*.*\*\*')
 oid_regex = re.compile(r'(?:[0-9]+\.){4,}[0-9]+')
-long_hex_string = re.compile(r'[0-9a-fA-F]{42,}')
+long_hex_string = re.compile(r'[0-9a-fA-F]{40,}')
 
 html_escape_table = {
     '"': "&quot;",
@@ -70,14 +70,7 @@ def text_to_html(text_string, text_indent=None, text_new_line=None):
 
     hex_strings = long_hex_string.findall(text_string)
     for hex_string in hex_strings:
-        pos = 40
-        new_hex_string = ""
-        while pos < len(hex_string):
-            new_hex_string += hex_string[pos-40:pos]
-            new_hex_string += '<wbr>'
-            pos += 40
-        if pos > len(hex_string):
-            new_hex_string += hex_string[pos-40:]
+        new_hex_string = '<wbr>'.join(textwrap.wrap(hex_string, 8))
         text_string = text_string.replace(hex_string, new_hex_string)
 
     text_string = escape_text(text_string, markdown_escape_table)
@@ -95,8 +88,8 @@ _extension_is_critical = "Critical = TRUE<br/>"
 
 def process_add_certificate(cert, profile_file, output_file):
     # could make these default params if desired
-    _add_profile_url = True
-    _add_profile_string = True
+    _add_profile_url = False
+    _add_profile_string = False
 
     output_rows, other_extensions_rows, profile_info = check_cert_conformance(cert, profile_file)
 
@@ -165,7 +158,7 @@ def process_add_certificate(cert, profile_file, output_file):
 # superhero
 # united
 
-_strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"spruce\" style=\"display:none;\"\n>"
+_strap_start = "<!DOCTYPE html>\n<html>\n<title>{}</title>\n<xmp theme=\"cerulean\" style=\"display:none;\"\n>"
 _strap_end = "\n</xmp>\n<script src=\"strapdown.js\"></script>\n</html>\n"
 
 def process_one_certificate(cert, profile_file, output_file_name, document_title):
@@ -202,8 +195,8 @@ def process_certificate_list(list_of_certs, output_file_name, doc_title):
                 if cert is None:
                     print('Failed to parse {}'.format(file_name))
                 else:
-                    output_file.write("\n<br/>" + file_name + "<br/>\n")
-                    output_file.write(binary_to_hex_string(cert.sha1))
+                    # output_file.write("\n<br/>" + file_name + "<br/>\n")
+                    # output_file.write(binary_to_hex_string(cert.sha1))
                     process_add_certificate(cert, profile, output_file)
 
         output_file.write(_strap_end)
