@@ -260,16 +260,24 @@ def _lint_get_extension_options(config_options):
 
 
 def _process_common_extension_options(config_options, cert, r):
-
+    """
+    :param config_options: config options for this extension
+    :param cert: x509.Certificate
+    :param r: output row object
+    :return: None or the extension
+    """
     option_present, option_is_critical, option_extension_oid = _lint_get_extension_options(config_options)
 
     if not option_extension_oid:
         r.add_error("Missing extension OID in config file!")
-        return
+        return None
 
     r.extension_oid = option_extension_oid
 
-    extension_list = get_extension_list_from_certificate(cert, option_extension_oid)
+    if isinstance(cert, x509.Certificate):
+        cert = cert['tbs_certificate']
+
+    extension_list = get_extension_list(cert, option_extension_oid)
 
     if len(extension_list) == 0:
         if option_present == 2:
@@ -292,7 +300,9 @@ def _process_common_extension_options(config_options, cert, r):
         # if r.extension_is_critical is True:
         #     r.add_content("Critical = TRUE")
 
-    return
+        return extension_list[0][0]
+
+    return None
 
 
 def _do_presence_test(r, config_options, cfg_str, display_str, is_present):
@@ -352,19 +362,18 @@ def _get_mappings_config(config_string, config_options, r):
 def lint_policy_mappings(config_options, cert):
     r = OutputRow("Policy Mappings")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.policy_mappings_value is not None:
+    if extension is not None:
 
+        policy_mappings = extension['extn_value'].parsed
         found_mappings = []
         mapping_count = 0
-        for mapping in cert.policy_mappings_value:
+        for mapping in policy_mappings:
             mapping_count += 1
             policy_display_string = "[{}]{}{}".format(mapping_count, lint_cert_indent,
                                                       mapping['issuer_domain_policy'].dotted)
-            # if mapping['issuer_domain_policy'].dotted in policies_display_map:
-            #     policy_display_string = "{}{}({})".format(policy_display_string, lint_cert_indent,
-            #                                              policies_display_map[mapping['issuer_domain_policy'].dotted])
+
             r.add_content(policy_display_string)
 
             policy_display_string = "{}{}maps to {}".format(lint_cert_indent, lint_cert_indent,
@@ -376,76 +385,18 @@ def lint_policy_mappings(config_options, cert):
             r.add_content(policy_display_string)
             found_mappings.append([mapping['issuer_domain_policy'].dotted, mapping['subject_domain_policy'].dotted])
 
-        # permitted_mappings = None
-        # if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
-        #     permitted_mappings = config_options['permitted'].value.split(" ")
-
         permitted_mappings, any_mapping_from, any_mapping_to = _get_mappings_config('permitted', config_options, r)
 
         if permitted_mappings:
-            # any_mapping_from = []
-            # any_mapping_to = []
-            # for i, mapping in enumerate(permitted_mappings):
-            #     permitted_mappings[i] = mapping.split(":")
-            #
-            #     if not isinstance(permitted_mappings[i], list) or len(permitted_mappings[i]) is not 2:
-            #         r.add_error("Bad permitted policy mapping configuration.")
-            #         r.add_error("Configuration takes this form:", "")
-            #         r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
-            #         r.add_error("e.g. 1.2.3:2.3.4 1.2.4:2.3.5 ...", "")
-            #         r.add_error("A wildcard may also be used.", "")
-            #         r.add_error("e.g. 1.2.3:* 1.2.4:* ...", "")
-            #         return r
-            #     if permitted_mappings[i][0] == permitted_mappings[i][1]:
-            #         r.add_error("Bad permitted policy mapping configuration string in template. "
-            #                     "subjectDomain and issuerDomain cannot be identical")
-            #         return r
-            #
-            #     if permitted_mappings[i][1] == '*':
-            #         # issuer (mapping from) domain is specified, subject (mapped to) domain is *
-            #         any_mapping_from.append(permitted_mappings[i][0])
-            #
-            #     if permitted_mappings[i][0] == '*':
-            #         # issuer (mapping from) domain is *, subject (mapped to) domain is specified
-            #         any_mapping_to.append(permitted_mappings[i][1])
 
             for i, found_mapping in enumerate(found_mappings):
                 if found_mapping not in permitted_mappings:
                     if found_mapping[0] not in any_mapping_from and found_mapping[1] not in any_mapping_to:
                         r.add_error("Policy mapping [{}] is not permitted".format(i + 1))
 
-        # excluded_mappings = None
-        # if 'excluded' in config_options and len(config_options['excluded'].value) > 0:
-        #     excluded_mappings = config_options['excluded'].value.split(" ")
-
         excluded_mappings, any_mapping_from, any_mapping_to = _get_mappings_config('excluded', config_options, r)
 
         if excluded_mappings:
-            # any_mapping_from = []
-            # any_mapping_to = []
-            # for i, mapping in enumerate(excluded_mappings):
-            #     excluded_mappings[i] = mapping.split(":")
-            #
-            #     if not isinstance(excluded_mappings[i], list) or len(excluded_mappings[i]) is not 2:
-            #         r.add_error("Bad excluded policy mapping configuration.")
-            #         r.add_error("Configuration takes this form:", "")
-            #         r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
-            #         r.add_error("e.g. 1.2.3:2.3.4 1.2.4:2.3.5 ...", "")
-            #         r.add_error("A wildcard may also be used.", "")
-            #         r.add_error("e.g. 1.2.3:* 1.2.4:* ...", "")
-            #         return r
-            #     if excluded_mappings[i][0] == excluded_mappings[i][1]:
-            #         r.add_error("Bad excluded policy mapping configuration string in template. "
-            #                     "subjectDomain and issuerDomain cannot be identical")
-            #         return r
-            #
-            #     if excluded_mappings[i][1] == '*':
-            #         # issuer (mapping from) domain is specified, subject (mapped to) domain is *
-            #         any_mapping_from.append(excluded_mappings[i][0])
-            #
-            #     if excluded_mappings[i][0] == '*':
-            #         # issuer (mapping from) domain is *, subject (mapped to) domain is specified
-            #         any_mapping_to.append(excluded_mappings[i][1])
 
             for i, found_mapping in enumerate(found_mappings):
                 if found_mapping in excluded_mappings or \
@@ -504,19 +455,22 @@ def output_name_constraints_subtrees(r, general_subtrees, subtree_type="Permitte
 def lint_name_constraints(config_options, cert):
     r = OutputRow("Name Constraints")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.name_constraints_value is not None:
-        output_name_constraints_subtrees(r, cert.name_constraints_value['permitted_subtrees'], "Permitted",
+    if extension is not None:
+
+        name_constraints = extension['extn_value'].parsed
+
+        output_name_constraints_subtrees(r, name_constraints['permitted_subtrees'], "Permitted",
                                          lint_cert_indent)
-        output_name_constraints_subtrees(r, cert.name_constraints_value['excluded_subtrees'], "Excluded",
+        output_name_constraints_subtrees(r, name_constraints['excluded_subtrees'], "Excluded",
                                          lint_cert_indent)
 
         _do_presence_test(r, config_options, 'permitted', 'Permitted Subtrees',
-                          not not cert.name_constraints_value['permitted_subtrees'])
+                          not not name_constraints['permitted_subtrees'])
 
         _do_presence_test(r, config_options, 'excluded', 'Excluded Subtrees',
-                          not not cert.name_constraints_value['excluded_subtrees'])
+                          not not name_constraints['excluded_subtrees'])
 
     return r
 
@@ -524,9 +478,8 @@ def lint_name_constraints(config_options, cert):
 def lint_piv_naci(config_options, cert):
     r = OutputRow("PIV NACI")
 
-    pivnaci, is_critical = get_extension_from_certificate(cert, '2.16.840.1.101.3.6.9.1')
-
-    _process_common_extension_options(config_options, cert, r)
+    # '2.16.840.1.101.3.6.9.1'
+    pivnaci = _process_common_extension_options(config_options, cert, r)
 
     if pivnaci is not None:
         r.add_content(der2asn(pivnaci['extn_value'].contents))
@@ -550,12 +503,14 @@ key_usage_display_map = OrderedDict([
 def lint_key_usage(config_options, cert):
     r = OutputRow("Key Usage")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.key_usage_value is not None:
+    if extension is not None:
+
+        key_usage = extension['extn_value'].parsed
 
         for ku in key_usage_display_map.keys():
-            if ku in cert.key_usage_value.native:
+            if ku in key_usage.native:
 
                 r.add_content(key_usage_display_map[ku])
 
@@ -565,7 +520,7 @@ def lint_key_usage(config_options, cert):
             elif ku in config_options and config_options[ku].value == '2':
                 r.add_error("{} is required".format(key_usage_display_map[ku]))
 
-        for ku in cert.key_usage_value.native:
+        for ku in key_usage.native:
             if ku not in key_usage_display_map:
                 r.add_error("Unknown bit ({}) is not permitted.".format(ku))
 
@@ -575,11 +530,11 @@ def lint_key_usage(config_options, cert):
 def lint_akid(config_options, cert):
     r = OutputRow("Authority Key Identifier")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.authority_key_identifier_value is not None:
+    if extension is not None:
 
-        akid = cert.authority_key_identifier_value
+        akid = extension['extn_value'].parsed
 
         akid_has_keyid = False
         akid_has_issuer = False
@@ -631,10 +586,12 @@ def lint_akid(config_options, cert):
 def lint_skid(config_options, cert):
     r = OutputRow("Subject Key Identifier")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.key_identifier_value is not None:
-        skid = cert.key_identifier_value.native
+    if extension is not None:
+
+        skid = extension['extn_value'].parsed.native
+
         r.add_content('Key ID: {}'.format(''.join('%02X' % c for c in skid)))
 
         require_method_one = '0'
@@ -655,11 +612,11 @@ def lint_skid(config_options, cert):
 def lint_policy_constraints(config_options, cert):
     r = OutputRow("Policy Constraints")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.policy_constraints_value is not None:
+    if extension is not None:
 
-        policy_constraints_native = cert.policy_constraints_value.native
+        policy_constraints_native = extension['extn_value'].parsed.native
 
         if policy_constraints_native['require_explicit_policy'] is not None:
             r.add_content("Require Explicit Policy; skipCerts = {}".format(
@@ -701,11 +658,11 @@ def lint_policy_constraints(config_options, cert):
 def lint_basic_constraints(config_options, cert):
     r = OutputRow("Basic Constraints")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.basic_constraints_value is not None:
+    if extension is not None:
 
-        bc = cert.basic_constraints_value
+        bc = extension['extn_value'].parsed
 
         r.add_content("CA = {}".format(bc.native['ca']))
 
@@ -772,7 +729,7 @@ def find_illegal_characters(asn_string):
     elif isinstance(asn_string, VisibleString):
         print('visible string')
     elif isinstance(asn_string, UTF8String):
-        a = 0
+        pass
         # do illegal characters always generate exceptions?
         # print('utf8 string')
     elif isinstance(asn_string, TeletexString):
@@ -848,101 +805,134 @@ qualifiers_display_map = {
 def lint_policies(config_options, cert):
     r = OutputRow("Certificate Policies")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    permitted_policies = None
+    if extension is None:
+        return r
+
+    certificate_policies = extension['extn_value'].parsed
+
+    required_policy_list = None
+    match_mode = 'any'  # one | any | all
+    permit_others = 0  # 0=no, 1=yes
     found_policies = []
 
-    if cert.certificate_policies_value is not None:
+    if 'required_policy_list' in config_options and len(config_options['required_policy_list'].value) > 0:
+        required_policy_list = config_options['required_policy_list'].value.split()
+        if len(required_policy_list) == 0:  # maybe not possible
+            required_policy_list = None
 
-        if 'permitted' in config_options and len(config_options['permitted'].value) > 0:
-            permitted_policies = config_options['permitted'].value.split()
+    if 'match_mode' in config_options and len(config_options['match_mode'].value) > 0:
+        match_mode = config_options['match_mode'].value
 
-        policy_count = 0
-        for policy in cert.certificate_policies_value:
+    if 'permit_others' in config_options and len(config_options['permit_others'].value) > 0:
+        permit_others = config_options['permit_others'].value
 
-            policy_count += 1
-            policy_display_string = "[{}]{}{}".format(policy_count, lint_cert_indent,
-                                                      policy['policy_identifier'].dotted)
-            if policy['policy_identifier'].dotted in policies_display_map:
-                policy_display_string = "{}{}({})".format(policy_display_string, lint_cert_indent,
-                                                          policies_display_map[policy['policy_identifier'].dotted])
+    policy_count = 0
+    for policy in certificate_policies:
 
-            r.add_content(policy_display_string)
+        policy_count += 1
+        policy_display_string = "[{}]{}{}".format(policy_count, lint_cert_indent,
+                                                  policy['policy_identifier'].dotted)
+        if policy['policy_identifier'].dotted in policies_display_map:
+            policy_display_string = "{}{}({})".format(policy_display_string, lint_cert_indent,
+                                                      policies_display_map[policy['policy_identifier'].dotted])
 
-            # Qualifier ::= CHOICE {
-            #      cPSuri           CPSuri,
-            #      userNotice       UserNotice }
-            #
-            # CPSuri ::= IA5String
-            #
-            # UserNotice ::= SEQUENCE {
-            #      noticeRef        NoticeReference OPTIONAL,
-            #      explicitText     DisplayText OPTIONAL }
+        r.add_content(policy_display_string)
 
-            if policy.native['policy_qualifiers'] is not None:
+        # Qualifier ::= CHOICE {
+        #      cPSuri           CPSuri,
+        #      userNotice       UserNotice }
+        #
+        # CPSuri ::= IA5String
+        #
+        # UserNotice ::= SEQUENCE {
+        #      noticeRef        NoticeReference OPTIONAL,
+        #      explicitText     DisplayText OPTIONAL }
 
-                # check qualifiers for invalid characters
-                policy_qualifiers = policy['policy_qualifiers']
-                for qual in policy_qualifiers:
-                    # {'1.3.6.1.5.5.7.2.1': 'certification_practice_statement', '1.3.6.1.5.5.7.2.2': 'user_notice'}
-                    qualifier_description = qualifiers_display_map.get(qual['policy_qualifier_id'].native,
-                                                                       'Policy Qualifier Text')
+        if policy.native['policy_qualifiers'] is not None:
 
-                    if qual['policy_qualifier_id'].native == 'certification_practice_statement':
-                        lint_asn_string(qual['qualifier'], qualifier_description, r)
+            # check qualifiers for invalid characters
+            policy_qualifiers = policy['policy_qualifiers']
+            for qual in policy_qualifiers:
+                # {'1.3.6.1.5.5.7.2.1': 'certification_practice_statement', '1.3.6.1.5.5.7.2.2': 'user_notice'}
+                qualifier_description = qualifiers_display_map.get(qual['policy_qualifier_id'].native,
+                                                                   'Policy Qualifier Text')
 
-                    elif qual['policy_qualifier_id'].native == 'user_notice':
-                        # class NoticeReference(Sequence):
-                        #     _fields = [
-                        #         ('organization', DisplayText),
-                        #         ('notice_numbers', NoticeNumbers),
-                        #     ]
-                        #
-                        # class UserNotice(Sequence):
-                        #     _fields = [
-                        #         ('notice_ref', NoticeReference, {'optional': True}),
-                        #         ('explicit_text', DisplayText, {'optional': True}),
-                        #     ]
-                        lint_asn_string(qual['qualifier']['explicit_text'].chosen, qualifier_description, r)
+                if qual['policy_qualifier_id'].native == 'certification_practice_statement':
+                    lint_asn_string(qual['qualifier'], qualifier_description, r)
 
-                for qualifier in policy.native['policy_qualifiers']:
+                elif qual['policy_qualifier_id'].native == 'user_notice':
+                    # class NoticeReference(Sequence):
+                    #     _fields = [
+                    #         ('organization', DisplayText),
+                    #         ('notice_numbers', NoticeNumbers),
+                    #     ]
+                    #
+                    # class UserNotice(Sequence):
+                    #     _fields = [
+                    #         ('notice_ref', NoticeReference, {'optional': True}),
+                    #         ('explicit_text', DisplayText, {'optional': True}),
+                    #     ]
+                    lint_asn_string(qual['qualifier']['explicit_text'].chosen, qualifier_description, r)
 
-                    qualifier_type = qualifiers_display_map.get(qualifier['policy_qualifier_id'],
-                                                                qualifier['policy_qualifier_id'])
+            for qualifier in policy.native['policy_qualifiers']:
 
-                    qualifier_string = "{}{}".format(lint_cert_indent, qualifier_type)
+                qualifier_type = qualifiers_display_map.get(qualifier['policy_qualifier_id'],
+                                                            qualifier['policy_qualifier_id'])
 
-                    if qualifier['policy_qualifier_id'] == 'certification_practice_statement':
-                        if qualifier['qualifier'] is not None:
-                            qualifier_string += ": " + qualifier['qualifier']
+                qualifier_string = "{}{}".format(lint_cert_indent, qualifier_type)
 
-                    elif qualifier['policy_qualifier_id'] == 'user_notice':
-                        if qualifier['qualifier'] is not None:
-
-                            if qualifier['qualifier']['notice_ref'] is not None:
-                                qualifier_string += " " + qualifiers_display_map.get('notice_ref', "Ref") \
-                                                    + ": " + qualifier['qualifier']['notice_ref']
-                                if qualifier['qualifier']['explicit_text'] is not None:
-                                    qualifier_string += lint_cert_indent + lint_cert_indent
-
-                            if qualifier['qualifier']['explicit_text'] is not None:
-                                qualifier_string += " " + qualifiers_display_map.get('explicit_text', "Text") \
-                                                    + ": " + qualifier['qualifier']['explicit_text']
-
-                    elif qualifier['qualifier'] is not None and isinstance(qualifier['qualifier'], str):
+                if qualifier['policy_qualifier_id'] == 'certification_practice_statement':
+                    if qualifier['qualifier'] is not None:
                         qualifier_string += ": " + qualifier['qualifier']
 
-                    r.add_content(qualifier_string)
+                elif qualifier['policy_qualifier_id'] == 'user_notice':
+                    if qualifier['qualifier'] is not None:
 
-            if permitted_policies is not None and \
-                    policy['policy_identifier'].dotted not in permitted_policies:
-                r.add_error("{} is not permitted".format(policy['policy_identifier'].dotted))
+                        if qualifier['qualifier']['notice_ref'] is not None:
+                            qualifier_string += " " + qualifiers_display_map.get('notice_ref', "Ref") \
+                                                + ": " + qualifier['qualifier']['notice_ref']
+                            if qualifier['qualifier']['explicit_text'] is not None:
+                                qualifier_string += lint_cert_indent + lint_cert_indent
 
-            if policy['policy_identifier'].dotted in found_policies:
-                r.add_error("{} was repeated".format(policy['policy_identifier'].dotted))
-            else:
-                found_policies.append(policy['policy_identifier'].dotted)
+                        if qualifier['qualifier']['explicit_text'] is not None:
+                            qualifier_string += " " + qualifiers_display_map.get('explicit_text', "Text") \
+                                                + ": " + qualifier['qualifier']['explicit_text']
+
+                elif qualifier['qualifier'] is not None and isinstance(qualifier['qualifier'], str):
+                    qualifier_string += ": " + qualifier['qualifier']
+
+                r.add_content(qualifier_string)
+
+        if required_policy_list is not None and permit_others == 0 and\
+                policy['policy_identifier'].dotted not in required_policy_list:
+            r.add_error("{} is not permitted".format(policy['policy_identifier'].dotted))
+
+        if policy['policy_identifier'].dotted in found_policies:
+            r.add_error("{} was repeated".format(policy['policy_identifier'].dotted))
+        else:
+            found_policies.append(policy['policy_identifier'].dotted)
+
+    if required_policy_list is not None:
+        policy_intersection_count = len(set(required_policy_list).intersection(found_policies))
+
+        if match_mode == 'any' and policy_intersection_count == 0:
+            r.add_error("This profile requires inclusion of one or more of"
+                        " the following policies but none were included:\n")
+            r.add_error(lint_cert_newline.join(required_policy_list), '')
+        elif match_mode == 'one':
+            if policy_intersection_count == 0:
+                r.add_error("This profile requires inclusion of one of the following policies:\n")
+                r.add_error(lint_cert_newline.join(required_policy_list), '')
+            elif policy_intersection_count > 1:
+                r.add_error("Too many matches. This profile requires inclusion of only one of the below policies "
+                            "but {} matches were found:\n".format(policy_intersection_count))
+                r.add_error(lint_cert_newline.join(required_policy_list), '')
+        elif match_mode == 'all' and policy_intersection_count != len(required_policy_list):
+            all_match_str = "This profile requires the inclusion of {} policies of which {} were included:\n"
+            r.add_error(all_match_str.format(len(required_policy_list), policy_intersection_count))
+            r.add_error(lint_cert_newline.join(required_policy_list), '')
 
     return r
 
@@ -1028,12 +1018,13 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
 def lint_san(config_options, cert):
     r = OutputRow("Subject Alternate Name")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.subject_alt_name_value,
-    #                                   'subject_alt_name' in cert.critical_extensions, r)
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    _lint_do_alt_name(r, config_options, cert.subject_alt_name_value)
+    san = None
+    if extension is not None:
+        san = extension['extn_value'].parsed
+
+    _lint_do_alt_name(r, config_options, san)
 
     return r
 
@@ -1041,12 +1032,13 @@ def lint_san(config_options, cert):
 def lint_ian(config_options, cert):
     r = OutputRow("Issuer Alternate Name")
 
-    # _process_common_extension_options(config_options,
-    #                                   cert.issuer_alt_name_value,
-    #                                   'issuer_alt_name' in cert.critical_extensions, r)
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    _lint_do_alt_name(r, config_options, cert.issuer_alt_name_value)
+    ian = None
+    if extension is not None:
+        ian = extension['extn_value'].parsed
+
+    _lint_do_alt_name(r, config_options, ian)
 
     return r
 
@@ -1054,15 +1046,17 @@ def lint_ian(config_options, cert):
 def lint_eku(config_options, cert):
     r = OutputRow("Extended Key Usage")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.extended_key_usage_value is not None:
+    if extension is not None:
+
+        eku = extension['extn_value'].parsed
 
         eku_oids = []
-        for eku in cert.extended_key_usage_value:
-            eku_oids.append(eku.dotted)
+        for eku_oid in eku:
+            eku_oids.append(eku_oid.dotted)
             r.add_content(
-                "{} ({})".format(eku_display_map.get(eku.dotted, "Unknown EKU"), eku.dotted))
+                "{} ({})".format(eku_display_map.get(eku_oid.dotted, "Unknown EKU"), eku_oid.dotted))
 
         for ce in config_options:
             if "oid_" in ce:
@@ -1137,11 +1131,11 @@ reason_flags_display_map = OrderedDict([
 def lint_crldp(config_options, cert):
     r = OutputRow("CRL Distribution Points")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.crl_distribution_points_value is not None:
+    if extension is not None:
 
-        crldp = cert.crl_distribution_points_value
+        crldp = extension['extn_value'].parsed
 
         dp_num = 0
         first_http = 0
@@ -1202,7 +1196,7 @@ def lint_crldp(config_options, cert):
                             "WARN")
 
             if dp['crl_issuer'] and isinstance(dp['crl_issuer'], x509.GeneralNames):
-                print(get_pretty_dn(cert.subject))
+
                 r.add_content(lint_cert_indent + "CRL Issuer:")
                 for general_name in dp['crl_issuer']:
 
@@ -1242,11 +1236,11 @@ access_method_display_map = {
 def lint_aia(config_options, cert):
     r = OutputRow("Authority Information Access")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.authority_information_access_value is not None:
+    if extension is not None:
 
-        aia = cert.authority_information_access_value
+        aia = extension['extn_value'].parsed
 
         dp_num = 0
         first_http = 0
@@ -1343,13 +1337,11 @@ def lint_aia(config_options, cert):
 def lint_sia(config_options, cert):
     r = OutputRow("Subject Information Access")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    # id-ad-caRepository OBJECT IDENTIFIER ::= { id-ad 5 }
-    # id-ad-timeStamping OBJECT IDENTIFIER ::= { id-ad 3 }
+    if extension is not None:
 
-    if cert.subject_information_access_value is not None:
-        sia = cert.subject_information_access_value
+        sia = extension['extn_value'].parsed
 
         access_method_number = 0
         first_http = 0
@@ -1453,14 +1445,11 @@ def lint_sia(config_options, cert):
 
 def lint_pkup(config_options, cert):
     r = OutputRow("Private Key Usage Period")
+    # '2.5.29.16'
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    pkup, is_critical = get_extension_from_certificate(cert, '2.5.29.16')
-
-    _process_common_extension_options(config_options, cert, r)
-
-    if pkup is not None:
-
-        pkup = pkup['extn_value'].parsed
+    if extension is not None:
+        pkup = extension['extn_value'].parsed
 
         # class Time(Choice):
         #     _alternatives = [
@@ -1479,14 +1468,12 @@ def lint_pkup(config_options, cert):
 
 
 def lint_sub_dir_attr(config_options, cert):
-    r = OutputRow("Subject Directory Attributes")
+    r = OutputRow("Subject Directory Attributes")  # '2.5.29.9'
 
-    subject_directory_attributes, is_critical = get_extension_from_certificate(cert, '2.5.29.9')
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    _process_common_extension_options(config_options, cert, r)
-
-    if subject_directory_attributes is not None:
-        r.add_content(der2asn(subject_directory_attributes['extn_value'].contents))
+    if extension is not None:
+        r.add_content(der2asn(extension['extn_value'].contents))
 
     return r
 
@@ -1494,14 +1481,16 @@ def lint_sub_dir_attr(config_options, cert):
 def lint_ocsp_nocheck(config_options, cert):
     r = OutputRow("OCSP No Check")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.ocsp_no_check_value is not None:
+    if extension is not None:
+        ocsp_no_check = extension['extn_value'].parsed
+
         # The value of the extension SHALL be NULL.
-        if len(cert.ocsp_no_check_value.contents) is 0:
+        if len(ocsp_no_check.contents) is 0:
             r.add_content("NULL")
         else:
-            r.add_content(get_der_display_string(cert.ocsp_no_check_value.contents))
+            r.add_content(get_der_display_string(ocsp_no_check.contents))
             r.add_error("Extension content is not NULL")
 
     return r
@@ -1510,16 +1499,19 @@ def lint_ocsp_nocheck(config_options, cert):
 def lint_inhibit_any(config_options, cert):
     r = OutputRow("Inhibit Any Policy")
 
-    _process_common_extension_options(config_options, cert, r)
+    extension = _process_common_extension_options(config_options, cert, r)
 
-    if cert.inhibit_any_policy_value is not None:
-        r.add_content("SkipCerts = {}".format(cert.inhibit_any_policy_value.native))
+    if extension is not None:
+        inhibit_any_policy = extension['extn_value'].parsed
+
+        r.add_content("SkipCerts = {}".format(inhibit_any_policy.native))
 
         if 'inhibit_any_max' in config_options and len(
                 config_options['inhibit_any_max'].value) > 0:
+
             inhibit_any_max = int(config_options['inhibit_any_max'].value)
 
-            if cert.inhibit_any_policy_value.native > inhibit_any_max:
+            if inhibit_any_policy.native > inhibit_any_max:
                 r.add_error("Skip cert value exceeds permitted maximum of {}"
                             .format(inhibit_any_max))
 
@@ -1581,12 +1573,12 @@ def lint_signature_algorithm(config_options, cert):
 # ('subject_unique_id', OctetBitString, {'implicit': 2, 'optional': True}),
 
 def lint_version(config_options, cert):
-    r = OutputRow("Version", cert['tbs_certificate']['version'].native)
-
     cert_version = int(cert['tbs_certificate']['version'])
 
+    r = OutputRow("Version", "v%i" % (cert_version + 1))
+
     if cert_version == 0:
-        print('v1')
+
         if cert['tbs_certificate']['issuer_unique_id'] or cert['tbs_certificate']['subject_unique_id']:
             r.add_error('UniqueIdentifier(s) must not be present in a v1 certificate')
 
@@ -1611,10 +1603,12 @@ def lint_version(config_options, cert):
 def lint_serial_number(config_options, cert):
     r = OutputRow("Serial Number")
 
-    serial_number = cert['tbs_certificate']['serial_number'].contents
-    r.add_content('{}{}({} octets)'.format(' '.join('%02X' % c for c in serial_number),
+    serial_number = cert['tbs_certificate']['serial_number']
+    serial_bytes = serial_number.contents
+
+    r.add_content('{}{}({} octets)'.format(' '.join('%02X' % c for c in serial_bytes),
                                            lint_cert_newline,
-                                           len(serial_number)))
+                                           len(serial_bytes)))
 
     min_length = 0
     max_length = 0
@@ -1625,18 +1619,18 @@ def lint_serial_number(config_options, cert):
     if 'max_length' in config_options and len(config_options['max_length'].value) > 0:
         max_length = int(config_options['max_length'].value)
 
-    if min_length is not 0 and len(serial_number) < min_length:
+    if min_length is not 0 and len(serial_bytes) < min_length:
         r.add_error("Minimum permitted length is {} octets".format(str(min_length)))
 
-    if max_length is not 0 and len(serial_number) > max_length:
+    if max_length is not 0 and len(serial_bytes) > max_length:
         r.add_error("Maximum permitted length is {} octets".format(str(max_length)))
 
-    if len(serial_number) > 1 and serial_number[0] == 0 and serial_number[1] & 0x80 != 0x80:
+    if len(serial_bytes) > 1 and serial_bytes[0] == 0 and serial_bytes[1] & 0x80 != 0x80:
         r.add_error("Invalid encoding. INTEGER must be encoded with the minimum number of octets")
 
-    if cert['tbs_certificate']['serial_number'].native == 0:
+    if serial_number.native == 0:
         r.add_error('Serial number may not be zero (RFC5280)')
-    elif cert['tbs_certificate']['serial_number'].native < 0:
+    elif serial_number.native < 0:
         r.add_error('Serial number may not be negative (RFC5280)')
 
     return r
