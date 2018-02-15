@@ -97,7 +97,7 @@ def get_extension_list(tbs_cert, oid=None):
     return extension_list
 
 
-def get_extension(tbs_cert, oid):
+def get_extension_and_criticality(tbs_cert, oid):
     if not isinstance(oid, str):
         raise TypeError("oid must be dotted oid string")
 
@@ -391,12 +391,12 @@ def get_short_name_from_cert(cert, name_for_subject=True):
     alt_name_value = None
 
     if name_for_subject:
-        extension, critical = get_extension(cert, '2.5.29.17')
+        extension, critical = get_extension_and_criticality(cert, '2.5.29.17')
         if extension is not None:
             alt_name_value = extension['extn_value'].parsed
 
     else:
-        extension, critical = get_extension(cert, '2.5.29.18')
+        extension, critical = get_extension_and_criticality(cert, '2.5.29.18')
         if extension is not None:
             alt_name_value = extension['extn_value'].parsed
 
