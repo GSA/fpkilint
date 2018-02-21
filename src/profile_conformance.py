@@ -42,7 +42,10 @@ from asn1crypto.core import (
 
 lint_cert_newline = '\n'
 lint_cert_indent = '    '
-_lint_warning_prefix = 'WARN'
+_lint_error_prefix = '**FAIL**'
+_lint_warning_prefix = '**WARN**'
+_lint_info_prefix = '**INFO**'
+
 
 eku_display_map = {
     # https://tools.ietf.org/html/rfc5280#page-45
@@ -286,7 +289,7 @@ def _process_common_extension_options(config_options, cert, r):
 
         if len(extension_list) > 1:
             r.add_error("{} instances of {} found in certificate.".format(len(extension_list), r.row_name))
-            r.add_error("Only the first instance is shown", "**WARN**")
+            r.add_error("Only the first instance is shown", _lint_warning_prefix)
 
         r.extension_is_critical = extension_list[0][1]
 
@@ -523,6 +526,12 @@ def lint_key_usage(config_options, cert):
         for ku in key_usage.native:
             if ku not in key_usage_display_map:
                 r.add_error("Unknown bit ({}) is not permitted.".format(ku))
+
+        if 'key_encipherment' in key_usage.native:
+            # error if key_encipherment and pub key is ec (should be key_agreement)
+            public_key_info = cert['tbs_certificate']['subject_public_key_info']
+            if public_key_info.algorithm == 'ec':
+                r.add_error('keyEncipherment is not appropriate for ECC keys. keyAgreement may be used instead.')
 
     return r
 
@@ -1018,6 +1027,16 @@ def _lint_do_alt_name(r, config_options, alt_name_value):
 def lint_san(config_options, cert):
     r = OutputRow("Subject Alternate Name")
 
+    if len(cert.subject) == 0:
+        if 'is_critical' in config_options and len(config_options['is_critical'].value) > 0:
+            option_is_critical = int(config_options['is_critical'].value)
+
+        if option_is_critical != 2:
+            # if subject dn is absent; san must be critical per 5280
+            r.add_error('When Subject DN is absent, Subject Alternate Name is required to be critical',
+                        _lint_info_prefix)
+            config_options['is_critical'].value = '2'
+
     extension = _process_common_extension_options(config_options, cert, r)
 
     san = None
@@ -1068,6 +1087,10 @@ def lint_eku(config_options, cert):
 
         if r.extension_is_critical and '2.5.29.37.0' in eku_oids:
             r.add_error('EKU should not be critical if anyExtendedKeyUsage is present (RFC5280)', _lint_warning_prefix)
+
+        if '1.3.6.1.5.5.7.3.1' in eku_oids:
+            #todo look for dnsname in san
+            pass
 
     return r
 
@@ -1193,7 +1216,7 @@ def lint_crldp(config_options, cert):
 
                 r.add_error("RFC5280 recommends against segmenting CRLs by reason code. "
                             "This may lead to unintended certificate trust by clients that ignore these flags.",
-                            "WARN")
+                            _lint_warning_prefix)
 
             if dp['crl_issuer'] and isinstance(dp['crl_issuer'], x509.GeneralNames):
 
@@ -1564,7 +1587,7 @@ def lint_signature_algorithm(config_options, cert):
                 break
 
     if not found:
-        r.add_error("Signature algorithm not included in option set", "WARN")
+        r.add_error("Signature algorithm not included in option set", _lint_warning_prefix)
 
     return r
 
@@ -1705,7 +1728,7 @@ def lint_subject_public_key_info(config_options, cert):
                 break
 
     if not found:
-        r.add_error("Algorithm not included in option set", "WARN")
+        r.add_error("Algorithm not included in option set", _lint_warning_prefix)
 
     min_size = 0
     max_size = 0
@@ -1786,6 +1809,13 @@ def lint_dn(config_options, dn, row_name):
         # todo: check for base_dn match if base_dn has value
         print("fill in base dn check code")
 
+    if 'present' in config_options and len(config_options['present'].value) > 0:
+        present = int(config_options['present'].value)
+        if present == 2 and len(dn) == 0:
+            r.add_error('{} is required'.format(row_name))
+        elif present == 1 and len(dn) > 0:
+            r.add_error('{} is not permitted'.format(row_name))
+
     if 'require_geo_political_or_dc' in config_options and config_options['require_geo_political_or_dc'].value == '1':
         if len(dn) < 2:
             r.add_error(_geo_or_dc_error.format(row_name))
@@ -1827,6 +1857,11 @@ def lint_subject(config_options, cert):
             r.add_error("Certificate issuer and subject names match. Certificate may not be self issued.")
         elif config_options['is_self_issued'].value == '2' and cert.subject != cert.issuer:
             r.add_error("Certificate issuer and subject names do not match.")
+
+    if len(cert.subject) == 0:
+        san, is_critical = get_extension_and_criticality(cert['tbs_certificate'], '2.5.29.17')
+        if not san:
+            r.add_content("Either Subject DN or SubjectAltName is required")
 
     return r
 
@@ -2047,5 +2082,4 @@ def check_cert_conformance(input_cert, profile_file):
             output_rows.move_to_end(key)
 
     return output_rows, other_extensions_rows, profile_info_section
-
 
