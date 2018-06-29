@@ -1,0 +1,6 @@
+---
+applications:
+- name: cpct
+  instances: 1
+  memory: 128M
+  command: null

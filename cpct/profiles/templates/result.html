@@ -1,0 +1,50 @@
+<table class="table" style="width:100%;">
+    <tr>
+        <th colspan="3" id="top-bar">
+            <div style="float:left;">
+                <h3>{{ short_name }}</h3>
+                <strong>Policy:</strong> {{ string }}<br />
+                <a href="{{ url }}" style="font-size:.9em;margin-left:57px;">{{ url }}</a><br/>
+                <strong>Profile:</strong> {{ type }}
+            </div>
+        </th>
+    </tr>
+
+    <tr>
+        <td colspan="3" style="padding:0;margin:0;">
+            <div id="summary">
+            </div>
+        </td>
+    </tr>
+</table>
+
+<table id="result-table" class="table table-striped">
+    <thead style="width:100%;">
+        <tr style="width:100%;">
+            <th>Field</th>
+            <th style="max-width:700px;">Content</th>
+            <th style="max-width:100px;">Analysis</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in rows %}
+            <tr class="{% if r.analysis %}problem{% else %}no-problem{% endif %}">
+                <td style="max-width:100px;">{{ r.name }}</td>
+                <td style="max-width:700px;" class="dont-break-out">{{ r.content|safe }}</td>
+
+                    {% if r.analysis %}
+                        <td style="max-width:150px;">{{ r.analysis|safe }}</td>
+                    {% else %}
+                        <td style="max-width:150px;text-align:center;">
+                        <img class=ok-result src="/static/check-circle.svg" border=0 width=20 style="margin-left:auto;margin-right:auto;"/>
+                        </td>
+                    {% endif %}
+
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    shortName = "{{ short_name }}";
+    pageTitle = "{{ string }} \n {{ type }}"
+</script>

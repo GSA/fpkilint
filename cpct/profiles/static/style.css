@@ -1,0 +1,123 @@
+body{background-color:#13315C;padding:0;margin:0;font-family: benton-sans,"Helvetica Neue",helvetica,arial,sans-serif;}
+#header{height:8px;background-color:#13315c;width:100%;color:white;font:8pt verdana;}
+#header2{height:15px;background: linear-gradient(to right, #024D86, #8ECDEA);width:100%;border-top:1px solid #0b2545;border-bottom:0px solid #0b2545;}
+#header3{min-height:60px;background-color:#8da9c4;width:100%;border-top:2px solid #ddd;}
+.header4 {
+    background: linear-gradient(to right, #024D86, #8ECDEA);
+    content: '';
+    width: 100%;
+    position:relative;
+    top:0px;
+    height: 4px;
+}
+#main-form{border:1px solid #0b2545;background-color:#eef4ed;margin-left:auto;margin-right:auto;width:800px;border-radius:5px;padding:10px;}
+a{color:#00528F;}
+.ok-result{margin-left:auto;margin-right:auto;}
+.footer a{
+    color:white;
+}
+.row{margin:0;padding:0;}
+#result td{font:1em 'Courier New';}
+.callout{width:100%;padding:15px;margin:0;font:1em Verdana;border-bottom:2px solid white;}
+.callout-success{background: linear-gradient(to right, #008000, #00A65A);color:white;}
+.callout-danger{background: linear-gradient(to right, #C23321, #DD4B39);color:white;}
+#top-bar{
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 10px 10px 0px 0px;
+    border-radius: 10px 10px 0px 0px;
+    background-color:white;
+    font-weight:normal !important;
+
+}
+#top-bar a{
+}
+#result-table_wrapper{
+    margin-top:5px;padding:0;
+}
+table.dataTable span.highlight {
+  background-color: #FFFF88;
+  border-radius: 0.28571429rem;
+}
+
+table.dataTable span.column_highlight {
+  background-color: #ffcc99;
+  border-radius: 0.28571429rem;
+}
+.dt-buttons{
+    margin-left:10px;
+}
+        .dont-break-out {
+
+  /* These are technically the same, but use both */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  -ms-word-break: break-all;
+  /* This is the dangerous one in WebKit, as it breaks things wherever */
+  word-break: break-all;
+  /* Instead use this non-standard one: */
+  word-break: break-word;
+
+  /* Adds a hyphen where the word breaks, if supported (No Blink) */
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+
+}
+#result-table_info{padding-left:10px;}
+.help-tip{
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 36px;
+    cursor: pointer;
+    font-weight: bold;
+    color:#bbb;padding:3px;
+}
+.btn-secondary{
+    background:#eee;
+    color:#666
+}
+#main-padding{
+    padding-left:10px;padding-right:10px;
+}
+#result{
+    margin-top:50px;
+}
+#goback{
+    display:none;
+}
+#result-table_filter{
+    max-width:240px;float:right;
+}
+#result-table_filter input{
+    max-width:160px;margin-right:2px;
+}
+.dt-buttons{
+    float:left;
+    max-width:150px;
+    color:#ddd;
+    margin-top:-3px;
+}
+@media screen and (max-width: 800px) {
+    #main-padding{
+        margin:0;padding:0;
+    }
+    .col-md-12{
+        margin:0;padding:0;
+    }
+    #result{
+        margin-top:30px;
+        overflow-x:scroll;
+    }
+    #result-table{
+        min-width:800px;
+    }
+    #menu{
+        display:none;
+    }
+    #goback{
+        display:"";
+    }
+}

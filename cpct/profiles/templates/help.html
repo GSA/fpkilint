@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html style="height:100%;">
+<head>
+    {% load static %}
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+			  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+			  crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.2.0/dropzone.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.16/b-1.5.1/b-html5-1.5.1/b-print-1.5.1/fc-3.2.4/r-2.2.1/sc-1.4.3/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.16/b-1.5.1/b-html5-1.5.1/b-print-1.5.1/fc-3.2.4/r-2.2.1/sc-1.4.3/datatables.min.js"></script>
+<script type="text/javascript" src="https://bartaz.github.io/sandbox.js/jquery.highlight.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.16/features/searchHighlight/dataTables.searchHighlight.min.js"></script>
+
+    <style>
+        body{background-color:#13315C;padding:0;margin:0;font-family: benton-sans,"Helvetica Neue",helvetica,arial,sans-serif;}
+        #header{height:8px;background-color:#13315c;width:100%;color:white;font:8pt verdana;}
+        #header2{height:15px;background: linear-gradient(to right, #024D86, #8ECDEA);width:100%;border-top:1px solid #0b2545;border-bottom:0px solid #0b2545;}
+        #header3{min-height:60px;background-color:#8da9c4;width:100%;border-top:2px solid #ddd;}
+        .header4 {
+            background: linear-gradient(to right, #024D86, #8ECDEA);
+            content: '';
+            width: 100%;
+            position:relative;
+            top:0px;
+            height: 4px;
+        }
+        #main-form{border:1px solid #0b2545;background-color:#eef4ed;margin-left:auto;margin-right:auto;width:800px;border-radius:5px;padding:10px;}
+        a{color:#00528F;}
+        .ok-result{margin-left:auto;margin-right:auto;}
+        svg path{fill:red;}
+        .footer a{
+            color:white;
+        }
+        .row{margin:0;padding:0;}
+        #result td{font:1em 'Courier New';}
+        .callout{width:100%;padding:15px;margin:0;font:1em Verdana;border-bottom:2px solid white;}
+        .callout-success{background: linear-gradient(to right, #008000, #00A65A);color:white;}
+        .callout-danger{background: linear-gradient(to right, #C23321, #DD4B39);color:white;}
+        #top-bar{
+            -moz-border-radius: 0px;
+            -webkit-border-radius: 10px 10px 0px 0px;
+            border-radius: 10px 10px 0px 0px;
+            background-color:white;
+            font-weight:normal !important;
+
+        }
+        #top-bar a{
+        }
+        #result-table_wrapper{
+            margin-top:5px;padding:0;
+        }
+        table.dataTable span.highlight {
+  background-color: #FFFF88;
+  border-radius: 0.28571429rem;
+}
+
+table.dataTable span.column_highlight {
+  background-color: #ffcc99;
+  border-radius: 0.28571429rem;
+}
+        a.anchor {
+    display: block;
+    position: relative;
+    top: -175px;
+    visibility: hidden;
+}
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+
+
+<body style="height:100%;padding:0;margin:0;">
+
+<div style="height:100%;position:relative;margin-top:0px;">
+
+<form method="post" id="file-form" enctype="multipart/form-data">
+
+
+
+{% csrf_token %}
+
+<!-- Modal -->
+<div class="modal fade" id="pem_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index:9001">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Paste PEM Certificate</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <textarea id="pem_input" class="form-control" style="height:250px;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" style="border:0 !important;background-color:#458AB6 !important;" disabled="disabled">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <title>Certificate Profile Conformance Tool</title>
+
+<div id="collapse-menu" style="position:fixed;top:0;width:100%;z-index:2;">
+    <div id="header"><span style="float:left;margin:3px;"></span></div>
+
+    <div id="header2" style="text-align:center;"></div>
+
+    <div id="header3">
+        <div class="row">
+            <div class="col col-md-12" style="margin:0;padding:0;background-color:white">
+                <nav id="anav" class="navbar navbar-expand navbar-light bg-light" style="height:100px;max-width:1200px;margin-left:auto;margin-right:auto;background-color:white !important;text-align:center;">
+
+                    <div id="left-logo"></div>
+                    <div style="margin-left:auto;margin-right:auto;">
+                    <div id="centered-logo"><a id="logo" class="navbar-brand" href="/">
+                        <img src="{% static "GSAStar.jpg" %}" style="height:60px;margin-top:0px;margin-left:0px;float:left;" />
+                        <div style="font-family: benton-sans,'Helvetica Neue',helvetica,arial,sans-serif;color:#024D86;margin:0;padding:0;margin-top:15px;font-weight:bold;margin-left:10px;font-size:.8em;line-height:1em;text-align:left;">
+                            Certificate<br/>
+                            Profile<br/>
+                            Conformance</div>
+                    </a></div>
+
+
+        </div>
+        <button class="navbar-toggler navbar-toggler-right" style="float:right !important" type="button" data-toggle="collapse" data-target="#navbars" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button><br clear="both"/>
+      </nav>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="header4"></div>
+</div>
+
+
+    <div id="content-row" class="row" style="padding-top:100px;min-height:520px;background-color:#eee;">
+        <div class="col-md-12">
+            <div style="padding-left:10px;padding-right:10px;">
+                <div id=result style="max-width:1200px;margin-left:auto;margin-right:auto;margin-top:50px;background-color:white;margin-bottom:20px;">
+                    <div style="padding:20px;overflow-x:scroll;display:none;">
+                        <h3>Certificate Profile Conformance Tool (CPCT)</h3>
+CPCT will be a capable of analyzing a certificate’s conformance to a pre-defined certificate profile. User input will consist of a certificate and a profile selection. After processing the certificate, CPCT will output a table similar in formatting to the certificate format tables often included in Certificate Profile documents, but including additional analysis content indicating PASS or specific text describing the non-conformance.
+<br/><br/>
+                        <a href="https://github.com/GSA/fpkilint/blob/master/docs/cpct_example_output.md">Notional example output</a>
+                        <br/><br/>
+
+                        When complete, the tool is expected to be capable of analyzing certificates for conformance with the FPKI profiles described in the documents available on the <a href="https://www.idmanagement.gov/fpki/">Federal Public Key Infrastructure (FPKI) web page</a>.
+ <br/><br/>
+<strong>Common Policy Framework</strong><br/>
+<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-common-policy.pdf">Certificate Policy for the Federal PKI Common Policy Framework (FCPF)</a>
+<br/>
+<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf">X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program</a>
+<br/><br/>
+
+<strong>Federal Bridge</strong><br/>
+<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-profiles.pdf">X.509 Certificate and CRL Extensions Profile</a>
+<br/>
+<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-pivi-cert-profiles.pdf">X.509 Certificate and CRL Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Credentials</a>
+                    </div>
+                    <div style="padding:20px;">
+
+                        <h3>Background section</h3>
+                        <a class="anchor" id="background"></a>
+                            <p>Summary of the tool (what it is, why we developed it, who can use it)</p>
+
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In sit amet eros eu augue tempor pulvinar. Integer non consectetur enim. Donec auctor magna enim, eu viverra arcu posuere varius. Donec aliquet ligula vitae turpis ultricies, eget rhoncus sem posuere. Suspendisse nec enim vel quam rhoncus consequat. Nullam maximus ligula diam, eu efficitur risus varius sit amet. Vivamus at justo at est lobortis facilisis non ut lectus. Cras quis massa a lectus feugiat facilisis eu ut sapien.</p>
+
+<p>Quisque viverra ante dapibus neque suscipit elementum. Cras sit amet quam vitae lacus ultricies ullamcorper. Maecenas a vestibulum magna. Proin condimentum metus erat, nec euismod lectus bibendum vitae. Quisque mauris nulla, suscipit facilisis malesuada sed, laoreet quis justo. Cras id dui pharetra, euismod massa in, malesuada augue. Etiam dapibus venenatis lacus, eu porta quam imperdiet ut.</p>
+                        <p>Sed consequat, magna at volutpat ornare, nisi ante bibendum risus, ac molestie mauris turpis eget magna. Nunc fringilla nisl et eros hendrerit posuere. Mauris euismod, leo quis auctor blandit, urna erat interdum odio, euismod dapibus orci ex vel tellus. Vestibulum nisl dui, facilisis et pharetra eget, placerat a urna. Nulla facilisi. Nulla a elit nibh. Suspendisse semper fringilla dictum. Ut posuere pretium felis, nec laoreet mi pharetra eu. </p>
+                        <h3>How to use the tool section</h3>
+                        <a class="anchor" id="howto"></a>
+                            <p>Describe the meaning and purpose of each of the fields (Policy, Version, Profile)</p>
+                            <p>Describe different ways to upload a certificate (text, file upload, drag-and-drop).</p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin faucibus diam eros, nec euismod velit pharetra et. Suspendisse rutrum et quam sed condimentum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Etiam iaculis gravida turpis, id sodales nisi volutpat nec. Mauris posuere metus ante, at cursus eros tempor nec. Fusce tincidunt venenatis orci, eu ultrices ex tempus sed. Vivamus dignissim rutrum felis ac blandit. Sed quis tortor vehicula velit efficitur mattis. Nullam pellentesque massa et mauris gravida, eu vulputate metus tincidunt. Integer consectetur est id dui ultrices commodo. Suspendisse potenti. Aenean mollis ornare enim nec pulvinar. Nullam tempus dolor sapien, vel pretium eros tempor elementum. Aliquam eget sollicitudin quam. Ut nec tellus ac sapien tincidunt sodales. </p>
+                        <h3>Report section?</h3>
+                        <a class="anchor" id="report"></a>
+                            <p>Step through the different sections of the report and provide details</p>
+                            <p>Sed efficitur id augue vel sagittis. Vivamus euismod scelerisque risus imperdiet luctus. Proin scelerisque est in ex cursus, ut faucibus justo commodo. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla blandit massa id lacus porta, eu hendrerit velit pharetra. Quisque efficitur, nisi quis accumsan iaculis, ante arcu aliquet nisl, nec gravida libero metus vel metus. Proin tristique egestas dui, eget malesuada ante consectetur quis. Proin sagittis, lorem nec fermentum tempus, odio velit laoreet nisl, tristique posuere nisl nisl ut nisl. Fusce leo lorem, ultricies vel est in, maximus lacinia orci. Phasellus tincidunt non metus accumsan venenatis. Fusce accumsan, quam sit amet commodo pellentesque, sapien velit pulvinar augue, in eleifend leo nibh vel lorem. Donec faucibus suscipit aliquet. Nulla ut erat sagittis, lobortis enim eu, posuere arcu. </p>
+                            <p>Fusce rhoncus aliquet mauris, et gravida turpis. Nulla libero elit, tempus euismod ipsum quis, rhoncus laoreet elit. Morbi in fermentum mauris, non accumsan eros. Cras mattis orci sed urna sagittis, eget aliquam enim malesuada. Morbi lacinia, ipsum a semper imperdiet, sapien leo tristique odio, in condimentum libero leo sit amet dolor. Nulla lacinia tellus mi, vel egestas felis posuere a. Integer viverra faucibus mi sit amet posuere. Donec eleifend varius urna, sed ullamcorper augue imperdiet ac. Morbi odio odio, tempus id lorem ac, commodo finibus libero. Mauris blandit facilisis congue. Nunc vel finibus odio. Aenean venenatis ante eros, a tincidunt orci pellentesque sit amet. Integer cursus, nunc sit amet pretium facilisis, leo arcu mollis elit, quis auctor massa orci et ligula.</p>
+                        <h3>Help and feature request section</h3>
+                        <a class="anchor" id="help"></a>
+                            <p>Provide our icam at gsa.gov email address for any help or feature requests.</p>
+                            <p>Guide folks to use the GitHub issues page for requests.</p>
+                            <p>Provide some steps folks will need to take if they experience issues. For instance, email your certificate to icam at gsa.gov (will need to rename cert to .txt file extensions) or submit an issue and attach the file to the issue (user will need to create a github account in order to do this). I say the submit an issue and attach the file is the preferred approach.</p>
+                            <p>Provide steps if there is a discrepancy with the results (what happens if there is a false-positive or false-negative). Probably follow similar approach as bullet above.</p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="row" style="background-color:white;margin:0;padding:0;">
+        <div class="header4"></div>
+            <div class="col-md-12" style="text-align:center;background-color:white;">
+                <div style="padding:10px;">
+                 <a href="/contact-us">Contact Us</a> | <a href="https://github.com/GSA/fpkilint/">Source Code</a> | <a href="/privacy-policy">Privacy Policy</a> | <a href="/help/">Help</a>
+                </div>
+            </div>
+        <div class="header4" style="height:10px;"></div>
+</div>
+
+<div class="row footer" style="margin:0;padding:0;">
+    <div class="col-md-12" style="text-align:center;background-color:#13315C;color:white;margin:0;padding:10px;">
+        <a href="https://www.idmanagement.gov/"><img src="{% static "idm_logo.png" %}" style="border:0;height:50px;" /></a>
+    </div>
+</div>
+
+</form>
+</div>
+
+</body>
+
+</html>

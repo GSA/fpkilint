@@ -1,6 +1,245 @@
 import base64
+from collections import OrderedDict
 from asn1crypto import pem, x509
-from binary_utils import *
+from fpkilint.binary_utils import *
+
+from asn1crypto.core import (
+    AbstractString,
+    Any,
+    BitString,
+    BMPString,
+    Boolean,
+    CharacterString,
+    Choice,
+    Concat,
+    GeneralizedTime,
+    GeneralString,
+    GraphicString,
+    IA5String,
+    Integer,
+    Null,
+    NumericString,
+    ObjectIdentifier,
+    OctetBitString,
+    OctetString,
+    ParsableOctetString,
+    PrintableString,
+    Sequence,
+    SequenceOf,
+    Set,
+    SetOf,
+    TeletexString,
+    UniversalString,
+    UTCTime,
+    UTF8String,
+    VisibleString,
+    VideotexString,
+    VOID,
+)
+
+eku_display_map = {
+    # https://tools.ietf.org/html/rfc5280#page-45
+    '2.5.29.37.0': 'Any Extended Key Usage',
+    '1.3.6.1.5.5.7.3.1': 'Server Authentication',
+    '1.3.6.1.5.5.7.3.2': 'Client Authentication',
+    '1.3.6.1.5.5.7.3.3': 'Code Signing',
+    '1.3.6.1.5.5.7.3.4': 'Email Protection',
+    '1.3.6.1.5.5.7.3.5': 'IPSEC End System',
+    '1.3.6.1.5.5.7.3.6': 'IPSEC Tunnel',
+    '1.3.6.1.5.5.7.3.7': 'IPSEC User',
+    '1.3.6.1.5.5.7.3.8': 'Time Stamping',
+    '1.3.6.1.5.5.7.3.9': 'OCSP Signing',
+    # http://tools.ietf.org/html/rfc3029.html#page-9
+    '1.3.6.1.5.5.7.3.10': 'DVCS',
+    # http://tools.ietf.org/html/rfc6268.html#page-16
+    '1.3.6.1.5.5.7.3.13': 'EAP over PPP',
+    '1.3.6.1.5.5.7.3.14': 'EAP over LAN',
+    # https://tools.ietf.org/html/rfc5055#page-76
+    '1.3.6.1.5.5.7.3.15': 'SCVP Server',
+    '1.3.6.1.5.5.7.3.16': 'SCVP Client',
+    # https://tools.ietf.org/html/rfc4945#page-31
+    '1.3.6.1.5.5.7.3.17': 'IPSEC IKE',
+    # https://tools.ietf.org/html/rfc5415#page-38
+    '1.3.6.1.5.5.7.3.18': 'CAPWAP ac',
+    '1.3.6.1.5.5.7.3.19': 'CAPWAP wtp',
+    # https://tools.ietf.org/html/rfc5924#page-8
+    '1.3.6.1.5.5.7.3.20': 'SIP Domain',
+    # https://tools.ietf.org/html/rfc6187#page-7
+    '1.3.6.1.5.5.7.3.21': 'Secure Shell Client',
+    '1.3.6.1.5.5.7.3.22': 'Secure Shell Server',
+    # https://tools.ietf.org/html/rfc6494#page-7
+    '1.3.6.1.5.5.7.3.23': 'send router',
+    '1.3.6.1.5.5.7.3.24': 'send proxied router',
+    '1.3.6.1.5.5.7.3.25': 'send owner',
+    '1.3.6.1.5.5.7.3.26': 'send proxied owner',
+    # https://tools.ietf.org/html/rfc6402#page-10
+    '1.3.6.1.5.5.7.3.27': 'CMC CA',
+    '1.3.6.1.5.5.7.3.28': 'CMC RA',
+    '1.3.6.1.5.5.7.3.29': 'CMC Archive',
+    # https://tools.ietf.org/html/draft-ietf-sidr-bgpsec-pki-profiles-15#page-6
+    '1.3.6.1.5.5.7.3.30': 'bgpspec router',
+    # https://msdn.Microsoft.com/en-us/library/windows/desktop/aa378132(v=vs.85).aspx
+    # and https://support.Microsoft.com/en-us/kb/287547
+    '1.3.6.1.4.1.311.10.3.1': 'Microsoft Trust List Signing',
+    '1.3.6.1.4.1.311.10.3.2': 'Microsoft time stamp signing',
+    '1.3.6.1.4.1.311.10.3.3': 'Microsoft server gated',
+    '1.3.6.1.4.1.311.10.3.3.1': 'Microsoft serialized',
+    '1.3.6.1.4.1.311.10.3.4': 'Microsoft EFS',
+    '1.3.6.1.4.1.311.10.3.4.1': 'Microsoft EFS recovery',
+    '1.3.6.1.4.1.311.10.3.5': 'Microsoft whql',
+    '1.3.6.1.4.1.311.10.3.6': 'Microsoft nt5',
+    '1.3.6.1.4.1.311.10.3.7': 'Microsoft oem whql',
+    '1.3.6.1.4.1.311.10.3.8': 'Microsoft embedded nt',
+    '1.3.6.1.4.1.311.10.3.9': 'Microsoft root list signer',
+    '1.3.6.1.4.1.311.10.3.10': 'Microsoft qualified subordination',
+    '1.3.6.1.4.1.311.10.3.11': 'Microsoft key recovery',
+    '1.3.6.1.4.1.311.10.3.12': 'Microsoft Document Signing',
+    '1.3.6.1.4.1.311.10.3.13': 'Microsoft Lifetime signing',
+    '1.3.6.1.4.1.311.10.3.14': 'Microsoft mobile device software',
+    # https://opensource.Apple.com/source
+    #  - /Security/Security-57031.40.6/Security/libsecurity keychain/lib/SecPolicy.cpp
+    #  - /libsecurity cssm/libsecurity cssm-36064/lib/oidsalg.c
+    '1.2.840.113635.100.1.2': 'Apple x509 basic',
+    '1.2.840.113635.100.1.3': 'Apple ssl',
+    '1.2.840.113635.100.1.4': 'Apple local cert gen',
+    '1.2.840.113635.100.1.5': 'Apple csr gen',
+    '1.2.840.113635.100.1.6': 'Apple revocation crl',
+    '1.2.840.113635.100.1.7': 'Apple revocation ocsp',
+    '1.2.840.113635.100.1.8': 'Apple smime',
+    '1.2.840.113635.100.1.9': 'Apple eap',
+    '1.2.840.113635.100.1.10': 'Apple software update signing',
+    '1.2.840.113635.100.1.11': 'Apple IPSEC',
+    '1.2.840.113635.100.1.12': 'Apple ichat',
+    '1.2.840.113635.100.1.13': 'Apple resource signing',
+    '1.2.840.113635.100.1.14': 'Apple pkinit client',
+    '1.2.840.113635.100.1.15': 'Apple pkinit server',
+    '1.2.840.113635.100.1.16': 'Apple code signing',
+    '1.2.840.113635.100.1.17': 'Apple package signing',
+    '1.2.840.113635.100.1.18': 'Apple id validation',
+    '1.2.840.113635.100.1.20': 'Apple time stamping',
+    '1.2.840.113635.100.1.21': 'Apple revocation',
+    '1.2.840.113635.100.1.22': 'Apple passbook signing',
+    '1.2.840.113635.100.1.23': 'Apple mobile store',
+    '1.2.840.113635.100.1.24': 'Apple escrow service',
+    '1.2.840.113635.100.1.25': 'Apple profile signer',
+    '1.2.840.113635.100.1.26': 'Apple qa profile signer',
+    '1.2.840.113635.100.1.27': 'Apple test mobile store',
+    '1.2.840.113635.100.1.28': 'Apple otapki signer',
+    '1.2.840.113635.100.1.29': 'Apple test otapki signer',
+    '1.2.840.113625.100.1.30': 'Apple id validation record signing policy',
+    '1.2.840.113625.100.1.31': 'Apple smp encryption',
+    '1.2.840.113625.100.1.32': 'Apple test smp encryption',
+    '1.2.840.113635.100.1.33': 'Apple server authentication',
+    '1.2.840.113635.100.1.34': 'Apple pcs escrow service',
+    # missing from asn1crypto
+    '1.3.6.1.4.1.311.20.2.2': 'Microsoft Smart Card Logon',
+    '2.16.840.1.101.3.6.8': 'id-PIV-cardAuth',
+    '2.16.840.1.101.3.6.7': 'id-PIV-content-signing',
+    '2.16.840.1.101.3.8.7': 'id-fpki-pivi-content-signing',
+    '1.3.6.1.5.2.3.4': 'id-pkinit-KPClientAuth',
+    '1.3.6.1.5.2.3.5': 'id-pkinit-KPKdc',
+    '1.2.840.113583.1.1.5': 'Adobe PDF Signing',
+    '2.23.133.8.1': 'Endorsement Key Certificate',
+}
+
+key_usage_display_map = OrderedDict([
+    ('digital_signature', 'digitalSignature (0)'),
+    ('non_repudiation', 'nonRepudiation (1)'),
+    ('key_encipherment', 'keyEncipherment (2)'),
+    ('data_encipherment', 'dataEncipherment (3)'),
+    ('key_agreement', 'keyAgreement (4)'),
+    ('key_cert_sign', 'keyCertSign (5)'),
+    ('crl_sign', 'cRLSign (6)'),
+    ('encipher_only', 'encipherOnly (7)'),
+    ('decipher_only', 'decipherOnly (8)'),
+])
+
+qualifiers_display_map = {
+    'certification_practice_statement': 'CPS URI',
+    'user_notice': 'User Notice',
+    'notice_ref': 'Ref',
+    'explicit_text': 'Explicit Text',
+}
+
+crldp_display_map = {
+    'full_name': 'Full Name',
+    'name_relative_to_crl_issuer': 'Name Relative to Issuer',
+}
+
+
+reason_flags_display_map = OrderedDict([
+    (0, 'Unspecified (0)'),
+    (1, 'Key Compromise (1)'),
+    (2, 'CA Compromise (2)'),
+    (3, 'Affiliation Changed (3)'),
+    (4, 'Superseded (4)'),
+    (5, 'Cessation of Operation (5)'),
+    (6, 'Certificate Hold (6)'),
+    (7, 'Privilege Withdrawn (7)'),
+    (8, 'AA Compromise (8)'),
+])
+
+
+access_method_display_map = {
+    'time_stamping': 'Time STamping',
+    'ca_issuers': 'Certification Authority Issuers',
+    'ca_repository': 'CA Repository',
+    'ocsp': 'On-line Certificate Status Protocol'
+}
+
+public_key_algorithm_display_map = {
+    # https://tools.ietf.org/html/rfc8017
+    '1.2.840.113549.1.1.1': 'RSA',
+    '1.2.840.113549.1.1.7': 'RSAES-OAEP',
+    '1.2.840.113549.1.1.10': 'RSASSA-PSS',
+    # https://tools.ietf.org/html/rfc3279#page-18
+    '1.2.840.10040.4.1': 'DSA',
+    # https://tools.ietf.org/html/rfc3279#page-13
+    '1.2.840.10045.2.1': 'EC',
+    # https://tools.ietf.org/html/rfc3279#page-10
+    '1.2.840.10046.2.1': 'DH',
+}
+
+map_extension_oid_to_display = {
+    '2.5.29.9': 'Subject Directory Attributes',
+    '2.5.29.14': 'Key Identifier',
+    '2.5.29.15': 'Key Usage',
+    '2.5.29.16': 'Private Key Usage Period',
+    '2.5.29.17': 'Subject Alt Name',
+    '2.5.29.18': 'Issuer Alt Name',
+    '2.5.29.19': 'Basic Constraints',
+    '2.5.29.30': 'Name Constraints',
+    '2.5.29.31': 'CRL Distribution Points',
+    '2.5.29.32': 'Certificate Policies',
+    '2.5.29.33': 'Policy Mappings',
+    '2.5.29.35': 'Authority Key Identifier',
+    '2.5.29.36': 'Policy Constraints',
+    '2.5.29.37': 'Extended Key Usage',
+    '2.5.29.46': 'Freshest CRL',
+    '2.5.29.54': 'Inhibit Any Policy',
+    '1.3.6.1.5.5.7.1.1': 'Authority Information Access',
+    '1.3.6.1.5.5.7.1.11': 'Subject Information Access',
+    # Https://Tools.Ietf.Org/Html/Rfc7633
+    '1.3.6.1.5.5.7.1.24': 'TLS Feature',
+    '1.3.6.1.5.5.7.48.1.5': 'OCSP No Check',
+    '1.2.840.113533.7.65.0': 'Entrust Version Extension',
+    '2.16.840.1.113730.1.1': 'Netscape Certificate Type',
+    # missing from asn1crypto
+    '1.3.6.1.4.1.311.21.7': 'Microsoft Certificate Template Information',
+    # Application Policies extension -- same encoding as szOID_CERT_POLICIES
+    '1.3.6.1.4.1.311.21.10': 'Microsoft Application Policies',
+    # Application Policy Mappings -- same encoding as szOID_POLICY_MAPPINGS
+    '1.3.6.1.4.1.311.21.11': 'Microsoft Application Policy Mappings',
+    # Application Policy Constraints -- same encoding as szOID_POLICY_CONSTRAINTS
+    '1.3.6.1.4.1.311.21.12': 'Microsoft Application Policy Constraints',
+    '1.3.6.1.4.1.311.21.1': 'Microsoft CA Version',
+    '1.3.6.1.4.1.311.20.2': 'Microsoft Certificate Template Name',
+    '1.2.840.113549.1.9.15': 'S/Mime Capabilities',
+    '1.3.6.1.4.1.311.21.2': 'Microsoft Previous CA Cert Hash',
+    '1.3.6.1.4.1.11129.2.4.2': 'Signed Certificate Timestamp',
+
+    '1.3.6.1.4.1.11129.2.4.3': 'CT Pre-Cert Poison Extension',  # RFC 6962
+}
 
 
 def parse_certificate(byte_data):
@@ -8,7 +247,7 @@ def parse_certificate(byte_data):
     if not isinstance(byte_data, bytes):
         raise TypeError("byte_data must be a byte string")
 
-    if byte_data[0] == 'M':
+    if byte_data[0] == 0x4D:  # 'M':
         byte_data = base64.b64decode(byte_data)
 
     if pem.detect(byte_data):
@@ -18,7 +257,7 @@ def parse_certificate(byte_data):
             raise TypeError("CERTIFICATE expected, but got {}".format(file_type))
 
     x509cert = x509.Certificate.load(byte_data)
-    x509cert.serial_number  # forces lazy parse to occur now
+    x509cert.issuer  # forces lazy parse to occur now
 
     return x509cert
 
@@ -61,6 +300,17 @@ def parse_tbs_certificate(byte_data):
     tbs_certificate['serial_number']  # forces lazy parse to occur now
 
     return tbs_certificate
+
+
+def get_5280_method_1_key_id(cert):
+    """
+    :param cert: x509.Certificate
+    :return: rfc5280 method 1 key id
+    """
+    if not cert.public_key.sha1 == cert['tbs_certificate']['subject_public_key_info'].sha1:
+        print('hmmmmm')
+
+    return cert.public_key.sha1
 
 
 def is_policy_in_policies(policy_oid_string, certificate_policies):
@@ -225,8 +475,14 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
                     s += ' ({})'.format(name2['type'])
 
                 if include_string_type is True:
-                    string_type = '({}) '.format(_directory_string_type_display_map.get(name2['value'].name,
-                                                                                        "Undefined"))
+                    if isinstance(name2['value'], x509.DirectoryString):
+                        string_type = '({}) '.format(_directory_string_type_display_map.get(name2['value'].name, "Undefined"))
+                    elif isinstance(name2['value'], x509.EmailAddress):
+                        string_type = '({}) '.format('IA5')
+                    elif isinstance(name2['value'], UTF8String):
+                        string_type = '({}) '.format('UTF8')
+                    elif isinstance(name2['value'], OctetBitString):
+                        string_type = '({}) '.format('OctetBitString')
 
                 s += '{}{}{}'.format(type_value_separator, string_type, name2.native['value'])
     else:
@@ -247,7 +503,7 @@ general_name_display_map = {
     'uniform_resource_identifier': 'URI',
     'other_name_upn': 'UPN',
     'other_name_piv_fasc_n': 'FASCN',
-    'uniform_resource_identifier_chuid': 'CHUID',
+    'uniform_resource_identifier_chuid': 'UUID',
     'uniform_resource_identifier_http': 'HTTP URI',
     'uniform_resource_identifier_ldap': 'LDAP URI',
     'uniform_resource_identifier_https': 'HTTPS URI',
@@ -268,20 +524,23 @@ other_name_type_map = {
 import urllib.parse
 
 
-def get_general_name_string(general_name, multiline=None, indent_string=None, type_separator=None):
+def get_general_name_string(general_name, multiline=None, indent_string=None, type_separator=None, include_string_type=None):
     if multiline is None:
         multiline = False
     if indent_string is None:
         indent_string = '    '
     if type_separator is None:
         type_separator = ' = '
+    if include_string_type is None:
+        include_string_type = False
+
 
     general_name_string = "{}: ".format(general_name_display_map.get(general_name.name, "Unknown Name Type"))
 
     if general_name.name == 'uniform_resource_identifier':
 
         if general_name.native[0:9] == 'urn:uuid:':
-            general_name_string += "(CHUID) " + general_name.native
+            general_name_string += "(UUID) " + general_name.native
         else:
             general_name_string += urllib.parse.quote(general_name.native, safe="%/:=&?~#+!$,;'@()*[]")
 
@@ -294,7 +553,7 @@ def get_general_name_string(general_name, multiline=None, indent_string=None, ty
             general_name_string += indent_string
             rdn_separator = ",{}{}".format('\n', indent_string)
 
-        general_name_string += get_pretty_dn(general_name.chosen, rdn_separator, type_separator)
+        general_name_string += get_pretty_dn(general_name.chosen, rdn_separator, type_separator, False, include_string_type)
 
     elif general_name.name == 'other_name':
         other_oid = general_name.chosen['type_id'].dotted
@@ -350,6 +609,7 @@ def get_short_name_from_dn(name):
     rdns = [
         'common_name',
         'name',
+        'email_address',
         'given_name',
         'surname',
         '0.9.2342.19200300.100.1.1',
@@ -371,7 +631,7 @@ def get_short_name_from_dn(name):
             else:
                 return tmp_name
 
-    return name[len(name) - 1]
+    return name.native[next(reversed(name.native))]
 
 
 def get_short_name_from_cert(cert, name_for_subject=True):

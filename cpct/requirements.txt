@@ -1,0 +1,5 @@
+Django==2.0.1
+pytz==2017.3
+WhiteNoise==1.0.4
+gunicorn==19.1.1
+asn1crypto==0.24.0

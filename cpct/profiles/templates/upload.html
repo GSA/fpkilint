@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html style="height:100%;">
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.16/b-1.5.1/b-html5-1.5.1/b-print-1.5.1/fc-3.2.4/r-2.2.1/sc-1.4.3/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+
+<body style="height:100%;padding:0;margin:0;">
+    <div style="height:100%;position:relative;margin-top:0px;">
+
+        <form method="post" id="file-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Modal -->
+            <div class="modal fade" id="pem_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index:9001">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Paste PEM Certificate</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <textarea id="pem_input" class="form-control" style="height:250px;"></textarea>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" style="border:0 !important;background-color:#458AB6 !important;" disabled="disabled">Submit</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <title>Certificate Profile Conformance Tool</title>
+
+            <div id="collapse-menu" style="position:relative;top:0;width:100%;z-index:2;">
+                <div id="header"><span style="float:left;margin:3px;"></span></div>
+
+                <div id="header2" style="text-align:center;"></div>
+
+                <div id="header3">
+                    <div class="row">
+                        <div class="col col-md-12" style="margin:0;padding:0;background-color:white">
+                            <nav id="anav" class="navbar navbar-expand navbar-light bg-light" style="height:500px;max-width:1200px;margin-left:auto;margin-right:auto;background-color:white !important;text-align:center;">
+
+                                <div id="left-logo"></div>
+                                <div style="margin-left:auto;margin-right:auto;">
+                                <div id="centered-logo"><a id="logo" class="navbar-brand" href="/">
+                                    <img src="{% static "GSAStar.jpg" %}" style="height:60px;margin-top:0px;margin-left:0px;float:left;" />
+                                    <div style="font-family: benton-sans,'Helvetica Neue',helvetica,arial,sans-serif;color:#024D86;margin:0;padding:0;margin-top:15px;font-weight:bold;margin-left:10px;font-size:.8em;line-height:1em;text-align:left;">
+                                        Certificate<br/>
+                                        Profile<br/>
+                                        Conformance</div>
+                                </a></div>
+                                <div class="collapse navbar-collapse show" id="navbars" style="padding-left:0px;font-size:.9em;margin-top:15px;">
+                                    <ul id="menu" class="navbar-nav" style="display:block">
+                                        <li class="nav-item">
+                                          <div class="form-group">
+                                            <select class="form-control" id="id_profile" name="profile" style="min-width:200px;">
+
+                                            </select>
+                                            <label for="exampleSelect1" style="margin:0;padding:0;">Policy </label>
+                                            <a href="/help#howto" class="help-tip" title="More Information"><i class="fas fa-question-circle"></i></a>
+                                          </div>
+                                        </li>
+                                        <li class="nav-item">
+                                          <div class="form-group">
+                                            <select class="form-control" id="id_version" name="version" style="min-width:100px;" disabled="disabled">
+                                            </select>
+                                            <label for="exampleSelect1" style="margin:0;padding:0;">Version</label>
+                                           <a href="/help#howto" class="help-tip" title="More Information"><i class="fas fa-question-circle"></i></a>
+                                          </div>
+                                        </li>
+                                        <li class="nav-item">
+                                          <div class="form-group">
+                                            <select class="form-control" id="id_type" name="type" style="min-width:100px;" disabled="disabled">
+                                            </select>
+                                            <label for="exampleSelect1" style="margin:0;padding:0;">Profile</label>
+                                               <a href="/help#howto" class="help-tip" title="More Information"><i class="fas fa-question-circle"></i></a>
+                                          </div>
+                                        </li>
+                                        <li style="text-align:center;margin-left:10px;">
+                                                <label id="upload-file-button" class="btn btn-primary" style="border:0 !important;background-color:#458AB6 !important;margin:0;">
+                                                    Upload Certificate
+                                                </label>
+                                            <br/>
+                                            or drag and drop
+                                        </li>
+                                    </ul>
+                                </div>
+                            <div class="dz-message" data-dz-message></div>
+                            </div>
+
+                                <i id="goback" class="fas fa-chevron-circle-left fa-3x" style="margin-top:-20px;float:right;display:none"></i><br clear="both"/>
+                            </nav>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="header4"></div>
+            </div>
+
+
+            <div id="content-row" class="row" style="display:none;padding-top:100px;min-height:520px;background-color:#eee;">
+                <div class="col-md-12">
+                    <div id="main-padding" style="">
+                        <div id=result style="max-width:1200px;margin-left:auto;margin-right:auto;background-color:white;margin-bottom:20px;">
+                            <div style="padding:20px;overflow-x:scroll">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="background-color:white;margin:0;padding:0;">
+                <div class="header4"></div>
+                <div class="col-md-12" style="text-align:center;background-color:white;">
+                    <div style="padding:10px;">
+                        <a href="/contact-us">Contact Us</a> | <a href="https://github.com/GSA/fpkilint/">Source Code</a> | <a href="/privacy-policy">Privacy Policy</a> | <a href="/help/">Help</a>
+                    </div>
+                </div>
+                <div class="header4" style="height:10px;"></div>
+            </div>
+
+            <div class="row footer" style="margin:0;padding:0;">
+                <div class="col-md-12" style="text-align:center;background-color:#13315C;color:white;margin:0;padding:10px;">
+                    <a href="https://www.idmanagement.gov/"><img src="{% static "idm_logo.png" %}" style="border:0;height:50px;" /></a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"
+			  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+			  crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.2.0/dropzone.js" type="text/javascript"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.16/b-1.5.1/b-html5-1.5.1/b-print-1.5.1/fc-3.2.4/r-2.2.1/sc-1.4.3/datatables.min.js"></script>
+<script type="text/javascript" src="https://bartaz.github.io/sandbox.js/jquery.highlight.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.16/features/searchHighlight/dataTables.searchHighlight.min.js"></script>
+<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+<script type="text/javascript">
+var prevFile;
+Dropzone.autoDiscover = false;
+Dropzone.options.fileForm = {
+    maxFilesize: 1, // MB
+    maxFiles: 1,
+    acceptedFiles: ".cer,.crt,.der,.pem",
+    previewsContainer: false,
+    clickable: '#upload-file-button',
+    init: function() {
+        this.on('addedfile', function() {
+                if (typeof prevFile !== "undefined") {
+                    this.removeFile(prevFile);
+                }
+            });
+        this.on('success', function(file, responseText) {
+                prevFile = file;
+        });
+    }
+};
+var fixNewLine = {
+        exportOptions: {
+            format: {
+                body: function ( data, column, row ) {
+                    var pattern = "&nbsp;",
+                        pattern2 = "<img class=\"ok-result\" src=\"/static/check-circle.svg\" border=\"0\" width=\"20\" style=\"margin-left:auto;margin-right:auto;\">",
+                        re = new RegExp(pattern, "g"),
+                        re2 = new RegExp(pattern2, "g");
+                    return data.replace(re, ' ')
+                        .replace(re2, 'ok')
+                        .replace( /<br\s*\/?>/gmi, '\n' )
+                        .replace(/<wbr>/g, '')
+                        .replace(/<a href=\"(.*)\">/g, '')
+                        .replace(/<\/a>/, '')
+                        .replace(/<strong>/g, '')
+                        .replace(/<\/strong>/g, '');
+                }
+            }
+        }
+    };
+
+var shortName = "Data Export", pageTitle="";
+var fileUpload = new Dropzone("#file-form", {
+    url: "/file/",
+    success : function(file, response){
+        if($("#id_type").val()){
+            $("#menu").css("display","");
+            $("#logo").appendTo("#left-logo");
+            $("#anav").animate({height: "100px"},500);
+            $("#collapse-menu").css("position", "fixed");
+            $("#content-row").show();
+            //$("#goback").show();
+            $("#result").html(response);
+
+            var table = $("#result-table").DataTable({
+                "paging":   false,
+                "ordering": false,
+                searchHighlight: true,
+                dom: 'Bfrtip',
+                "oLanguage": {
+                "sSearch": "<i class=\"fas fa-search\"></i>"
+                },
+                buttons: [
+                    $.extend( true, {}, fixNewLine, {
+                        extend: 'excelHtml5',
+                        title: shortName,
+                        text: '<i class="far fa-file-excel"></i> XLS'
+                    } ),
+                    $.extend( true, {}, fixNewLine, {
+                        extend: 'pdfHtml5',
+                        title: shortName,
+                        text: '<i class="far fa-file-pdf"></i> PDF',
+                        orientation: 'landscape',
+                        messageTop: pageTitle,
+                        customize: function(doc) {
+                            doc.content[2].table.widths = [ '15%', '65%', '20%'];
+                            doc.pageMargins = [20,20,20,20];
+                            doc.defaultStyle.fontSize = 10;
+                            doc.defaultStyle.fontFamily = "Courier New";
+                            doc.styles.tableHeader.fontSize = 12;
+                            doc.styles.title.fontSize = 10;
+                            doc.content[0].text = doc.content[0].text.trim();
+                            doc.styles.title = {
+                              alignment: 'left',
+                                fontSize: 14
+                            }
+                        },
+
+                    } )
+                ]
+            });
+            updateSummary();
+        }
+    },
+    error: function (file, response) {
+        $("#menu").css("display","");
+        $("#logo").appendTo("#left-logo");
+        $("#anav").animate({height: "100px"},500);
+        $("#collapse-menu").css("position", "fixed");
+        $("#content-row").show();
+        $("#anav").height("");
+        $("#result").html(response);
+        this.removeFile(file);
+    }
+});
+
+function updateSummary(){
+    var numProblems = $('.problem').length;
+    var numNoProblems = $('.no-problem').length;
+    var testCount = numProblems + numNoProblems;
+    var result_str = "";
+
+    if(testCount != 1){
+        var result_str = "Tested " +  testCount + " fields: ";
+    }else{
+        var result_str = "Tested " +  testCount + " fields: ";
+    }
+    if(numProblems == 0) {
+        result_str += "No problems detected ";
+    }else if(numProblems != 1){
+        result_str += "<a style=color:white;text-decoration:underline; onclick=filterProblems(); href=#>"+numProblems+" problems detected</a>";
+    }else{
+        result_str += "<a style=color:white;text-decoration:underline; onclick=filterProblems(); href=#>"+numProblems+" problem detected</a>";
+    }
+
+    if(numProblems){
+        $("#summary").html("<div class='callout callout-danger' style=font-weight:bold;margin:0;>" + result_str + "</div>");
+    }else{
+        $("#summary").html("<div class='callout callout-success' style=font-weight:bold;margin:0;>" + result_str + "</div>");
+    }
+
+
+}
+
+var data = {{ profiles|safe }};
+var profiles = data["profiles"];
+
+function updateVersion(){
+    var value = $("#id_profile").val();
+    var versions = profiles[value]["versions"];
+
+    $("#id_version").html("").attr("disabled", false);
+    for (var c = 0; c < versions.length; c++){
+        var version_string = versions[c]["version"];
+        if(c === 0){version_string += " (latest)";}
+        $("#id_version").append($("<option></option>").val(c).text(version_string));
+    }
+    updateType();
+};
+
+function updateType(){
+    var profile = profiles[$("#id_profile").val()]; // currently selected profile
+    var version = $("#id_version").val();
+    var types = profile["versions"][version]["cert_types"];
+    var old_type = $("#id_type").val();
+    $("#id_type").html("<option value='' disabled selected>-- Select a Profile --</option>").attr("disabled", false).focus();
+    for (var c = 0; c < types.length; c++){
+        $("#id_type").append($("<option></option>").val(c).text(types[c]["cert_type"]));
+    }
+};
+
+
+function resetFiles(){
+    var files = fileUpload.getAcceptedFiles();
+    $.each(files, function(index,file){
+        file.status = Dropzone.QUEUED;
+        fileUpload.processQueue();
+    });
+    $("html, body").animate({ scrollTop: 0 }, "slow");
+}
+
+$(document).ready(function($) {
+    $("#id_profile").html("<option value='' disabled selected>-- Select a Policy --</option>").focus();
+    for (var i = 0; i < profiles.length; i++){
+      $("#id_profile").append($("<option></option>").val(i).text(profiles[i]["name"]));
+    }
+
+    //updateVersion();
+    $("#id_version").change(function(){
+        updateType();
+        resetFiles();
+    });
+    $("#id_profile").change(function(){
+        if($("#id_profile").val()){
+            updateVersion();
+            resetFiles();
+        }else{
+            $("#id_version").html("").attr("disabled", true);
+            $("#id_type").html("").attr("disabled", true);;
+        }
+    });
+    $("#id_type").change(function(){
+        resetFiles();
+    })
+});
+
+var problemsOnly = false;
+function filterProblems(){
+    if(problemsOnly){
+        problemsOnly = false;
+        $(".no-problem").show();
+        $("#result-table_info").show();
+    }else{
+        problemsOnly = true;
+        $(".no-problem").hide();
+        $("#result-table_info").hide();
+    }
+}
+</script>
+</body>
+</html>
