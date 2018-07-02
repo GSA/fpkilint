@@ -13,7 +13,7 @@ permalink: docs/contactus/
 
 ### Questions about the Federal PKI X.509 Certificate Policies or Certificate and Certificate Revocation List (CRL) Profiles? 
 
-* This webpage may contain the answer to your question: [FPKI X.509 Certificate Policies and Certificate Profiles] (https://www.idmanagement.gov/fpki/#certificate-policies){:target="_blank"}. 
+* This webpage may contain the answer to your question: [FPKI X.509 Certificate Policies and Certificate Profiles](https://www.idmanagement.gov/fpki/){:target="_blank"}. 
 
 ### All Other Questions or Comments - Email Us
 
