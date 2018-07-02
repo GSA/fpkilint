@@ -5,8 +5,9 @@ collection: docs
 permalink: docs/privacy/
 ---
 
+## Privacy Policy
 
-## IDManagement.gov Privacy Policy 
+### IDManagement.gov Privacy Policy 
 The General Services Administration (GSA) collects basic system performance and visitor volume metrics on its websites. GSA uses this information to help develop its websites, analyze patterns of usage, address problem areas, and make the sites more useful for you. 
 When you visit IDManagement.gov, we may store some or all of the following:
 
@@ -25,7 +26,7 @@ We do not use this information to associate search terms or patterns of site nav
 
 Learn more about [IDManagement.gov’s Privacy Policy](https://www.idmanagement.gov/privacy-policy/){:target="_blank"}. 
 
-## Certificate Profile Conformance Tool (CPCT) Privacy Policy
+### Certificate Profile Conformance Tool (CPCT) Privacy Policy
 
 CPCT’s users and information are protected under IDManagement.gov’s Privacy Policy; however, CPCT includes these additional privacy protections:
 
@@ -33,6 +34,6 @@ CPCT’s users and information are protected under IDManagement.gov’s Privacy 
 * No certificate profile test results are saved.  
 * Your identity information is not saved. <**This isn't an added protection. IDM.gov isn't supposed to save any personally identifying information.**>
 
-## Questions or Comments?
+### Questions or Comments?
 
 If you have Privacy Policy questions or comments, please email us at **icam@gsa.gov**. We’ll make every effort to respond to your email as quickly as possible.  [Use **fpki@gsa.gov** instead?]  
