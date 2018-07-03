@@ -7,11 +7,11 @@ permalink: docs/contactus/
 
 ## Contact Us
 
-### Questions or comments about the Certificate Profile Compliance Tool (CPCT)? 
+Questions or comments about the Certificate Profile Compliance Tool (CPCT)? 
 
 * You can submit either through a [GitHub issue](https://github.com/GSA/fpkilint/){:target="_blank"}. 
 
-### Questions about the Federal PKI X.509 Certificate Policies or Certificate and Certificate Revocation List (CRL) Profiles? 
+Questions about the Federal PKI X.509 Certificate Policies or Certificate and Certificate Revocation List (CRL) Profiles? 
 
 * This webpage may contain the answer to your question: [FPKI X.509 Certificate Policies and Certificate Profiles](https://www.idmanagement.gov/fpki/){:target="_blank"}. 
 
