@@ -8,8 +8,12 @@ permalink: docs/privacy/
 ## Privacy Policy
 
 ### IDManagement.gov Privacy Policy
+**Add this paragraph from GSA IDManagement.gov Privacy Policy with addition of "GSA" and "IDManagement.gov" for absolute clarity.**
+The General Services Administration (GSA) IDManagement.gov website automatically collects some basic system information to help us measure site performance and visitor volume. We also use this information to help us develop the site, analyze patterns of usage, address problem areas, and make the site more useful for you.
 
-General Services Administration's (GSA) websites automatically collect basic system performance and visitor volume metrics. GSA uses this information to help develop its websites, analyze patterns of usage, address problem areas, and make the sites more useful for you. 
+(Per LaChelle:  Use the IDM.gov Privacy Policy [standardization]. Remove the following paras. from IDM Privacy Policy [slightly edited] down to statement with link.)
+
+General Services Administration's (GSA) websites automatically collect basic system performance and visitor volume metrics. GSA uses this information to help develop its websites, analyze patterns of usage, address problem areas, and make the sites more useful for you.
 
 When you visit IDManagement.gov, we may store some or all of the following:
 
