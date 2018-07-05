@@ -5,20 +5,16 @@ collection: docs
 permalink: docs/contactus/
 ---
 
-## Contact Us
+### Questions or Comments on the Certificate Profile Conformance Tool (CPCT)?
 
-* Do you have questions or comments about the Certificate Profile Compliance Tool (CPCT)? 
+* _Use GitHub_ - Post a question or comment to an existing issue or create a new issue: [GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
+* _Email us_ at **fpki@gsa.gov**.
 
-o You can submit questions and comments by creating or posting to an existing [GitHub issue](https://github.com/GSA/fpkilint/){:target="_blank"}. 
+### Questions or Comments on the Federal PKI X.509 Certificate Policies or Certificate Profiles? 
 
-* Do you have questions about the Federal PKI X.509 Certificate Policies or Certificate and Certificate Revocation List (CRL) Profiles? 
+* _Use IDManagement.gov_ - Review [Federal PKI X.509 certificate policies, certificate profiles, and change proposals](https://www.idmanagement.gov/fpki/){:target="_blank"}.
+* _Email us_ at **fpki@gsa.gov**.  
 
-o You may find the answer to your question here: [FPKI X.509 Certificate Policies and Certificate Profiles](https://www.idmanagement.gov/fpki/){:target="_blank"}. 
-
-### All Other Questions or Comments - Email Us
-
-* For all other questions or comments, please email us at **icam@gsa.gov**. [Or should this be **fpki@gsa.gov**?]    
-
-We’ll make every effort to respond to your email as quickly as possible. If our response will take longer to prepare, we’ll let you know when you can expect to receive an answer.
+We’ll make every effort to respond to emails as quickly as possible.
 
 Thank you!
