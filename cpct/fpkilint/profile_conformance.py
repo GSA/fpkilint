@@ -1694,6 +1694,8 @@ def lint_dn(config_options, dn, row_name):
     pretty_name = get_pretty_dn(dn, separator, " = ", True, True)
     r = OutputRow(row_name, pretty_name)
 
+    #todo: add option for limiting allowed string types
+
     if 'present' in config_options and len(config_options['present'].value) > 0:
         present = int(config_options['present'].value)
         if present == 2 and len(dn) == 0:

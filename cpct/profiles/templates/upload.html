@@ -64,7 +64,7 @@
                                             <select class="form-control" id="id_profile" name="profile" style="min-width:200px;">
 
                                             </select>
-                                            <label for="exampleSelect1" style="margin:0;padding:0;">Policy </label>
+                                            <label for="exampleSelect1" style="margin:0;padding:0;">Profile Document</label>
                                             <a href="/help#howto" class="help-tip" title="More Information"><i class="fas fa-question-circle"></i></a>
                                           </div>
                                         </li>
@@ -72,7 +72,7 @@
                                           <div class="form-group">
                                             <select class="form-control" id="id_version" name="version" style="min-width:100px;" disabled="disabled">
                                             </select>
-                                            <label for="exampleSelect1" style="margin:0;padding:0;">Version</label>
+                                            <label for="exampleSelect1" style="margin:0;padding:0;">Document Version</label>
                                            <a href="/help#howto" class="help-tip" title="More Information"><i class="fas fa-question-circle"></i></a>
                                           </div>
                                         </li>
@@ -80,7 +80,7 @@
                                           <div class="form-group">
                                             <select class="form-control" id="id_type" name="type" style="min-width:100px;" disabled="disabled">
                                             </select>
-                                            <label for="exampleSelect1" style="margin:0;padding:0;">Profile</label>
+                                            <label for="exampleSelect1" style="margin:0;padding:0;">Certificate Profile</label>
                                                <a href="/help#howto" class="help-tip" title="More Information"><i class="fas fa-question-circle"></i></a>
                                           </div>
                                         </li>
@@ -306,7 +306,7 @@ function updateType(){
     var version = $("#id_version").val();
     var types = profile["versions"][version]["cert_types"];
     var old_type = $("#id_type").val();
-    $("#id_type").html("<option value='' disabled selected>-- Select a Profile --</option>").attr("disabled", false).focus();
+    $("#id_type").html("<option value='' disabled selected>-- Select a Certificate Profile --</option>").attr("disabled", false).focus();
     for (var c = 0; c < types.length; c++){
         $("#id_type").append($("<option></option>").val(c).text(types[c]["cert_type"]));
     }
@@ -323,7 +323,7 @@ function resetFiles(){
 }
 
 $(document).ready(function($) {
-    $("#id_profile").html("<option value='' disabled selected>-- Select a Policy --</option>").focus();
+    $("#id_profile").html("<option value='' disabled selected>-- Select a Profile Document --</option>").focus();
     for (var i = 0; i < profiles.length; i++){
       $("#id_profile").append($("<option></option>").val(i).text(profiles[i]["name"]));
     }
