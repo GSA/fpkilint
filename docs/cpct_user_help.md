@@ -5,20 +5,26 @@ collection: docs
 permalink: docs/userguide/
 ---
 
-## What is the Certificate Profile Conformance Tool (CPCT) and How Can It Help Me?
+## What is the Certificate Profile Conformance Tool (CPCT)?
 (Matt) (Background - summary of the tool)
+CPCT analyzes certificates for conformance with the Federal PKI Certificate Policies and Certificate Profiles, so you won't need to do time-consuming manual comparisons. The tool displays a certificate test report that clearly shows the Pass/Fail results for each Field and Extension, including an explanation for needed remediation, if a failure occurs.  You can download a copy of the test report in .pdf or .xlsx format.  Using CPCT will save you time, effort, and resources.
+
+Here's how CPCT works: 
+
+* You upload a certificate you want to test.
+* CPCT analyzes the certificate's conformance with the requirements of a selected X.509 Certificate Policy, Certificate Profile, and Profile Version. 
+* The certificate test report displays within seconds. 
+* The report clearly shows each Field and Extension value and whether it Passed (checkmark) or Failed (_FAIL_) with explanations.  
+* The report can be downloaded as a .pdf or .xlsx to retain and/or submit with an Annual FPKI Audit package. 
+* You can re-test a certificate as many times as needed until a failure(s) has been resolved. 
 
 ## Who Should Use CPCT?
-*[2 Use Cases?]*
-CPCT will help you if:
 
-1. Your agency is undergoing an annual Federal PKI Audit<!--from IDM-->:  Federal Public Key Infrastructure (FPKI) Certification Authorities (CAs) are audited annually to ensure their compliance with the requirements outlined in the _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_ and Certificate Policies and the _X.509 Certificate Policy for the Federal Bridge Certification Authority (FBCA)_. These annual audits also ensure the Federal PKI CAs' compliance with the policies' X.509 Certificate and Certificate Revocation List (CRL) Profiles and associated X.509 Certificate Profiles....<!--Add more, edit-->
+Use Cases:
 
-## How Can CPCT Help Me? (Maybe combine with "What is the CPCT?" above)
-
-CPCT analyzes an uploaded certificate for conformance with its applicable X.509 Certificate Policy and Certificate Profile. You won't need to do any manual comparisons, so it will save you time and effort. You'll see the analysis results within 1-2 minutes(?) If the certificate is successfully conformant, save the test results as a .pdf? for submission to ...? If the certificate doesn't conform in any way, the CPCT's displayed report clearly calls out what field or extension needs to be corrected.
-
-2. xxx
+1. Federal PKI Annual Audit Teams - Your agency is undergoing an annual Federal PKI Audit<!--text from IDM-->:  FPKI CAs are audited annually to ensure their compliance with the requirements outlined in the _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_ and Certificate Policies and the _X.509 Certificate Policy for the Federal Bridge Certification Authority (FBCA)_. These annual audits also ensure the Federal PKI CAs' compliance with the policies' X.509 Certificate and Certificate Revocation List (CRL) Profiles and associated X.509 Certificate Profiles....<!--Add more, edit-->
+2. PIV or SSL Certificate Issuers - As part of a QA process, you may want to test certificates that you are issuing to ensure they conform to the Certificate Policies.
+3. Subscribers - You may want to determine the cause of a certificate failure and whether you or the issuer needs to resolve it.
 
 ### How Does This Work?
 (Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists (Policy, Version, Profile
