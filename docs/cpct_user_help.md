@@ -4,19 +4,32 @@ title: Certificate Profile Conformance Tool (CPCT)
 collection: docs
 permalink: docs/userguide/
 ---
+Questions:  How do you get access to the tool? Hosted where? Login required? Assume government only?
 
 ## What is the Certificate Profile Conformance Tool (CPCT)?
-(Matt) (Background - summary of the tool)
-CPCT analyzes certificates for conformance with the Federal PKI Certificate Policies and Certificate Profiles, so you won't need to do time-consuming manual comparisons. The tool displays a certificate test report that clearly shows the Pass/Fail results for each Field and Extension, including an explanation for needed remediation, if a failure occurs.  You can download a copy of the test report in .pdf or .xlsx format.  Using CPCT will save you time, effort, and resources.
+(Matt) (Background - summary of the tool)<br>
+(Needs to be simple with key details.  Easy to use, quick, accurate, sames time and resources, produces reports for audits or archive, etc.)
+will help you test certificates for conformance with a policy and profile version (Federal PKI X.509 Certificate Profiles).  
+(Speeds up your process of examining/visual inspection of certificates against profiles for discrepancies.)
+The tool analyzes your uploaded certificate and displays a test report. The report shows whether your certificate is a Pass or Fail with explanations/discrepancies. 
 
+You have the option to download the results. 
+
+Using CPCT will save you time, effort, and resources.
+
+## How Does This Work?
 Here's how CPCT works: 
 
 * You upload a certificate you want to test.
-* CPCT analyzes the certificate's conformance with the requirements of a selected X.509 Certificate Policy, Certificate Profile, and Profile Version. 
+* CPCT analyzes the certificate's conformance with the requirements of a selected X.509 Certificate Policy, Certificate Profile, and Profile Version. You won't need to waste time doing manual comparisons. 
 * The certificate test report displays within seconds. 
 * The report clearly shows each Field and Extension value and whether it Passed (checkmark) or Failed (_FAIL_) with explanations.  
 * The report can be downloaded as a .pdf or .xlsx to retain and/or submit with an Annual FPKI Audit package. 
 * You can re-test a certificate as many times as needed until a failure(s) has been resolved. 
+
+More:  The test report clearly shows the Pass/Fail results for each Field and Extension, including an explanation for remediation, if a failure occurs.  You can download a copy of the test report in .pdf or .xlsx format.
+
+Any application/system requirements to use the tool?
 
 ## Who Should Use CPCT?
 
@@ -26,7 +39,7 @@ Use Cases:
 2. PIV or SSL Certificate Issuers - As part of a QA process, you may want to test certificates that you are issuing to ensure they conform to the Certificate Policies.
 3. Subscribers - You may want to determine the cause of a certificate failure and whether you or the issuer needs to resolve it.
 
-### How Does This Work?
+### Detailed Steps
 (Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists (Policy, Version, Profile
 <**(CB) NOTE - Version number applies to Profile, but because it follows "Policy," drop-down, it appear to apply to Policy. Suggest switching order of drop-downs so Version follows Profile.**>)
 
