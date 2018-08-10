@@ -4,55 +4,47 @@ title: Certificate Profile Conformance Tool (CPCT)
 collection: docs
 permalink: docs/userguide/
 ---
-Questions:  Login to a website to access tool required? Government only?
+<**STILL DRAFTING -- DRAFT --- DRAFT**>
+
+<!--Question: CPCT only for government or SSPs?-->
 
 ## What is the Certificate Profile Conformance Tool (CPCT)?
 (Matt) (Background - summary of the tool)<br>
-(Needs to be simple with key details.  Easy to use, quick, accurate, sames time and resources, produces reports for audits or archive, etc.)
-CPCT will help you test a certificate for conformance with a Federal PKI X.509 Certificate Policy and Certificate Profile version; for example, you could use CPCT to test a certificate for **_Common Card Authentication_** conformance with:
+  
+The CPCT is a certificate analysis tool that quickly tests whether a certificate conforms to FPKI Certificate Policies and Profiles. CPCT will save you both time and resources, because it analyzes an uploaded certificate for you, rapidly displays the test results, and gives you a downloadable, formatted report. 
 
-* **Certificate Policy**: _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_
-* **Certificate Profile and Version**: _FPKI X.509 Certificate and CRL Extensions Profile_, Version 1.8
-* **Common Card Authentication** Profile
+## How Does It Work?
 
-(Speeds up your process of examining/visual inspection of certificates against profiles for discrepancies.)
-The tool analyzes your uploaded certificate and displays a test report. The report shows whether your certificate is a Pass or Fail with explanations/discrepancies. 
-
-You have the option to download the results. 
-
-Using CPCT will save you time, effort, and resources.
-
-## How Does This Work?
-Here's how CPCT works: 
-
-* You upload a certificate you want to test.
-* CPCT analyzes the certificate's conformance with the requirements of a selected X.509 Certificate Policy, Certificate Profile, and Profile Version. You won't need to waste time doing manual comparisons. 
+* You upload a certificate to CPCT that you want to test. For example, you could test a certificate for conformance with:<br><br>
+     o **Certificate Policy**: _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_<br>
+     o **Certificate Profile and Version**: _FPKI X.509 Certificate and CRL Extensions Profile_, Version 1.8<br>
+     o **Common Card Authentication** Profile<br>
+* CPCT analyzes the certificate against the selected certificate policy, profile, and profile version. You won't need to waste time doing manual checks. 
 * The certificate test report displays within seconds. 
-* The report clearly shows each Field and Extension value and whether it Passed (checkmark) or Failed (_FAIL_) with explanations.  
-* The report can be downloaded as a .pdf or .xlsx to retain and/or submit with an Annual FPKI Audit package. 
+* The report clearly shows each Field and Extension values and whether they Passed (checkmark) or Failed (_FAIL_) with explanations.
 * You can re-test a certificate as many times as needed until a failure(s) has been resolved. 
+* The test report can be downloaded as a .pdf or .xlsx to retain and/or submit with an FPKI Annual Review package. 
 
-More:  The test report clearly shows the Pass/Fail results for each Field and Extension, including an explanation for remediation, if a failure occurs.  You can download a copy of the test report in .pdf or .xlsx format.
-
-Any application/system requirements to use the tool?
+## Application Requirements
+* Any application/system requirements to use the tool?
+* Do recommend certain browsers for using the tool? (Displays may differ...?)
 
 ## Who Should Use CPCT?
 
 Use Cases:
 
-1. Federal PKI Annual Audit Teams - Your agency is undergoing an annual Federal PKI Audit<!--text from IDM-->:  FPKI CAs are audited annually to ensure their compliance with the requirements outlined in the _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_ and Certificate Policies and the _X.509 Certificate Policy for the Federal Bridge Certification Authority (FBCA)_. These annual audits also ensure the Federal PKI CAs' compliance with the policies' X.509 Certificate and Certificate Revocation List (CRL) Profiles and associated X.509 Certificate Profiles....<!--Add more, edit-->
-2. PIV or SSL Certificate Issuers - As part of a QA process, you may want to test certificates that you are issuing to ensure they conform to the Certificate Policies.
-3. Subscribers - You may want to determine the cause of a certificate failure and whether you or the issuer needs to resolve it.
+1. Agencies/organizations preparing submissions for FPKI Annual Reviews of FPKI CAs<!--Following text from IDM.gov for possible re-use-->FPKI CAs are audited annually to ensure their compliance with the requirements outlined in the _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_ and Certificate Policies and the _X.509 Certificate Policy for the Federal Bridge Certification Authority (FBCA)_. These annual audits also ensure the Federal PKI CAs' compliance with the policies' X.509 Certificate and Certificate Revocation List (CRL) Profiles and associated X.509 Certificate Profiles....<!--Add more, edit-->
+2. PIV or SSL Certificate Issuers - As part of a QA process, you may want to test certificates you're issuing to ensure they conform to the Certificate Policies and Profiles.
+3. Subscribers - You may want to find the cause of a certificate failure and whether you or the issuer needs to resolve it.
 
 ### Detailed Steps
 (Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists (Policy, Version, Profile
-<**(CB) NOTE - Version number applies to Profile, but because it follows "Policy," drop-down, it appear to apply to Policy. Suggest switching order of drop-downs so Version follows Profile.**>)
 
-With CPCT, you'll never have to manually analyze a certificate for conformance again. (etc.)    
+<!--Adding additional information from session with Ryan.-->
 
 #### 1. Select Policy, Profile, and Version
-1. Navigate to the [CPCT](https://cpct.app.cloud.gov/) website. <!--Will a login to CPCT be required once it is up and running?-->
-2. From the **Select a Policy** drop-down, choose the Federal PKI **X.509 Certificate Policy** that applies to your test certificate. <!--Related to your certificate type?--> The policy you select contains the requirements mandated for the Federal PKI Certification Authority (CA) that issued the certificate.
+1. Navigate to the [CPCT](https://cpct.app.cloud.gov/) website. 
+2. At the main screen, pick an **X.509 Certificate Policy** from the **Select a Policy** drop-down, choose the Federal PKI that applies to your test certificate. <!--Related to your certificate type?--> The policy you select contains the requirements mandated for the Federal PKI Certification Authority (CA) that issued the certificate.
 3. From the **Version** drop-down, choose the **_Certificate Profile Version_** that applies to your test certificate.
 4. From the **Profile** drop-down, choose the **Certificate Profile** that applies to your test certificate.
 
