@@ -4,12 +4,17 @@ title: Certificate Profile Conformance Tool (CPCT)
 collection: docs
 permalink: docs/userguide/
 ---
-Questions:  How do you get access to the tool? Hosted where? Login required? Assume government only?
+Questions:  Login to a website to access tool required? Government only?
 
 ## What is the Certificate Profile Conformance Tool (CPCT)?
 (Matt) (Background - summary of the tool)<br>
 (Needs to be simple with key details.  Easy to use, quick, accurate, sames time and resources, produces reports for audits or archive, etc.)
-will help you test certificates for conformance with a policy and profile version (Federal PKI X.509 Certificate Profiles).  
+CPCT will help you test a certificate for conformance with a Federal PKI X.509 Certificate Policy and Certificate Profile version; for example, you could use CPCT to test a certificate for **_Common Card Authentication_** conformance with:
+
+* **Certificate Policy**: _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_
+* **Certificate Profile and Version**: _FPKI X.509 Certificate and CRL Extensions Profile_, Version 1.8
+* **Common Card Authentication** Profile
+
 (Speeds up your process of examining/visual inspection of certificates against profiles for discrepancies.)
 The tool analyzes your uploaded certificate and displays a test report. The report shows whether your certificate is a Pass or Fail with explanations/discrepancies. 
 
