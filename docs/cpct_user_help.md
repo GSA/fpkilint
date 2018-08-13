@@ -6,22 +6,23 @@ permalink: docs/userguide/
 ---
 <**STILL DRAFTING -- DRAFT --- DRAFT**>
 
-<!--Question: CPCT only for government or SSPs?-->
-
 ## What is the Certificate Profile Conformance Tool (CPCT)?
 (Matt) (Background - summary of the tool)<br>
   
-The CPCT is a certificate analysis tool that quickly tests whether a certificate conforms to FPKI Certificate Policies and Profiles. CPCT will save you both time and resources, because it analyzes an uploaded certificate for you, rapidly displays the test results, and gives you a downloadable, formatted report. 
+* You can use CPCT to analyze a certificate for conformance to Federal PKI Certificate Policies and Certificate Profiles. There's no longer a need to do manual checks and verify every field and extension. 
+* Uploading is simple and analysis is rapid. 
+* CPCT displays the certificate test results with clear "Pass" or "Fail" explanations.  
+* You can choose to download the results in a print-ready, formatted test report for submissions. 
 
 ## How Does It Work?
-
+<**Eliminate duplication some**>
 * You upload a certificate to CPCT that you want to test. For example, you could test a certificate for conformance with:<br><br>
      o **Certificate Policy**: _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_<br>
      o **Certificate Profile and Version**: _FPKI X.509 Certificate and CRL Extensions Profile_, Version 1.8<br>
      o **Common Card Authentication** Profile<br>
-* CPCT analyzes the certificate against the selected certificate policy, profile, and profile version. You won't need to waste time doing manual checks. 
+* CPCT analyzes the certificate against your selected Certificate Policy, Certificate Profile, and Profile version. 
 * The certificate test report displays within seconds. 
-* The report clearly shows each Field and Extension values and whether they Passed (checkmark) or Failed (_FAIL_) with explanations.
+* The report clearly shows each Field and Extension value and whether they Passed (checkmark) or Failed (_FAIL_) with explanations.
 * You can re-test a certificate as many times as needed until a failure(s) has been resolved. 
 * The test report can be downloaded as a .pdf or .xlsx to retain and/or submit with an FPKI Annual Review package. 
 
@@ -33,9 +34,9 @@ The CPCT is a certificate analysis tool that quickly tests whether a certificate
 
 Use Cases:
 
-1. Agencies/organizations preparing submissions for FPKI Annual Reviews of FPKI CAs<!--Following text from IDM.gov for possible re-use-->FPKI CAs are audited annually to ensure their compliance with the requirements outlined in the _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_ and Certificate Policies and the _X.509 Certificate Policy for the Federal Bridge Certification Authority (FBCA)_. These annual audits also ensure the Federal PKI CAs' compliance with the policies' X.509 Certificate and Certificate Revocation List (CRL) Profiles and associated X.509 Certificate Profiles....<!--Add more, edit-->
-2. PIV or SSL Certificate Issuers - As part of a QA process, you may want to test certificates you're issuing to ensure they conform to the Certificate Policies and Profiles.
-3. Subscribers - You may want to find the cause of a certificate failure and whether you or the issuer needs to resolve it.
+1. **Agencies/organizations preparing submissions for FPKI Annual Reviews of FPKI CAs** -<!--Following text from IDM.gov for possible re-use-->FPKI CAs are audited annually to ensure their compliance with the requirements outlined in the _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_ and Certificate Policies and the _X.509 Certificate Policy for the Federal Bridge Certification Authority (FBCA)_. These annual audits also ensure the Federal PKI CAs' compliance with the policies' X.509 Certificate and Certificate Revocation List (CRL) Profiles and associated X.509 Certificate Profiles....<!--Add more, edit-->
+2. **PIV or SSL Certificate Issuers** - As part of a QA process, you may want to test certificates you're issuing to ensure they conform to the Certificate Policies and Profiles.
+3. **Subscribers** - Subscribers may want to find the cause of a certificate failure and what organization needs to resolve it <**subscriber or issuer**>.
 
 ### Detailed Steps
 (Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists (Policy, Version, Profile
@@ -74,14 +75,14 @@ You can upload a test certificate in 3 ways:
 
 ### What If I Can't Resolve an Issue?
 
-Email us at fpki@gsa.gov!
-
 (Matt) Provide some steps folks will need to take if they experience issues. 
 
 * Email your certificate to fpki@gsa.gov?? (will need to rename cert to .txt file extensions)
 * Submit a GitHub issue and attach the certificate file to the issue. (User will need to create a github account in order to do this.)
 
 * (Matt) I say the submit an issue and attach the file is the preferred approach.  [CB: What's our estimated response time on this one?  As soon as possible?]
+
+* Email us at fpki@gsa.gov. We will respond as soon as possible.
 
 (Matt) Provide steps if there is a discrepancy with the results (what happens if there is a false-positive or false-negative). 
 * How does user identify a discrepancy?  By knowing that CPCT is showing a result that CAN'T BE Right?  Or how?
