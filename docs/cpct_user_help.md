@@ -6,14 +6,28 @@ permalink: docs/userguide/
 ---
 <**STILL DRAFTING -- DRAFT --- DRAFT**>
 
+If you analyze certificates for conformance to Federal PKI certificate policies and profiles, you know how labor-intensive it can be. CPCT can do this for you quickly and easily, saving you time and resources.  
+
 ## What is the Certificate Profile Conformance Tool (CPCT)?
 (Matt) (Background - summary of the tool)<br>
-  
-* You can use CPCT to analyze a certificate for conformance to Federal PKI Certificate Policies and Certificate Profiles. There's no longer a need to do manual checks and verify every field and extension. 
-* Uploading is simple and analysis is rapid. 
-* CPCT displays the certificate test results with clear "Pass" or "Fail" explanations.  
-* You can choose to download the results in a print-ready, formatted test report for submissions. 
 
+*****cb - NEW FROM MS WORD ***NEED TO FORMAT*****
+* First, you upload a certificate to CPCT for analysis.
+* Then, you select a certificate for conformance with:<br><br>
+     o **Certificate Policy**: _X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework_<br>
+     o **Certificate Profile and Version**: _FPKI X.509 Certificate and CRL Extensions Profile_, Version 1.8<br>
+     o **Common Card Authentication** Profile<br>
+* Then, CPCT analyzes the certificate based on a selected Certificate Policy, Certificate Profile, and Profile version. 
+* Analysis is nearly instantaneous. The certificate test results display within seconds.
+* The results show whether each Field and Extension value Passed (_checkmark_) or Failed (_FAIL_) with explanations.
+* You can re-test a certificate as many times as needed until all test results achieve Passed (_checkmark_). 
+* A formatted test report can be downloaded as a .pdf or .xlsx to submit with an FPKI Annual Review package or to archive. 
+
+
+
+
+
+older----VERSION
 ## How Does It Work?
 <**Eliminate duplication some**>
 * You upload a certificate to CPCT that you want to test. For example, you could test a certificate for conformance with:<br><br>
@@ -25,8 +39,11 @@ permalink: docs/userguide/
 * The report clearly shows each Field and Extension value and whether they Passed (checkmark) or Failed (_FAIL_) with explanations.
 * You can re-test a certificate as many times as needed until a failure(s) has been resolved. 
 * The test report can be downloaded as a .pdf or .xlsx to retain and/or submit with an FPKI Annual Review package. 
+***END OLDER VERSION HOW DOES IT WORK?*****
 
-## Application Requirements
+
+
+## Application Requirements 
 * Any application/system requirements to use the tool?
 * Do recommend certain browsers for using the tool? (Displays may differ...?)
 
@@ -65,6 +82,8 @@ You can upload a test certificate in 3 ways:
 
 * (Matt) Step through the different sections of the report and provide details
 <**(CB) Sample output doesn't look like the current Certificate Profile Worksheets. Research further.**>
+
+***CB ADD NEW TEXT TO BELOW FROM MS WORD FILE - 8/17/2018***
 
 ## Troubleshooting and Feature Request
 
