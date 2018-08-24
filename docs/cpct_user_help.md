@@ -13,64 +13,69 @@ STILL DRAFTING -- DRAFT --- DRAFT
 If you analyze certificates for conformance to Federal PKI Certificate Profiles, then CPCT will make your life so much easier. CPCT instantaneously does what previously demanded too much of your time. Not only that, but it clearly explains the cause for any nonconforming field or extension. Best of all (and what a relief), you can download a test report to submit or archive. 
 
 * [Who Needs CPCT?](#who-needs-cpct)
-* [How Does This Work?](#how-does-this-work)
 * [System and Application Requirements](#system-and-application-requirements)
+* [How Does This Work?](#how-does-this-work)
 * [Detailed Steps](#detailed-steps)
-* [Test Reports](#test-reports)
+* [Download Test Report](#download-test-report)
 * [Troubleshooting](#troubleshooting]
 * [Feature Request](#feature-request)
 
 ## Who Needs CPCT?
 
-We invite you to use CPCT if your agency/organization needs to analyze FPKI certificates for conformance. Some groups that might find CPCT very useful are:
+We invite you to use CPCT if your agency/organization needs to analyze FPKI certificates for conformance. Some groups that might find CPCT especially useful are:
 
 1. **Agencies/organizations preparing FPKI Annual Review Packages -** You can test certificates and download formatted CPCT test reports to submit in an FPKI Annual Review package.  (See [FPKI Annual Reviews](#https://www.idmanagement.gov/fpki-cas-audit-info/#annual-audit-reqs-all-cas){:target="_blank"} for more details.)
 2. **PIV or SSL/TLS Certificate Issuers** - As part of a QA process, you can test your certificates for conformance.
 3. **Subscribers** - You can view test report failures to determine which organization needs to correct them.
-
-## How Does This Work?
-
-If you regularly work with certificates, CPCT will not be complex. (**Note:**&nbsp;&nbsp;To use CPCT, you will need to be familiar with exporting certificates, certficate details, profile types, worksheets, fields, and extensions, etc.) If you work less frequently with certificates and need additional help, please contact us at fpki@gsa.gov.
-
-Here's how it works:
-
-* Simply upload a certificate and select a **Profile Document** (e.g., _FPKI X.509 Certificate and CRL Extensions Profile_), **Document Version**, and **Certificate Profile** title. 
-
-* CPCT analyzes your certificate and displays the test results. Each **field and extension** will show _PASS_ or _FAIL with explanations_. <**CB: Check to see whether "Extensions" exist in the test results form.**>
-
-* CPCT explains each failure so you can correct it. (Retests are unlimited.)
-
-* When you want to submit test reports for FPKI Annual Reviews or archive them, you can download a test report in .pdf or .xls. 
 
 ## System and Application Requirements
 
 * Any operating system or application requirements to use CPCT?  <**Windows and macOS both work?**>
 * Do recommend certain browsers for using the tool? (Displays may differ...?)
 
+## How Does This Work?
+
+{% include alert-info.html content="To use CPCT, you should be knowledeable about certificates and certificate profiles. If you have questions, please email us at fpki@gsa.gov." %}
+
+Here's how it works:
+
+* Export a certificate to a location on your computer.
+
+* From CPCT's main screen, click through the 3 drop-downs. Pick the related **Profile Document** (e.g., _FPKI X.509 Certificate and CRL Extensions Profile_), **Document Version** (e.g., v1.8), and **Certificate Profile** (e.g., PIV Authentication).
+
+* You can upload a certificate in 3 ways:
+     o Browse to your certificate; then drag-and-drop it to anywhere on the CPCT screen to upload.<br>
+     **OR**<br>
+     o Click the **Upload Certificate** button; browse to your certificate; and double-click it to upload.
+     o **Text** method - <**How does this method work?**>
+
+* CPCT analyzes your certificate and displays the test results. Each field and extension displays a **checkmark** for _PASS_ **OR** a **_FAIL_** (with explanation). 
+
+* You can download a test report (.pdf or .xls) to submit with an FPKI Annual Review package or to archive. 
+
 ### Detailed Steps
-(Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists (Policy, Version, Profile
+(Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists.
 
+1. Have an exported certificate (.cer) ready to upload.
+1. Navigate to [CPCT](https://cpct.app.cloud.gov/). 
 
+#### 1. Pick Related Profile Documents
 
-#### 1. Select Policy, Profile, and Version
-
-1. Have your exported certificate (.cer) file ready to upload to CPCT.
-1. Navigate to the [CPCT](https://cpct.app.cloud.gov/) website. 
-
----Main Screen capture here?---
-
-1. At the main CPCT screen:  from the top drop-down, pick the governing **Profile Document** related to your test certificate (for example, **_Common Policy SSP Program_** [short name]).<br>
+1. From the first drop-down, pick the **Profile Document** related to your certificate (for example, **_Common Policy SSP Program_** [short name]).<br>
 1. At the second drop-down, pick the **Profile Document _Version_** number (for example, **_v1.8_**).<br>
 1. At the third drop-down, pick the **Certificate Profile** that applies to the certificate (for example, **_PIV Authentication_**).<br>
+
+---Main Screen capture here?---
 
 #### 2. Upload a Certificate
 
 * (Matt) Describe different ways to upload a certificate (text, file upload, drag-and-drop)
 
-Once you've picked the selections above, you can upload a test certificate in 3 ways:
-1. **Drag-and-drop:**  Go to the exported certificate saved on your computer. Drag and drop it to anywhere on the CPCT main screen. 
+Once you've picked the profile documents, you can upload a certificate in 3 ways:
+
+1. **Drag-and-drop:** Browse to the exported certificate on your computer. Drag-and-drop it to anywhere on the CPCT main screen. 
 2. **File upload:** Click on the **Upload Certificate** button.  Navigate via Windows Explorer to the exported certificate saved on your computer. Click it and then click **Open.**
-3. **Text option**??? - **How does the "text" option work?**
+3. **Text option**??? - **How does this option work?**
 > In all 3 cases, the certificate test results appear. 
 
 ----screen capture here?----
@@ -78,9 +83,24 @@ Once you've picked the selections above, you can upload a test certificate in 3 
 ## Test Results
 
 * (Matt) Step through the different sections of the [results? and...] report and provide details.
-1. **CB:  Step through the test results in non-download results file.**
 
-## Test Report for Download
+**CB:  Step through the test results in non-download results file.**
+
+{% include alert-info.html content="Notice that the CPCT drop-downs appear at the top of the **Test Results** screen. You can use these to upload additional certificates without going back to the main CPCT screen." %}
+
+----screen capture here?----
+
+Details about the **Test Results** screen:
+1. The certificate name displays at the top line, followed by the the Certificate Profile Document and Profile name you picked on the main screen for upload.  A hyperlink to the Certificate Profile Document enables you to quickly refer to it.
+1. The green bar states how many Profile fields were tested, as well as "_No problems detected_" or "_X number of failures_". <**What does the message say if there are failures? Need a test certificate that will show failures to see this.**>
+1. The **PDF** and **XLS** download buttons appear below the green bar. To download a test report, click the button for the format you want.
+1. The **Field** column lists the attribute names, which match those in the related Certificate Profile. <**Only Field, no Extension label...?**>
+1. The **Content** column.... <**Describe attribute details?**>
+1. The **Analysis** column... <**Need HTML code for checkmark symbol to reproduce here**>
+
+
+## Download Test Report
+
 1. While viewing the certificate test results, you can download a certificate test report for submission. Click on the **XLS** or **PDF** button (upper left of test results).
 > The test report appears in a compact format.
 <**CB:  step through test report sections and provide details**>
