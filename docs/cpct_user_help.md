@@ -10,7 +10,9 @@ DRAFT -- DRAFT --- DRAFT
 ## What is the Certificate Profile Conformance Tool (CPCT)?
 (Matt) (Background - summary of the tool)<br>
 
-How often do you manually analyze certificates to see if they conform to Federal PKI certificate policies and profiles? If your answer is "often," then CPCT is for you. CPCT instantaneously does what previously demanded too much of your time. Not only that, but it clearly explains the cause for any nonconforming field/extension. Best of all (and what a relief), you can download a tidy Test Report (.xls or .pdf) to submit as part of an FPKI Annual Review (Audit) package or for QA archiving.
+How often do you manually analyze certificates to see if they conform to certificate policies and profiles? If your answer is "often," then CPCT is for you. 
+
+CPCT instantaneously does what previously demanded too much of your time. Not only that, but it clearly explains the cause for any nonconforming field/extension. Best of all (and what a relief), you can download a formatted Test Report (.xls or .pdf) to submit as part of an FPKI Annual Review (Audit) package or for QA archiving.
 
 * [Who Needs CPCT?](#who-needs-cpct)
 * [System and Application Requirements](#system-and-application-requirements)
@@ -22,7 +24,7 @@ How often do you manually analyze certificates to see if they conform to Federal
 
 ## Who Needs CPCT?
 
-If you analyze Federal PKI certificates, then you need CPCT. Some groups that might find it especially useful are:
+If you analyze Federal PKI certificates, then CPCT is for you. You don't need to belong to any of these groups; however, these groups will find CPCT especially useful:
 
 1. **Agencies/organizations preparing FPKI Annual Review Packages -** You can use CPCT to test certificates and download Test Reports to submit in an FPKI Annual Review package.  (See [FPKI Annual Review requirements](#https://www.idmanagement.gov/fpki-cas-audit-info/#annual-audit-reqs-all-cas){:target="_blank"} for more details.)
 2. **PIV or SSL/TLS Certificate Issuers** - You can test certificates as part of your Quality Assurance process.
@@ -67,11 +69,11 @@ CPCT is a friendly tool that provides instantaneous results.  What more could yo
 
 #### 1. Select Profile Documents
 
-a. Have an exported certificate ready to upload. _Your certificate type should be .ctr, .pem, .cer, or .der._
+a. You should have an exported certificate ready to upload. _Your certificate type should be .ctr, .pem, .cer, or .der._<br>
 b. Navigate to [CPCT](https://cpct.app.cloud.gov/). Select from the 3 drop-downs:<br><br>
-     o **Profile Document** related to your certificate (e.g., _Common Policy SSP Program_) (short name for the _X.509 Certificate and Certificate Revocation List [CRL] Extensions Profile for the Shared Service Providers [SSP] Program_.<br>
-     o **Document Version** (e.g., _v1.8_).<br>
-     o **Certificate Profile** (e.g., _PIV Authentication_)<br>
+     o    **Profile Document** related to your certificate (e.g., _Common Policy SSP Program_) (short name for the _X.509 Certificate and Certificate Revocation List [CRL] Extensions Profile for the Shared Service Providers [SSP] Program_.<br>
+     o    **Document Version** (e.g., _v1.8_).<br>
+     o    **Certificate Profile** (e.g., _PIV Authentication_)<br>
 
 ---Main Screen capture here?---
 
@@ -79,7 +81,7 @@ b. Navigate to [CPCT](https://cpct.app.cloud.gov/). Select from the 3 drop-downs
 
 * (Matt) Describe different ways to upload a certificate (text, file upload, drag-and-drop)
 
-Upload your certificate in one of 3 options:
+You can upload your certificate in one of 3 options:
 
 1. **Drag-and-drop:** Browse to the exported certificate on your computer. Drag-and-drop it to anywhere on the CPCT main screen. _CPCT uploads the certificate and displays the test results._
 2. **File upload:** Click on the **Upload Certificate** button.  Browse to the exported certificate. Click the certificate and then **Open.** _CPCT uploads the certificate and displays the test results._
