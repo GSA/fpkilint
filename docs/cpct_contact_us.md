@@ -16,7 +16,7 @@ _Please contact us at either_:
 * _GitHub_ - Post a comment or question: [GSA GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
 * _Email us_ at **fpki@gsa.gov**.
 
-### Question or Comment on the Federal PKI X.509 Certificate Policies, Certificate Profiles, or Change Proposals? 
+### Questions or Comments on the Federal PKI X.509 Certificate Policies, Certificate Profiles, or Change Proposals? 
 
 * _Use IDManagement.gov_ - Review [Federal PKI X.509 certificate policies, certificate profiles, and change proposals](https://www.idmanagement.gov/fpki/){:target="_blank"}.
 * _Email us_ at **fpki@gsa.gov**.  
