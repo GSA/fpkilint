@@ -7,13 +7,13 @@ permalink: docs/contactus/
 
 ### Questions, Comments, or Suggestions?
 
-#### * Questions or comments about the Certificate Profile Conformance Tool (CPCT)?
-#### * Want to suggest a new CPCT feature?
-#### * Have a problem that looks like a CPCT error?
+* Questions or comments about the Certificate Profile Conformance Tool (CPCT)?
+* Want to suggest a new CPCT feature?
+* Have a problem that looks like a CPCT error?
 
-Please contact us at either:
+_Please contact us at either_:
 
-* _Use GitHub_ - Post a comment or question: [GSA GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
+* _GitHub_ - Post a comment or question: [GSA GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
 * _Email us_ at **fpki@gsa.gov**.
 
 ### Question or Comment on the Federal PKI X.509 Certificate Policies, Certificate Profiles, or Change Proposals? 
