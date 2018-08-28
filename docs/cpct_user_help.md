@@ -5,14 +5,12 @@ collection: docs
 permalink: docs/userguide/
 ---
 
-DRAFT -- DRAFT --- DRAFT
-
 ## What is the Certificate Profile Conformance Tool (CPCT)?
-(Matt) (Background - summary of the tool)<br>
+<**(Matt) Background - summary of the tool**>
 
-How often do you manually analyze certificates to see if they conform to certificate policies and profiles? If your answer is "often," then CPCT is for you. 
+How often do you manually analyze Federal PKI certificates to see if they conform to certificate policies and profiles? If your answer is _often_, then the Certificate Profile Conformance Tool (CPCT) is for you. 
 
-CPCT instantaneously does what previously demanded too much of your time. Not only that, but it clearly explains the cause for any nonconforming field/extension. Best of all (and what a relief), you can download a formatted Test Report (.xls or .pdf) to submit as part of an FPKI Annual Review (Audit) package or for QA archiving.
+CPCT instantaneously does what previously demanded too much of your time&nbsp;&mdash;&nbsp;analyzing certificates for conformance. Not only that, but CPCT clearly explains the cause for any nonconforming field or extension in a certificate. Best of all (and what a relief), you can download a formatted Test Report (.xls or .pdf) to submit as part of an FPKI Annual Review (Audit) package or for agency/organization-specific needs.
 
 * [Who Needs CPCT?](#who-needs-cpct)
 * [System and Application Requirements](#system-and-application-requirements)
@@ -24,11 +22,11 @@ CPCT instantaneously does what previously demanded too much of your time. Not on
 
 ## Who Needs CPCT?
 
-If you analyze Federal PKI certificates, then CPCT is for you. You don't need to belong to any of these groups; however, these groups will find CPCT especially useful:
+If you analyze Federal PKI certificates for conformance, then CPCT is for you. These groups may find CPCT especially useful:
 
-1. **Agencies/organizations preparing FPKI Annual Review Packages -** You can use CPCT to test certificates and download Test Reports to submit in an FPKI Annual Review package.  (See [FPKI Annual Review requirements](#https://www.idmanagement.gov/fpki-cas-audit-info/#annual-audit-reqs-all-cas){:target="_blank"} for more details.)
-2. **PIV or SSL/TLS Certificate Issuers** - You can test certificates as part of your Quality Assurance process.
-3. **Subscribers** - You can determine which organization needs to correct certificate failures.
+1. **Agencies/organizations preparing FPKI Annual Review Packages -** CPCT will help you to test certificates and download Test Reports to submit in an FPKI Annual Review package.  (See [FPKI Annual Review requirements](#https://www.idmanagement.gov/fpki-cas-audit-info/#annual-audit-reqs-all-cas){:target="_blank"} for more details.)
+2. **PIV or SSL/TLS Certificate Issuers** - CPCT will help you to test certificates as part of a Quality Assurance process.
+3. **Subscribers** - CPCT will help you to determine which organization needs to correct certificate failures.
 
 ## System and Application Requirements
 
@@ -36,44 +34,30 @@ If you analyze Federal PKI certificates, then CPCT is for you. You don't need to
 * macOS - No special requirements
 * Android Devices - Not recommended for CPCT use
 * iOS Devices - Not recommended for CPCT use
-<**Any other system or application requirements?**>
-<**Do recommend/not recommend certain browsers for using the tool?**> (Displays may differ...?)
+<**Any other application or browser requirements? Browsers for best display?**>
 
 ## How Does This Work?
 
-{% include alert-info.html content="CPCT use requires in-depth familiarity with certificate profiles and certificates." %}
+{% include alert-info.html content="In-depth experience is recommended when working with Federal PKI certificates and certificate profiles." %}
 
-Here's how CPCT works:
+CPCT is a friendly tool that analyzes a certificate in just a few simple steps:  
 
-**THIS IDEA BETTER?**
-* From the CPCT main screen, you need to first select the applicable profile document, version, and certificate profile against which to test your certificate. Then, upload the certificate. CPCT immediately produces on-screen, compliance test results with a _pass_ (checkmark) or _FAIL (with explanation)_ status for each field and extension. CPCT offers a formatted Test Report (.xls or .pdf) for download. You can submit the Test Report with a Federal PKI Annual Review package or use/retain it for your organization's needs. 
+* From the CPCT main screen, you pick from the 3 drop-downs: a Certificate Profile Document, Version number, and Certificate Profile against which to test a certificate. Then, upload your certificate. 
 
-**OR THIS IDEA BETTER?**
+* CPCT immediately displays on-screen, test results. Each field and extension shows a _PASS_ (a checkmark) or _FAIL (with explanation)_. (See the [Detailed Steps](#detailed-steps) for more information.)
 
-* From the [CPCT main screen](https://cpct.app.cloud.gov/){:target="_blank"}, first select the document and profile related to the certificate you want to test. Then, upload the certificate using drag-and-drop or the **Upload** button. 
-
-* CPCT instantaneously shows you the detailed test results. A green status bar summarizes the test outcome--either _Tested [n] fields: No Problems detected_ or _Tested [n] fields: [n] problems detected_. 
-
-* In the **Analysis** column, a checkmark is shown for _passed_ or the word, _FAIL (with explanation)_, if there was problem.
-
-* Retesting is unlimited. Once you've completed testing, you can download a Test Report (e.g., to submit with an Federal PKI Annual Review package), use/retain it as part of your QA process, or use it for your organization's specific needs. 
-
-* CPCT analyzes your certificate and displays the test results instantaneously. Each field and extension displays either a **checkmark** for _PASS_ **OR** a _FAIL (with explanation)_. 
-
-* You can download a Test Report (.xls or .pdf) to submit with an FPKI Annual Review package or to archive. 
+* At any time, you can download a formatted Test Report (.xls or .pdf). Successful Test Reports can be submitted with a Federal PKI Annual Review package or retained for your organization's needs. 
 
 ### Detailed Steps
-(Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists.
-
-CPCT is a friendly tool that provides instantaneous results.  What more could you ask for?  Just follow the steps below.  If you need help, please [Contact Us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}_.
+<**(Matt) How to use the tool section.  Describe the meaning and purpose of each of the drop-down lists.**>
 
 #### 1. Select Profile Documents
 
-a. You should have an exported certificate ready to upload. _Your certificate type should be .ctr, .pem, .cer, or .der._<br>
-b. Navigate to [CPCT](https://cpct.app.cloud.gov/). Select from the 3 drop-downs:<br><br>
-     o    **Profile Document** related to your certificate (e.g., _Common Policy SSP Program_) (short name for the _X.509 Certificate and Certificate Revocation List [CRL] Extensions Profile for the Shared Service Providers [SSP] Program_.<br>
-     o    **Document Version** (e.g., _v1.8_).<br>
-     o    **Certificate Profile** (e.g., _PIV Authentication_)<br>
+a. First, have an exported certificate ready to upload. _Your certificate type should be .ctr, .pem, .cer, or .der._<br>
+b. Then, navigate to [CPCT](https://cpct.app.cloud.gov/). From the 3 drop-downs on the main screen, pick:<br><br>
+     o    a **Profile Document** related to your certificate (e.g., _Common Policy SSP Program_) (short name for the _X.509 Certificate and Certificate Revocation List [CRL] Extensions Profile for the Shared Service Providers [SSP] Program_.<br>
+     o    a **Document Version** (e.g., _v1.8_).<br>
+     o    a **Certificate Profile** (e.g., _PIV Authentication_)<br>
 
 ---Main Screen capture here?---
 
@@ -81,7 +65,7 @@ b. Navigate to [CPCT](https://cpct.app.cloud.gov/). Select from the 3 drop-downs
 
 * (Matt) Describe different ways to upload a certificate (text, file upload, drag-and-drop)
 
-You can upload your certificate in one of 3 options:
+Next, you can upload your certificate by using any of these options:
 
 1. **Drag-and-drop:** Browse to the exported certificate on your computer. Drag-and-drop it to anywhere on the CPCT main screen. _CPCT uploads the certificate and displays the test results._
 2. **File upload:** Click on the **Upload Certificate** button.  Browse to the exported certificate. Click the certificate and then **Open.** _CPCT uploads the certificate and displays the test results._
@@ -90,35 +74,45 @@ You can upload your certificate in one of 3 options:
 
 Insert screen capture -> test_results_top_of_screen_no_name.png
 
-## Test Results
+## 3. Review Test Results and Make Corrections (as needed)
 
-* (Matt) Step through the different sections of the [results? and...] report and provide details.
+<**(Matt) Step through the different sections of the results? and report and provide details.**>
 
-Details about the **Test Results** screen:
+{% include alert-info.html content="Notice that CPCT's 3 main drop-downs appear at the top of the screen. You can use these to easily test additional certificates. A quick reference link is also given to your certificate's Certificate Profile Document." %}
 
-1. The certificate name displays at the top line, followed by the related Certificate Profile Document title and Profile name. A link to the Certificate Profile Document enables you to quickly reference it.
-1. The green status bar states: _Tested [n] fields: No Problems detected_ or _Tested [n] fields: [n] problems detected_. 
->_When corrections to a certificate are needed, retests are unlimited._
-1. To download a formatted Test Report, click the **XLS** or **PDF** button below the green status bar. _The downloadable Test Report displays. Save it to your computer.
-1. The **Field** column lists the attribute names.  _These match the fields listed in the certificate profile._ <**Only Field, no Extension label...**>
-1. The **Content** column lists the detailed certificate contents of each field or extension.
-1. The **Analysis** column shows either a checkmark (i.e., _passed_) or _FAIL (with an explanation)_ for each field or extension.
+*  
+* Your _certificate name_ also appears, as well as the related _Certificate Profile Document_ and _Profile names_. 
+* A handy link is provided to the _Certificate Profile Document_ for quick reference.
 
+### Test Results Details
+
+{% include alert-info.html content="The test results do not visually resemble the Certificate Profile Worksheet format; however, all Worksheet requirements are addressed." %}
+
+* The green status bar (i.e., test outcome) states either:<br><br> 
+     o **_Tested [n] fields: No Problems detected_**<br> 
+     _OR_<br> 
+     o **_Tested [n] fields: [n] problems detected_**<br><br>
+* **Field** column - lists attribute names.  _These match the fields and extensions listed in the certificate profile._
+* **Content** column - lists certificate details for each field or extension.
+* **Analysis** column - shows either a checkmark (_PASS_) or _FAIL (with an explanation)_ for each field and extension.
+
+**Note:**&nbsp;&nbsp;Any _FAIL (with explanation)_ shown in the **Analysis** column must be corrected and the certificate retested. _A conformant certificate will have a **checkmark** (PASS) in the **Analysis** column for every field and extension, and the green status bar will state: **Tested [n] fields: No Problems detected**._
 
 ## Download Test Report
 
-1. While at the Test Results screen, you can download a formatted Test Report. Click on the **XLS** or **PDF** button below the green status bar.
-> _The Test Report displays. **Note:** It will not resemble the Certificate Profile Worksheet format.
-<**Matt?  (CB) Step through test report sections and provide details also in addition to test results screen?**>
+<!--(CB) Compare test results screen with downloadable Test Report to see if differences-->
+
+If the certificate's test results all look good, you may want to download a formatted Test Report. 
+
+1. Click the **XLS** or **PDF** button below the green status bar. _The downloadable Test Report displays. Save it to your computer.
 1. Save the test report to your preferred download location.
-<**(CB) Should we explain that the sample test report doesn't resemble the current Certificate Profile Worksheets.**> 
 
 ## Troubleshooting
 
 * (Matt) Guide folks to use the GitHub Issues page for requests.
 * (Matt) Provide our icam@gsa.gov email address for any help or feature requests.  (CB) Use fpki@gsa.gov??
 
-### CPCT Error Messages
+### Error Messages
 
 Some system errors you might encounter:
 
@@ -128,25 +122,18 @@ Some system errors you might encounter:
 ### Certificate Errors
 
 * _[X number of] problems detected_ (Test Results display's green banner). **Possible causes:** either _X number of_ fields (and/or extensions) do not conform to the selected profile, _OR_ the selected Profile Document, Document Version, and/or Profile do not correlate to this certificate.
+* _FAIL (with explanation)_ - **Cause:** This message appears in the test results' **Analysis** column if a field or extension does not conform to the Certificate Profile Document and/or Certificate Profile Worksheet.
 
-### Possible Discrepancies
-(Matt) Provide steps if there is a discrepancy with the results (what happens if there is a false-positive or false-negative). 
-----
-**Questions for Matt:**
-* How does a user identify a discrepancy? 
-* What does a False Positive look like?  (Test Report says the field or extension IS conformant when IT'S NOT? How would this occur? The user knew before the test that it didn't conform?)
-* What does a False Negative look like? (Test Report says the field or extension IS NOT conformant when IT IS? How would this occur?  The user is certain that it is conformant and so knows the test result is wrong?)
+### Other Problems/Discrepancies
+<**(Matt) Provide steps if there is a discrepancy with the results (what happens if there is a false-positive or false-negative). (Matt) Why might you see a discrepancy?  A few possible causes**>
 
-<**(Matt) Why might you see a discrepancy?  A few possible causes:**>
-<**These are guesses for the user. Others?**>
-     - A - One or more drop-down selections might be incorrect. _Please check your selections for Profile Document, Document Version, or Profile drop-downs._
-     - B - CPCT doesn't recognize the test certificate's file type. _Accepted file types are .ctr, .pem, cer., or .der._
-     - C - The test certificate is expired. _Please check the certificate's Validity Period._
-     - D - **Other reasons?**
-     - E - Possible CPCT application error.  _Please [Contact Us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}_.
-* <!--(Matt) Probably follow similar approach as bullet above.-->If you can't resolve an issue and need help, please see [What If I Can't Resolve an Issue](#what-if-i-cant-resolve-an-issue).
+If you encounter a problem or discrepancy, please review this list for corrective actions:
 
-If you think a Test Result may be incorrect (e.g., a "false positive" or "false negative"), please [Contact Us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}. 
+* One or more drop-down selections might be incorrect. _Please check your selections for Profile Document, Document Version, or Profile drop-downs._
+* CPCT doesn't recognize the test certificate's file type. _Accepted file types are .ctr, .pem, cer., or .der._
+* The test certificate has expired. _Please check the certificate's Validity Period._
+* Possible CPCT application error.  _Please [Contact Us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}_.
+* You think a test result may be incorrect (e.g., a "false positive" or "false negative"). _Please [Contact Us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}._ 
 
 ### What If I Can't Resolve an Issue?
 
