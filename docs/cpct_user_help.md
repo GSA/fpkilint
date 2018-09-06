@@ -19,9 +19,8 @@ permalink: docs/userguide/
 <li>[How Does This Work?](#how-does-this-work)</li>
 <li>[Detailed Steps](#detailed-steps)</li>
 <li>[Troubleshooting](#troubleshooting)</li>
-<li>[Feature Request](#feature-request)</li>
-</ul> 
-<br>
+<li>[Feature Request](#feature-request)</li></ul> 
+<h2>Who Needs CPCT?</h2>
 <ol>
 <li><b>Agencies/organizations preparing FPKI Annual Review Packages</b> - Use it to test certificates and download Test Reports.</li>
 <li><b>PIV or SSL/TLS Certificate Issuers</b> - Use it to test certificates as part of a QA process.</li>
@@ -53,7 +52,7 @@ permalink: docs/userguide/
 
 <h2>Detailed Steps</h2>
 <!--The short names aren't ideal. Neither "Common Policy" nor "Federal Bridge" appear in the actual policies' titles. For normal publications, ideally prior to short name use (or at least in a footnote as I have added at the end), the full titles should be defined.-->
-<h4>#### Select Profile Documents</h4>
+#### Select Profile Documents
 
 * Navigate to [CPCT](https://cpct.app.cloud.gov/){:target="_blank"}.
 * From the 3 drop-downs, pick:
@@ -88,16 +87,16 @@ The Test Results columns are:
 
 <h2>Troubleshooting</h2>
 
-### Certificate Errors
+<h3>Certificate Errors</h3>
 
 * **Tested [n] fields: [n] problems detected**. _1. One or more fields or extensions do not conform; 2. The wrong Profile Document, Document Version, and/or Certificate Profile were selected._; or 3. Another problem exists.
 * **FAIL (with explanation)** shown in the **Analysis** column. _The field or extension doesn't conform._
 
-### Possible Error Messages
+<h3>Possible Error Messages</h3>
 
 * **You can't upload files of this type.** _CPCT doesn't recognize the certificate file type. The allowable file types are: .crt, .cer, .pem, and .der._
 
-### Other Problems or Discrepancies
+<h3>Other Problems or Discrepancies</h3>
 
 <p>If you encounter a problem or discrepancy:</p>
 
@@ -107,7 +106,7 @@ The Test Results columns are:
 * Think there might be an application error?  Please [contact us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}.
 * Think a test result may be incorrect (e.g., "false positive" or "false negative")? Please [contact us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}. 
 
-### What If I Can't Resolve an Issue?
+<h3>What If I Can't Resolve an Issue?</h3>
  
 * Create a GitHub issue in the [CPCT Repository](https://github.com/GSA/fpkilint){:target="_blank"} and attach the certificate to the issue. (**Note:**&nbsp;&nbsp;You need a GitHub account to do this. To create one: [Add Create a GitHub account link](#www.github.com?).)<br>
 _OR_<br>
