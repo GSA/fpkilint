@@ -5,6 +5,9 @@ collection: docs
 permalink: docs/userguide/
 ---
 
+<body>
+<html>
+
 <h2>What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
 <p>Do you often need to analyze Federal PKI certificates for conformance to certificate profiles? If your answer is _yes_, then the Certificate Profile Conformance Tool (CPCT) is for you.</p>
@@ -22,7 +25,7 @@ permalink: docs/userguide/
 <li>[Feature Request](#feature-request)</li></ul> 
 <h2>Who Needs CPCT?</h2>
 <ol>
-<li><b>Agencies/organizations preparing FPKI Annual Review Packages</b> - Use it to test certificates and download Test Reports.</li>
+<li><b>Agencies/organizations submitting FPKI Annual Review Packages</b> - Use it to test certificates and download Test Reports.</li>
 <li><b>PIV or SSL/TLS Certificate Issuers</b> - Use it to test certificates as part of a QA process.</li>
 <li><b>Subscribers</b> - Use it to determine who should correct certificate failures.</li>
 <li><b>Anyone who analyzes FPKI certificates for conformance</b>.</li>
@@ -43,7 +46,7 @@ permalink: docs/userguide/
 <p>The basic steps are:</p>  
 
 <ul style="list-style-type:disc">
-<li>At the [CPCT main screen](https://cpct.app.cloud.gov/{:target="_blank"}, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate you want to test. Then, upload the certificate.</li> 
+<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate you want to test. Then, upload the certificate.</li> 
 
 <li>CPCT displays the certificate's test results. A status banner displays as <i>green</i> (if the certificate conforms) or <i>red</i> (if the certificate doesn't conform). Each field and extension will show either a <i>PASS</i> (a checkmark) or <i>FAIL (with explanation)</i>.</li> 
 
@@ -54,7 +57,7 @@ permalink: docs/userguide/
 <!--The short names aren't ideal. Neither "Common Policy" nor "Federal Bridge" appear in the actual policies' titles. For normal publications, ideally prior to short name use (or at least in a footnote as I have added at the end), the full titles should be defined.-->
 #### Select Profile Documents
 
-* Navigate to [CPCT](https://cpct.app.cloud.gov/){:target="_blank"}.
+* Navigate to <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT</a>.
 * From the 3 drop-downs, pick:
      o    **Profile Document** (The options are short names for the Profile Documents: _Common Policy SSP Program_<sup>[1](#1)</sup>; _Federal PKI/Federal Bridge_<sup>[2](#2)</sup>; _PIV Interoperable (PIV-I)_<sup>[3](#3)</sup>.)<br>
      o    **Document Version** (The most recent Version will set automatically when you select the Profile Document.)<br>
@@ -103,12 +106,12 @@ The Test Results columns are:
 * Check to make sure that you selected the right Profile Document, Document Version, and Certificate Profile.
 * CPCT doesn't recognize the certificate file type. _Allowable file types are: .ctr, .pem, cer., and .der._
 * Check the certificate's Validity Period. The test certificate may have expired.<!--Would this show up as a "problem" in the status banner with a "FAIL" for Validity Period"?--> 
-* Think there might be an application error?  Please [contact us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}.
-* Think a test result may be incorrect (e.g., "false positive" or "false negative")? Please [contact us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}. 
+* Think there might be an application error?  Please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact  us</a>.
+* Think a test result may be incorrect (e.g., "false positive" or "false negative")? Please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact  us</a>. 
 
 <h3>What If I Can't Resolve an Issue?</h3>
  
-* Create a GitHub issue in the [CPCT Repository](https://github.com/GSA/fpkilint){:target="_blank"} and attach the certificate to the issue. (**Note:**&nbsp;&nbsp;You need a GitHub account to do this. To create one: [Add Create a GitHub account link](#www.github.com?).)<br>
+* Create a GitHub issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Respository</a> and attach the certificate to the issue. (**Note:**&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)<br>
 _OR_<br>
 * Email us at fpki@gsa.gov and attach your certificate. (**Note:**&nbsp;&nbsp;Please rename your certificate with **.txt** file extension.) 
 
@@ -116,9 +119,12 @@ _OR_<br>
 
 <h2>Feature Request</h2>
 
-<p>If you would like to request a new CPCT feature, please [contact us](https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md){:target="_blank"}.</p>
+<p>If you would like to request a new CPCT feature, please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact  us</a>.</p>
  
 -------
 <a name="1">1</a>. Short name for _X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy_.<br>
 <a name="2">2</a>. Short name for _Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile_.<br>
 <a name="3">3</a>. Short name for _X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards_.<br>
+
+</body>
+</html>
