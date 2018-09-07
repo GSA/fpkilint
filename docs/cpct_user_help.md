@@ -4,127 +4,136 @@ title: Certificate Profile Conformance Tool (CPCT) Help
 collection: docs
 permalink: docs/userguide/
 ---
-
-<body>
 <html>
+<body>
+<h2 id="what">What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
-<h2>What is the Certificate Profile Conformance Tool (CPCT)?</h2>
+<p>Do you often need to analyze Federal PKI certificates for conformance to certificate profiles? If your answer is <i>yes</i>, then the Certificate Profile Conformance Tool (CPCT) is for you.</p>
 
-<p>Do you often need to analyze Federal PKI certificates for conformance to certificate profiles? If your answer is _yes_, then the Certificate Profile Conformance Tool (CPCT) is for you.</p>
-
-<p>CPCT is a friendly tool that instantaneously analyzes a certificate and displays its conformance results. Not only that&nbsp;-&nbsp;CPCT clearly explains the reason for any nonconformance. What's more, you can download a formatted Test Report (.xls or .pdf) to submit as part of an Federal PKI Annual Review package or retain for your organization's needs.</p> 
-
-<h2>Unordered List with Disc Bullets</h2>
+<p>CPCT is a friendly tool that instantly analyzes a certificate and displays conformance test results. Not only that&nbsp;-&nbsp;CPCT clearly explains the reason for any nonconformance. What's more, you can download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
 
 <ul style="list-style-type:disc">
-<li>[Who Needs CPCT?](#who-needs-cpct)</li>
-<li>[Operating System Requirements](#operating-system-requirements)</li>
-<li>[How Does This Work?](#how-does-this-work)</li>
-<li>[Detailed Steps](#detailed-steps)</li>
-<li>[Troubleshooting](#troubleshooting)</li>
-<li>[Feature Request](#feature-request)</li></ul> 
-<h2>Who Needs CPCT?</h2>
+<li><a href="#who">Who Needs CPCT?</a>
+<li><a href="#operating">Operating System Requirements</a>
+<li><a href="#how">How Does This Work?</a>
+<li><a href="#detailed">Detailed Steps</a>
+<li><a href="#troubleshooting">Troubleshooting</a>
+<li><a href="#feature">Feature Request</a>
+</ul>
+
+<h2 id="who">Who Needs CPCT?</h2>
+
 <ol>
 <li><b>Agencies/organizations submitting FPKI Annual Review Packages</b> - Use it to test certificates and download Test Reports.</li>
 <li><b>PIV or SSL/TLS Certificate Issuers</b> - Use it to test certificates as part of a QA process.</li>
 <li><b>Subscribers</b> - Use it to determine who should correct certificate failures.</li>
 <li><b>Anyone who analyzes FPKI certificates for conformance</b>.</li>
-</ol> 
-<br>
-<h2>Operating System Requirements</h2>
+</ol>
+
+<h2 id="operating">Operating System Requirements</h2>
 
 <ul style="list-style-type:disc"> 
 <li>Windows or macOS</li>
 <li>iOS - Not recommended for CPCT</li>
 <li>Android - Not recommended for CPCT</li>
-</ul> 
+</ul>
 
-<h2>How Does This Work?</h2>
+<h2 id="how">How Does This Work?</h2>
 
-{% include alert-info.html content="In-depth experience with Federal PKI certificates and certificate profiles is recommended." %}
+<p style="color:blue;"><b><i>Note:&nbsp;&nbsp;In-depth experience with Federal PKI certificates and certificate profiles is recommended.</b></i></p>
 
-<p>The basic steps are:</p>  
+<p>The basic steps are:</p>
 
 <ul style="list-style-type:disc">
-<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate you want to test. Then, upload the certificate.</li> 
+<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a specific certificate that you need to test. Then, upload the certificate.</li> 
 
-<li>CPCT displays the certificate's test results. A status banner displays as <i>green</i> (if the certificate conforms) or <i>red</i> (if the certificate doesn't conform). Each field and extension will show either a <i>PASS</i> (a checkmark) or <i>FAIL (with explanation)</i>.</li> 
+<li>CPCT displays the certificate's test results. A status banner will be <i>green</i> if the certificate conforms to the Certificate Profile or <i>red</i> if it doesn't. The <b>Analysis</b> column will display a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li> 
 
-<li>You can download a formatted Test Report (.xls or .pdf) to submit as part of an Federal PKI Annual Review packages or to retain for your organization's needs.</li> 
-</ul> 
+<li>You can download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or to retain for your organization's needs.</li> 
+</ul>
 
-<h2>Detailed Steps</h2>
-<!--The short names aren't ideal. Neither "Common Policy" nor "Federal Bridge" appear in the actual policies' titles. For normal publications, ideally prior to short name use (or at least in a footnote as I have added at the end), the full titles should be defined.-->
-#### Select Profile Documents
+<h2 id="detailed">Detailed Steps</h2>
+<!--The short names aren't ideal. "Common Policy" and "Federal Bridge" don't appear in the actual policies' titles. For normal publications, ideally prior to short name use (or at least in a footnote as I have added at the end), the full titles should be defined.-->
 
-* Navigate to <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT</a>.
-* From the 3 drop-downs, pick:
-     o    **Profile Document** (The options are short names for the Profile Documents: _Common Policy SSP Program_<sup>[1](#1)</sup>; _Federal PKI/Federal Bridge_<sup>[2](#2)</sup>; _PIV Interoperable (PIV-I)_<sup>[3](#3)</sup>.)<br>
-     o    **Document Version** (The most recent Version will set automatically when you select the Profile Document.)<br>
-     o    **Certificate Profile** (e.g., PIV Authentication)<br>
+<h4>1. Select Profile Documents</h4>
 
-#### Upload a Certificate
-* Next, upload your certificate (as a .ctr, .pem, .cer, or .der file) using either of these options:
+<ol type="a">
+<li>Navigate to <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT</a>.
 
-     o **Drag-and-drop** your certificate to anywhere on the CPCT main screen. _Test results display for the uploaded certificate._<br>
-     o Click the **Upload Certificate** button and browse to the certificate. Click it, and then click **Open.** _Test results display for the uploaded certificate._<br>
-     
-{% include alert-info.html content="Notice that the Test Results screen includes the CPCT drop-downs for easy upload of more certificates." %}
+<li>From the 3 drop-downs, pick:</li></ol>
+<ul style="list-style-type:disc">
+<li><b>Profile Document -</b> This list contains short names for the FPKI Profile Documents: <i>Common Policy SSP Program</i><sup><a href="#1">1</a></sup>; <i>Federal PKI/Federal Bridge</i><sup><a href="#2">2</a></sup>; and <i>PIV Interoperable (PIV-I)</i><sup><a href="#3">.3</a></sup>
+<li><b>Document Version -</b> The most recent Version is automatically set when you select the Profile Document.
+<li><b>Certificate Profile -</b> For example, PIV Authentication.</li>
+</ul>
 
-#### Review Certificate Test Results
+<h4>2. Upload a Certificate</h4>
 
-* At the top of the Test Results screen, a status banner in _green_ (conforms) or _red_ (doesn't conform) banner gives the test summary: 
+<ol type="a">
+<li>Next, upload a certificate (.ctr, .pem, .cer, or .der file) using either of these options:</ol>
+<ul style="list-style-type:disc">
+<li><b>Drag-and-drop</b> your certificate to anywhere on the CPCT main screen. <i>The Test Results display for the uploaded certificate.</i><br>
+<li>Click the <b>Upload Certificate</b> button and browse to the certificate. Click it, and then click <b>Open</b>. <i>The Test Results display for the uploaded certificate.</i><br></li>
+</ul>
 
-* **Tested [n] fields: No Problems detected** 
-_OR_ 
-* **Tested [n] fields: [n] problems detected**
+<h4>3. Review Certificate Test Results</h4>
+<p style="color:blue;"><b><i>Note:&nbsp;&nbsp;The Test Results screen includes the CPCT drop-downs so you can easily upload more certificates.</i></b></p>
 
-The Test Results columns are:
+<p>The status banner will be <i>green</i> (certificate conforms) or <i>red</i> (doesn't conform) and will give a test summary:</p>
 
-* **Field** - Lists fields AND extensions.
-* **Content** - Lists field and extension details.
-* **Analysis** - For each field and extension, this column shows a checkmark (for _PASS_) or _FAIL (with an explanation)_.
+<ul style="list-style-type:disc">
+<li><b>Tested [n] fields: No Problems detected</b>
+<li><b>Tested [n] fields: [n] problems detected</b></li>
+</ul>
 
-#### Download a Test Report
-* To download a formatted Test Report, click the **XLS** or **PDF** button below the status banner. 
+<p>The Test Results columns provide the following:</p>
+<ul>
+<li><b>Field -</b> Lists fields AND extensions.
+<li><b>Content -</b> Lists field and extension details.
+<li><b>Analysis -</b> Displays a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li>
+</ul>
 
-<h2>Troubleshooting</h2>
+<h4>4. Download a Test Report</h4>
 
-<h3>Certificate Errors</h3>
+<ul>
+<li>To download a formatted Test Report, click the <b>XLS</b> or <b>PDF</b> button below the status banner. </li>
+</ul>
 
-* **Tested [n] fields: [n] problems detected**. _1. One or more fields or extensions do not conform; 2. The wrong Profile Document, Document Version, and/or Certificate Profile were selected._; or 3. Another problem exists.
-* **FAIL (with explanation)** shown in the **Analysis** column. _The field or extension doesn't conform._
+<h2 id="troubleshooting">Troubleshooting</h2>
 
-<h3>Possible Error Messages</h3>
+<h3>Certificate Failures</h3>
 
-* **You can't upload files of this type.** _CPCT doesn't recognize the certificate file type. The allowable file types are: .crt, .cer, .pem, and .der._
+<ul>
+<li> Please check to ensure that the right <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> have been selected.
+<li> If you have questions about a certificate failure explanation, or you believe that it could be a "false positive"/"false negative," please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.
+</li>
+</ul>
 
-<h3>Other Problems or Discrepancies</h3>
+<h3>Application Error Messages</h3>
 
-<p>If you encounter a problem or discrepancy:</p>
-
-* Check to make sure that you selected the right Profile Document, Document Version, and Certificate Profile.
-* CPCT doesn't recognize the certificate file type. _Allowable file types are: .ctr, .pem, cer., and .der._
-* Check the certificate's Validity Period. The test certificate may have expired.<!--Would this show up as a "problem" in the status banner with a "FAIL" for Validity Period"?--> 
-* Think there might be an application error?  Please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact  us</a>.
-* Think a test result may be incorrect (e.g., "false positive" or "false negative")? Please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact  us</a>. 
+<ul>
+<li><i>You can't upload files of this type.</i> The allowable file types are: .crt, .cer, .pem, and .der.</li>
+</ul>
 
 <h3>What If I Can't Resolve an Issue?</h3>
- 
-* Create a GitHub issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Respository</a> and attach the certificate to the issue. (**Note:**&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)<br>
-_OR_<br>
-* Email us at fpki@gsa.gov and attach your certificate. (**Note:**&nbsp;&nbsp;Please rename your certificate with **.txt** file extension.) 
+
+<ul>
+<li>Create a GitHub issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate to the issue. (<strong>Note:</strong>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)</li></ul>
+<i>OR</i><br>
+<ul>
+<li>Email us at fpki@gsa.gov and attach your certificate. (<b>Note:</b>&nbsp;&nbsp;Please rename your certificate with <b>.txt</b> file extension.) </li>
+</ul>
 
 <p>We will respond as soon as possible.</p>
 
-<h2>Feature Request</h2>
+<h2 id="feature">Feature Request</h2>
 
-<p>If you would like to request a new CPCT feature, please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact  us</a>.</p>
- 
--------
-<a name="1">1</a>. Short name for _X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy_.<br>
-<a name="2">2</a>. Short name for _Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile_.<br>
-<a name="3">3</a>. Short name for _X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards_.<br>
+<p>If you would like us to request a new CPCT feature, please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.</p>
+
+<p><b>____________</b></p>
+<p><a name="1">1</a>. Short name for <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</em>.<br>
+<a name="2">2</a>. Short name for <em>Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile</em>.<br>
+<a name="3">3</a>. Short name for <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards</em>.<br></p>
 
 </body>
 </html>
