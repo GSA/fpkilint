@@ -24,7 +24,7 @@ permalink: docs/privacy/
 
 <h2> Questions or Comments?</h2>
 
-<p>If you have a privacy-related question or comment, please email us at **fpki@gsa.gov**.</p> 
+<p>If you have a privacy-related question or comment, please email us at <b>fpki@gsa.gov</b>.</p> 
 
 <p>We’ll respond to your email as quickly as possible.</p> 
 
