@@ -118,7 +118,7 @@ permalink: docs/userguide/
 <h3>What If I Can't Resolve an Issue?</h3>
 
 <ul>
-<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">GitHub CPCT Repository</a> and attach the certificate. (<b>Note:</b>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)
+<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate. (<b>Note:</b>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">Join GitHub</a>.)
 <li><i>Email us</i> - <b>fpki@gsa.gov</b> and attach your certificate. (<b>Note:</b>&nbsp;&nbsp;Please rename your certificate with <b>.txt</b> file extension.)</li>
 </ul>
 
@@ -127,7 +127,7 @@ permalink: docs/userguide/
 <h2 id="feature">Feature Request</h2>
 
 <ul>
-<li>If you would like to suggest a new CPCT feature, create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">GitHub CPCT Repository</a>.</li>
+<li>If you would like to suggest a new CPCT feature, create a GitHub issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a>.</li>
 </ul>
 
 <p><b>____________</b></p>
