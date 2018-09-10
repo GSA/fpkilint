@@ -11,14 +11,17 @@ permalink: docs/contactus/
 
 <ul>
 <li>Have a question about CPCT? 
-<li>Want to suggest a new feature?
-<li>Need to locate the Federal PKI Certificate Policies, Certificate Profiles, or Change Proposals?  See the <a href="https://www.idmanagement.gov/fpki/" target="_blank">Federal Public Key Infrastructure page on IDManagement.gov.</a></li>
-</ul>  
+<li>Want to suggest a new feature?</li>
+</ul>
+
+<h3> Need To Locate the Certificate Policies and Profiles?</h3>
+
+<p>See the <a href="https://www.idmanagement.gov/fpki/" target="_blank">Federal Public Key Infrastructure page on IDManagement.gov.</p>
 
 <p>Please contact us:</p>
 
 <ul>
-<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Respository</a></li>.
+<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Respository.</a></li>
 <li><i>Email us</i> - <b>fpki@gsa.gov</b>.</li>
 </ul>
 
