@@ -118,16 +118,15 @@ permalink: docs/userguide/
 <h3>What If I Can't Resolve an Issue?</h3>
 
 <ul>
-<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate. (<strong>Note:</strong>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)</li></ul>
-<i>OR</i><br>
-<li><i>Email us</i> - <b>fpki@gsa.gov</b> and attach your certificate. (<b>Note:</b>&nbsp;&nbsp;Please rename your certificate with <b>.txt</b> file extension.) </li>
+<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate. (b>Note:</b>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)
+<li><i>Email us</i> - <b>fpki@gsa.gov</b> and attach your certificate. (<b>Note:</b>&nbsp;&nbsp;Please rename your certificate with <b>.txt</b> file extension.)</li>
 </ul>
 
 <p>We will respond as soon as possible.</p>
 
 <h2 id="feature">Feature Request</h2>
 
-<p>If you would like to request a new CPCT feature, please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.</p>
+<p>If you would like to suggest a new CPCT feature, please submit an issue through the <a href="https://github.com/GSA/fpkilint" target="_blank">GitHub CPCT Repository</a> .</p>
 
 <p><b>____________</b></p>
 <p><a name="1">1</a>. <i>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</i>.<br>
