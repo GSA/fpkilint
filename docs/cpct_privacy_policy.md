@@ -13,7 +13,7 @@ permalink: docs/privacy/
 
 <p>For detailed information, please see <a href="https://www.idmanagement.gov/privacy-policy/" target="_blank">IDManagement.gov's Privacy Policy</a>.</p>
 
-<h2> Certificate Profile Conformance Tool (CPCT) - Additional Privacy Policy</h2>.
+<h2> Certificate Profile Conformance Tool (CPCT) - Additional Privacy Policy</h2>
 
 <p>When you use CPCT, the information that you provide or generate is protected:</p>
 
