@@ -4,23 +4,30 @@ title: Contact Us
 collection: docs
 permalink: docs/contactus/
 ---
+<html>
+<body>
 
-### Questions, Comments, or Suggestions?
+<h2> Questions, Feedback, or Suggestions?</h2>
 
-* Questions or comments about the Certificate Profile Conformance Tool (CPCT)?
-* Want to suggest a new CPCT feature?
-* Have a problem that looks like a CPCT error?
+<ul>
+<li>Have questions or feedback about CPCT?
+<li>Have a new CPCT feature suggestion?</li>
+</ul>  
 
-_Please contact us at either_:
+<p><b>Please contact us:<b/></p>
 
-* _GitHub_ - Post a comment or question: [GSA GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
-* _Email us_ at **fpki@gsa.gov**.
+<ul>
+<li><i>GitHub</i> - Post a question, feedback, or suggestion by creating an issue in the [GSA GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
+<li><i>Email us</i> at <b>fpki@gsa.gov</b>.
 
-### Questions or Comments on the Federal PKI X.509 Certificate Policies, Certificate Profiles, or Change Proposals? 
+<h2> Questions or Comments on the Federal PKI X.509 Certificate Policies, Certificate Profiles, or Change Proposals?</h2>
 
-* _Use IDManagement.gov_ - Review [Federal PKI X.509 certificate policies, certificate profiles, and change proposals](https://www.idmanagement.gov/fpki/){:target="_blank"}.
-* _Email us_ at **fpki@gsa.gov**.  
+<ul>
+<li><i>Email us</> - <b>fpki@gsa.gov</b></li>.
+</ul>
 
-We’ll respond to your question or comment as quickly as possible.
+<p>To review the certificate policies, profiles, and change proposals, please see <a href="https://www.idmanagement.gov/fpki/" target="_blank">IDManagement.gov</a></p>
 
-Thank you!
+<p>We’ll respond to your question or comment as quickly as possible.</p>
+
+<p>Thank you!</p>
