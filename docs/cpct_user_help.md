@@ -105,7 +105,7 @@ permalink: docs/userguide/
 
 <ul>
 <li> Please check to ensure that the right <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> have been selected.
-<li> If you have questions about a certificate failure explanation, or you believe that it could be a "false positive"/"false negative," please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.
+<li> If you have questions about why a certificate failed, or you believe the failure could be a "false positive"/"false negative," please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.
 </li>
 </ul>
 
