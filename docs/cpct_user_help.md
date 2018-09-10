@@ -118,7 +118,7 @@ permalink: docs/userguide/
 <h3>What If I Can't Resolve an Issue?</h3>
 
 <ul>
-<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate. (b>Note:</b>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)
+<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">GitHub CPCT Repository</a> and attach the certificate. (<b>Note:</b>&nbsp;&nbsp;You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">create a GitHub account link</a>.)
 <li><i>Email us</i> - <b>fpki@gsa.gov</b> and attach your certificate. (<b>Note:</b>&nbsp;&nbsp;Please rename your certificate with <b>.txt</b> file extension.)</li>
 </ul>
 
@@ -126,7 +126,9 @@ permalink: docs/userguide/
 
 <h2 id="feature">Feature Request</h2>
 
-<p>If you would like to suggest a new CPCT feature, please submit an issue through the <a href="https://github.com/GSA/fpkilint" target="_blank">GitHub CPCT Repository</a> .</p>
+<ul>
+<li>If you would like to suggest a new CPCT feature, create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">GitHub CPCT Repository</a>.</li>
+</ul>
 
 <p><b>____________</b></p>
 <p><a name="1">1</a>. <i>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</i>.<br>
