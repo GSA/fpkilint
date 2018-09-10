@@ -83,7 +83,7 @@ permalink: docs/userguide/
 
 <ul style="list-style-type:disc">
 <li><b><i>Tested [n] fields: No Problems detected</i></b>
-<li><b><i>Tested [n] fields: [n] problems detected</b></li>
+<li><b><i>Tested [n] fields: [n] problems detected</i></b></li>
 </ul>
 
 <p>The Test Results columns provide the following:</p>
