@@ -25,7 +25,7 @@ permalink: docs/contactus/
 
 <ul>
 <li>Navigate to the <a href="https://www.idmanagement.gov/fpki/" target="_blank">Federal Public Key Infrastructure page on IDManagement.gov.</a></li>
-<ul>
+</ul>
 
 <p>We’ll respond as quickly as possible.</p>
 
