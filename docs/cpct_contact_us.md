@@ -14,11 +14,11 @@ permalink: docs/contactus/
 <li>Want to suggest a new feature?</li>
 </ul>
 
-<h3> Need To Locate the Certificate Policies and Profiles?</h3>
+<h3> Where Are the Certificate Policies and Profiles?</h3>
 
-<p>See the <a href="https://www.idmanagement.gov/fpki/" target="_blank">Federal Public Key Infrastructure page on IDManagement.gov.</p>
+<p>Navigate to the <a href="https://www.idmanagement.gov/fpki/" target="_blank">Federal Public Key Infrastructure page on IDManagement.gov.</p>
 
-<p>Please contact us:</p>
+<h3>Please contact us:</h3>
 
 <ul>
 <li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Respository.</a></li>
