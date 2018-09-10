@@ -14,7 +14,7 @@ permalink: docs/contactus/
 <li>Want to suggest a new feature?</li>
 </ul>
 
-<h3>Please contact us:</h3>
+<p>Please contact us:</p>
 
 <ul>
 <li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Respository.</a></li>
