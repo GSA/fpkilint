@@ -21,15 +21,15 @@ permalink: docs/contactus/
 <li><i>Email us</i> - <b>fpki@gsa.gov</b>.</li>
 </ul>
 
+<p>We’ll respond as quickly as possible.</p>
+
+<p>Thank you!</p>
+
 <h3> Where Can I Find the FPKI X.509 Certificate Policies, Profiles, and Change Proposals?</h3>
 
 <ul>
 <li>To see the latest certificate policies, profiles, and change proposals, please see the <b>Federal Public Key Infrastructure</b> page on <a href="https://www.idmanagement.gov/fpki/" target="_blank">IDManagement.gov.</a></li>
 </ul>
-
-<p>We’ll respond as quickly as possible.</p>
-
-<p>Thank you!</p>
 
 </html>
 </body>
