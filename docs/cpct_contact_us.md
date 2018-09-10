@@ -18,12 +18,13 @@ permalink: docs/contactus/
 
 <ul>
 <li><i>GitHub</i> - Create an issue in the [GSA GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
-<li><i>Email us</i> at <b>fpki@gsa.gov</b>.
+<li><i>Email us</i> - <b>fpki@gsa.gov</b>.</li>
+</ul>
 
-<h2> Questions or Comments on Certificate Policies, Profiles, or Change Proposals?</h2>
+<h2> Questions or Comments about Policies, Profiles, or Change Proposals?</h2>
 
 <ul>
-<li><i>Email us</> - <b>fpki@gsa.gov</b></li>.
+<li><i>Email us</i> - <b>fpki@gsa.gov</b></li>&nbsp;.</li>
 </ul>
 
 <p>To review the Federal PKI X.509 certificate policies, profiles, and change proposals, please see <a href="https://www.idmanagement.gov/fpki/" target="_blank">IDManagement.gov</a></p>
