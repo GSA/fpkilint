@@ -8,9 +8,9 @@ permalink: docs/userguide/
 <body>
 <h2 id="what">What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
-<p>Do you often need to analyze Federal PKI certificates for conformance to certificate profiles? If your answer is <i>yes</i>, then the Certificate Profile Conformance Tool (CPCT) is for you.</p>
+<p>Do you often need to analyze Federal PKI certificates for conformance to certificate profiles? If your answer is yes, then the Certificate Profile Conformance Tool (CPCT) is for you.</p>
 
-<p>CPCT is a friendly tool that instantly analyzes a certificate and displays conformance test results. Not only that&nbsp;-&nbsp;CPCT clearly explains the reason for any nonconformance. What's more, you can download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
+<p>CPCT is a friendly tool that instantly analyzes a certificate and displays conformance test results. Not only that&nbsp;-&nbsp;CPCT clearly explains the reason for any nonconformance. What's more, you can download a Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
 
 <ul style="list-style-type:disc">
 <li><a href="#who">Who Needs CPCT?</a>
@@ -24,16 +24,16 @@ permalink: docs/userguide/
 <h2 id="who">Who Needs CPCT?</h2>
 
 <ol>
-<li><b>Agencies/organizations submitting FPKI Annual Review Packages</b> - Use it to test certificates and download Test Reports.</li>
-<li><b>PIV or SSL/TLS Certificate Issuers</b> - Use it to test certificates as part of a QA process.</li>
-<li><b>Subscribers</b> - Use it to determine who should correct certificate failures.</li>
+<li><b>Agencies/organizations submitting FPKI Annual Review Packages -</b> Use CPCT to analyze certificates and download Test Reports.</li>
+<li><b>PIV or SSL/TLS Certificate Issuers -</b> Use CPCT to analyze certificates as part of a Quality Assurance process.</li>
+<li><b>Subscribers -</b> Use CPCT to analyze certificates to determine who should correct certificate failures.</li>
 <li><b>Anyone who analyzes FPKI certificates for conformance</b>.</li>
 </ol>
 
 <h2 id="operating">Operating System Requirements</h2>
 
 <ul style="list-style-type:disc"> 
-<li>Windows or macOS</li>
+<li>Windows and macOS</li>
 <li>iOS - Not recommended for CPCT</li>
 <li>Android - Not recommended for CPCT</li>
 </ul>
@@ -42,12 +42,12 @@ permalink: docs/userguide/
 
 <p style="color:blue;"><b><i>Note:&nbsp;&nbsp;In-depth experience with Federal PKI certificates and certificate profiles is recommended.</b></i></p>
 
-<p>The basic steps are:</p>
+<p>The key steps are:</p>
 
 <ul style="list-style-type:disc">
-<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a specific certificate that you need to test. Then, upload the certificate.</li> 
+<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate that you need to analyze. Then, upload the certificate.</li> 
 
-<li>CPCT displays the certificate's test results. A status banner will be <i>green</i> if the certificate conforms to the Certificate Profile or <i>red</i> if it doesn't. The <b>Analysis</b> column will display a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li> 
+<li>CPCT displays the certificate's test results. The status banner will be <i>green</i> if the certificate conforms to the Certificate Profile or <i>red</i> if it doesn't. The <b>Analysis</b> column will display a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li> 
 
 <li>You can download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or to retain for your organization's needs.</li> 
 </ul>
@@ -82,21 +82,21 @@ permalink: docs/userguide/
 <p>The status banner will be <i>green</i> (certificate conforms) or <i>red</i> (doesn't conform) and will give a test summary:</p>
 
 <ul style="list-style-type:disc">
-<li><b>Tested [n] fields: No Problems detected</b>
-<li><b>Tested [n] fields: [n] problems detected</b></li>
+<li><b><i>Tested [n] fields: No Problems detected</i></b>
+<li><b><i>Tested [n] fields: [n] problems detected</b></li>
 </ul>
 
 <p>The Test Results columns provide the following:</p>
 <ul>
-<li><b>Field -</b> Lists fields AND extensions.
-<li><b>Content -</b> Lists field and extension details.
-<li><b>Analysis -</b> Displays a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li>
+<li><b><i>Field</i> -</b> Lists fields AND extensions.
+<li><b><i>Content</i> -</b> Lists field and extension details.
+<li><b><i>Analysis</i> -</b> Displays a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li>
 </ul>
 
 <h4>4. Download a Test Report</h4>
 
 <ul>
-<li>To download a formatted Test Report, click the <b>XLS</b> or <b>PDF</b> button below the status banner. </li>
+<li>To download a Test Report, click the <b>XLS</b> or <b>PDF</b> button below the status banner. </li>
 </ul>
 
 <h2 id="troubleshooting">Troubleshooting</h2>
@@ -131,9 +131,9 @@ permalink: docs/userguide/
 <p>If you would like to request a new CPCT feature, please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.</p>
 
 <p><b>____________</b></p>
-<p><a name="1">1</a>. Short name for <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</em>.<br>
-<a name="2">2</a>. Short name for <em>Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile</em>.<br>
-<a name="3">3</a>. Short name for <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards</em>.<br></p>
+<p><a name="1">1</a>. <i>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</i>.<br>
+<a name="2">2</a>. <i>Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile</i>.<br>
+<a name="3">3</a>. <i>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards</i>.<br></p>
 
 </body>
 </html>
