@@ -10,14 +10,13 @@ permalink: docs/contactus/
 <h3> Questions, Feedback, Suggestions?</h3>
 
 <ul>
-<li>Have a question about CPCT? 
-<li>Want to suggest a new feature?</li>
+<li>Have a CPCT question or feedback?  Like to suggest a new feature?</li>
 </ul>
 
-<p>Please contact us:</p>
+<p>Contact us:</p>
 
 <ul>
-<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Respository.</a></li>
+<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Repository</a>.</li>
 <li><i>Email us</i> - <b>fpki@gsa.gov</b>.</li>
 </ul>
 
@@ -25,10 +24,10 @@ permalink: docs/contactus/
 
 <p>Thank you!</p>
 
-<h3> Where Can I Find the FPKI X.509 Certificate Policies, Profiles, and Change Proposals?</h3>
+<h3> Where Can I Find the Latest FPKI Certificate Policies, Profiles, and Change Proposals?</h3>
 
 <ul>
-<li>To see the latest certificate policies, profiles, and change proposals, please see the <b>Federal Public Key Infrastructure</b> page on <a href="https://www.idmanagement.gov/fpki/" target="_blank">IDManagement.gov.</a></li>
+<li>These documents are available from IDManagement.gov's <a href="https://www.idmanagement.gov/fpki/" target="_blank"><b>Federal Public Key Infrastructure</a> page.</li>
 </ul>
 
 </html>
