@@ -8,9 +8,7 @@ permalink: docs/userguide/
 <body>
 <h2 id="what">What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
-<p>Do you often need to analyze Federal PKI certificates for conformance to certificate profiles? If your answer is yes, then the Certificate Profile Conformance Tool (CPCT) is for you.</p>
-
-<p>CPCT is a friendly tool that instantly analyzes a certificate and displays conformance test results. Not only that&nbsp;-&nbsp;CPCT clearly explains the reason for any nonconformance. What's more, you can download a Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
+<p>CPCT is a friendly tool that instantly analyzes certificates for conformance to a specific certificate policy and profile. It not only displays a certificate's test results but also the reason(s) for any nonconformance. What's more, you can download a Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
 
 <ul style="list-style-type:disc">
 <li><a href="#who">Who Needs CPCT?</a>
@@ -23,12 +21,12 @@ permalink: docs/userguide/
 
 <h2 id="who">Who Needs CPCT?</h2>
 
-<ol>
-<li><b>Agencies/organizations submitting FPKI Annual Review Packages -</b> Use CPCT to analyze certificates and download Test Reports.</li>
+<p>If you need to analyze Federal PKI certificates for conformance to certificate profiles, then CPCT can help you. The following organizations will find CPCT especially useful:</p>
+<ul>
+<li><b>Agencies and organizations that submit FPKI Annual Review Packages -</b> Use CPCT to analyze certificates and download Test Reports.</li>
 <li><b>PIV or SSL/TLS Certificate Issuers -</b> Use CPCT to analyze certificates as part of a Quality Assurance process.</li>
 <li><b>Subscribers -</b> Use CPCT to analyze certificates to determine who should correct certificate failures.</li>
-<li><b>Anyone who analyzes FPKI certificates for conformance</b>.</li>
-</ol>
+</ul>
 
 <h2 id="operating">Operating System Requirements</h2>
 
@@ -70,7 +68,7 @@ permalink: docs/userguide/
 <h4>2. Upload a Certificate</h4>
 
 <ol type="a">
-<li>Next, upload a certificate (.ctr, .pem, .cer, or .der file) using either of these options:</ol>
+<li>Upload a certificate (.ctr, .pem, .cer, or .der file) using either of these options:</ol>
 <ul style="list-style-type:disc">
 <li><b>Drag-and-drop</b> your certificate to anywhere on the CPCT main screen. <i>The Test Results display for the uploaded certificate.</i><br>
 <li>Click the <b>Upload Certificate</b> button and browse to the certificate. Click it, and then click <b>Open</b>. <i>The Test Results display for the uploaded certificate.</i><br></li>
