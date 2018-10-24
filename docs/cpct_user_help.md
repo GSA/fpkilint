@@ -8,7 +8,7 @@ permalink: docs/userguide/
 <body>
 <h2 id="what">What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
-<p>CPCT is a friendly tool that instantly analyzes certificates for conformance to a specific certificate policy and profile. It not only displays a certificate's test results but also the reason(s) for any nonconformance. What's more, you can download a Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
+<p>CPCT is a friendly tool that instantly analyzes certificates for conformance to a specific profile document and certificate profile. It not only displays a certificate's test results but also the reason(s) for any nonconformance. What's more, you can download a Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or retain for your organization's needs.</p>
 
 <ul style="list-style-type:disc">
 <li><a href="#who">Who Needs CPCT?</a>
@@ -43,9 +43,9 @@ permalink: docs/userguide/
 <p>The key steps are:</p>
 
 <ul style="list-style-type:disc">
-<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate that you need to analyze. Then, upload the certificate.</li> 
+<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate and then upload the certificate.</li> 
 
-<li>CPCT displays the certificate's test results. The status banner will be <i>green</i> if the certificate conforms to the Certificate Profile or <i>red</i> if it doesn't. The <b>Analysis</b> column will display a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li> 
+<li>CPCT displays the certificate's test results. A <i>green</i> or <i>red</i> status banner will indicate <i>PASS</i> or <i>FAIL</i>. The <b>Analysis</b> column will display a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li> 
 
 <li>You can download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or to retain for your organization's needs.</li> 
 </ul>
