@@ -43,11 +43,11 @@ permalink: docs/userguide/
 <p>The key steps are:</p>
 
 <ul style="list-style-type:disc">
-<li>At the <a href="https://cpct.app.cloud.gov/" target="_blank">CPCT main screen</a>, pick the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate and then upload the certificate.</li> 
+<li>You select the <b>Profile Document</b>, <b>Document Version</b>, and <b>Certificate Profile</b> related to a certificate and then upload the certificate.</li> 
 
-<li>CPCT displays the certificate's test results. A <i>green</i> or <i>red</i> status banner will indicate <i>PASS</i> or <i>FAIL</i>. The <b>Analysis</b> column will display a <b>checkmark</b> for <i>"PASS"</i> or state <b>"FAIL" (with explanation)</b> for each field and extension.</li> 
+<li>You receive the certificate's test results.</li> 
 
-<li>You can download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or to retain for your organization's needs.</li> 
+<li>You can choose to download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or to retain for your organization's needs.</li> 
 </ul>
 
 <h2 id="detailed">Detailed Steps</h2>
