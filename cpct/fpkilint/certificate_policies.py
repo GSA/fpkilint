@@ -568,4 +568,13 @@ policies_display_map = {
     '1.3.6.1.4.1.23165.1.1': 'SAFE Basic',
     '1.3.6.1.4.1.23165.1.2': 'SAFE Medium Software',
     '1.3.6.1.4.1.23165.1.3': 'SAFE Medium Hardware',
+
+    # https://www.venafi.com/sites/default/files/2017-05/Entrust%20Connector%20Installation%20and%20Configuration%20Guide.pdf
+    # The certificate type used when creating the Entrust Administrative user that will be employed by the
+    # Entrust Connector instance is very important. It must contain the policy object identifier (OID)
+    # 2.16.840.1.114027.10.4.  The default Admin Services User Registration certificate type already contains
+    # this policy and can be used.  Alternatively, create a new certificate type and ensure it contains this policy OID
+    '2.16.840.1.114027.10.4': 'Entrust Administrative User',
+    '2.16.840.1.114027.10.5': 'Entrust Admin Services Server'
 }
+
