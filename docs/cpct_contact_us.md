@@ -4,17 +4,31 @@ title: Contact Us
 collection: docs
 permalink: docs/contactus/
 ---
+<html>
+<body>
 
-### Questions or Comments on the Certificate Profile Conformance Tool (CPCT)?
+<h3> Questions, Feedback, Suggestions?</h3>
 
-* _Use GitHub_ - Post a question or comment to an existing issue or create a new issue: [GitHub CPCT repository](https://github.com/GSA/fpkilint/){:target="_blank"}.
-* _Email us_ at **fpki@gsa.gov**.
+<ul>
+<li>Have a CPCT question or feedback?  Like to suggest a new feature?</li>
+</ul>
 
-### Questions or Comments on the Federal PKI X.509 Certificate Policies or Certificate Profiles? 
+<p>Contact us:</p>
 
-* _Use IDManagement.gov_ - Review [Federal PKI X.509 certificate policies, certificate profiles, and change proposals](https://www.idmanagement.gov/fpki/){:target="_blank"}.
-* _Email us_ at **fpki@gsa.gov**.  
+<ul>
+<li><i>GitHub</i> - Create an issue in the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Repository</a>.</li>
+<li><i>Email us</i> - <b>fpki@gsa.gov</b>.</li>
+</ul>
 
-We’ll make every effort to respond to emails as quickly as possible.
+<p>We’ll respond as quickly as possible.</p>
 
-Thank you!
+<p>Thank you!</p>
+
+<h3> Where Can I Find the Latest FPKI Certificate Policies, Profiles, and Change Proposals?</h3>
+
+<ul>
+<li>These documents are available from IDManagement.gov's <a href="https://www.idmanagement.gov/fpki/" target="_blank"><b>Federal Public Key Infrastructure</a> page.</li>
+</ul>
+
+</html>
+</body>
