@@ -140,6 +140,14 @@ eku_display_map = {
     '1.3.6.1.5.2.3.5': 'id-pkinit-KPKdc',
     '1.2.840.113583.1.1.5': 'Adobe PDF Signing',
     '2.23.133.8.1': 'Endorsement Key Certificate',
+    '1.3.6.1.5.5.8.2.2': 'IKE Intermediate',
+    # https://pub.carillon.ca/CertificatePolicy.pdf
+    '1.3.6.1.4.1.25054.3.5.1': 'Carillon LSAP Code Signing',
+    '1.3.6.1.4.1.25054.3.4.1': 'Carillon CIV Authentication',
+    '1.3.6.1.4.1.25054.3.4.2': 'Carillon CIV Content Signing',
+    # Air Canada
+    '1.3.6.1.4.1.49507.1.10.1': 'Air Canada CIV Card Authentication',
+    '1.3.6.1.4.1.49507.1.10.2': 'Air Canada CIV Content Signing',
 }
 
 key_usage_display_map = OrderedDict([
@@ -222,8 +230,18 @@ map_extension_oid_to_display = {
     # Https://Tools.Ietf.Org/Html/Rfc7633
     '1.3.6.1.5.5.7.1.24': 'TLS Feature',
     '1.3.6.1.5.5.7.48.1.5': 'OCSP No Check',
+    # Entrust
     '1.2.840.113533.7.65.0': 'Entrust Version Extension',
+    '2.16.840.1.114027.30.1': 'Entrust Exportable Private Key',
+    # Netscape
     '2.16.840.1.113730.1.1': 'Netscape Certificate Type',
+    '2.16.840.1.113730.1.2': 'Netscape Base Url',
+    '2.16.840.1.113730.1.3': 'Netscape Revocation Url',
+    '2.16.840.1.113730.1.4': 'Netscape CaRevocation Url',
+    '2.16.840.1.113730.1.7': 'Netscape Cert Renewal Url',
+    '2.16.840.1.113730.1.8': 'Netscape CA Policy Url',
+    '2.16.840.1.113730.1.12': 'Netscape SSL Server Name',
+    '2.16.840.1.113730.1.13': 'Netscape Comment',
     # missing from asn1crypto
     '1.3.6.1.4.1.311.21.7': 'Microsoft Certificate Template Information',
     # Application Policies extension -- same encoding as szOID_CERT_POLICIES
@@ -237,6 +255,7 @@ map_extension_oid_to_display = {
     '1.2.840.113549.1.9.15': 'S/Mime Capabilities',
     '1.3.6.1.4.1.311.21.2': 'Microsoft Previous CA Cert Hash',
     '1.3.6.1.4.1.11129.2.4.2': 'Signed Certificate Timestamp',
+    '1.3.6.1.4.1.25054.3.6.1': 'Carillon Applicability Extension',  # https://pub.carillon.ca/CertificatePolicy.pdf
 
     '1.3.6.1.4.1.11129.2.4.3': 'CT Pre-Cert Poison Extension',  # RFC 6962
 }
@@ -437,6 +456,56 @@ _directory_string_type_display_map = {
 }
 
 
+def get_abstract_string_type(abstract_string):
+
+    if isinstance(abstract_string, PrintableString):
+        string_type = 'Printable'
+    elif isinstance(abstract_string, UTF8String):
+        string_type = 'UTF8'
+    elif isinstance(abstract_string, IA5String):
+        string_type = 'IA5'
+    elif isinstance(abstract_string, BMPString):
+        string_type = 'BMP'
+    elif isinstance(abstract_string, VisibleString):
+        string_type = 'Visible'
+    elif isinstance(abstract_string, TeletexString):
+        string_type = 'Teletex'
+    elif isinstance(abstract_string, UniversalString):
+        string_type = 'Universal'
+    elif isinstance(abstract_string, GeneralString):
+        string_type = 'General'
+    elif isinstance(abstract_string, NumericString):
+        string_type = 'Numeric'
+    else:
+        string_type = abstract_string.__class__.__name__
+        print('No case for ' + string_type + ' in get_abstract_string_type')
+
+    return string_type
+
+
+def get_name_type_string(name):
+    if not isinstance(name, x509.NameTypeAndValue):
+        return 'Error - get_name_string_type takes x509.NameTypeAndValue'
+
+    value = name['value']
+
+    if isinstance(value, x509.DirectoryString):
+        return _directory_string_type_display_map.get(value.name, 'Undefined DirectoryString Type!?')
+
+    if isinstance(value, Any):
+        if value.parsed and isinstance(value.parsed, AbstractString):
+            return get_abstract_string_type(value.parsed)
+
+    string_type = 'Unknown'
+
+    try:
+        string_type = get_abstract_string_type(value)
+    except:
+        pass
+
+    return string_type
+
+
 # type = Name e.g. subject = tbs_cert['subject']
 def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_oid=None, include_string_type=None):
 
@@ -475,14 +544,7 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
                     s += ' ({})'.format(name2['type'])
 
                 if include_string_type is True:
-                    if isinstance(name2['value'], x509.DirectoryString):
-                        string_type = '({}) '.format(_directory_string_type_display_map.get(name2['value'].name, "Undefined"))
-                    elif isinstance(name2['value'], x509.EmailAddress):
-                        string_type = '({}) '.format('IA5')
-                    elif isinstance(name2['value'], UTF8String):
-                        string_type = '({}) '.format('UTF8')
-                    elif isinstance(name2['value'], OctetBitString):
-                        string_type = '({}) '.format('OctetBitString')
+                    string_type = '({}) '.format(get_name_type_string(name2))
 
                 s += '{}{}{}'.format(type_value_separator, string_type, name2.native['value'])
     else:
