@@ -1,6 +1,7 @@
 # test files
 *_test.*
 cpct/fpkilint/test/
+cpct/fpkilint/cmd/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -116,6 +117,11 @@ cpct/.idea/**/tasks.xml
 cpct/.idea/**/usage.statistics.xml
 cpct/.idea/**/dictionaries
 cpct/.idea/**/shelf
+cpct/.idea/workspace.xml
+cpct/.idea/tasks.xml
+cpct/.idea/usage.statistics.xml
+cpct/.idea/dictionaries
+cpct/.idea/shelf
 
 # Sensitive or high-churn files
 cpct/.idea/**/dataSources/
@@ -125,6 +131,13 @@ cpct/.idea/**/sqlDataSources.xml
 cpct/.idea/**/dynamic.xml
 cpct/.idea/**/uiDesigner.xml
 cpct/.idea/**/dbnavigator.xml
+cpct/.idea/dataSources/
+cpct/.idea/dataSources.ids
+cpct/.idea/dataSources.local.xml
+cpct/.idea/sqlDataSources.xml
+cpct/.idea/dynamic.xml
+cpct/.idea/uiDesigner.xml
+cpct/.idea/dbnavigator.xml
 
 # Gradle
 cpct/.idea/**/gradle.xml
