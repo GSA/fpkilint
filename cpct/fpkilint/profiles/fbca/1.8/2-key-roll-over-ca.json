@@ -20,7 +20,7 @@
     {
         "Section":  "profile",
         "Item":  "cert_type",
-        "Value":  "CA Key Rollover",
+        "Value":  "FBCA CA Key Rollover",
         "OID":  ""
     },
     {
@@ -315,6 +315,18 @@
         "Section":  "subject",
         "Item":  "require_geo_political_or_dc",
         "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "permitted_string_types_dir_string",
+        "Value":  "UTF8;Printable",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "permitted_string_types",
+        "Value":  "",
         "OID":  ""
     },
     {
@@ -728,7 +740,7 @@
     {
         "Section":  "aia",
         "Item":  "ca_issuers_http_p7c",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  ""
     },
     {

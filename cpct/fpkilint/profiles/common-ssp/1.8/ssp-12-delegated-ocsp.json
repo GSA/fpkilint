@@ -319,6 +319,18 @@
     },
     {
         "Section":  "subject",
+        "Item":  "permitted_string_types_dir_string",
+        "Value":  "Printable",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "permitted_string_types",
+        "Value":  "",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
         "Item":  "values_country",
         "Value":  "",
         "OID":  "2.5.4.6"
@@ -560,7 +572,7 @@
     {
         "Section":  "skid",
         "Item":  "require_method_one",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -632,7 +644,7 @@
     {
         "Section":  "crldp",
         "Item":  "present",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "2.5.29.31"
     },
     {
@@ -824,7 +836,7 @@
     {
         "Section":  "cert_policies",
         "Item":  "required_policy_list",
-        "Value":  "2.16.840.1.101.3.2.1.3.6 2.16.840.1.101.3.2.1.3.7 2.16.840.1.101.3.2.1.3.8 2.16.840.1.101.3.2.1.3.13 2.16.840.1.101.3.2.1.3.16 2.16.840.1.101.3.2.1.3.17 2.16.840.1.101.3.2.1.3.36 2.16.840.1.101.3.2.1.3.39 2.16.840.1.101.3.2.1.3.40 2.16.840.1.101.3.2.1.3.41 2.16.840.1.101.3.2.1.3.42",
+        "Value":  "",
         "OID":  ""
     },
     {

@@ -319,6 +319,18 @@
     },
     {
         "Section":  "subject",
+        "Item":  "permitted_string_types_dir_string",
+        "Value":  "UTF8;Printable",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "permitted_string_types",
+        "Value":  "",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
         "Item":  "values_country",
         "Value":  "",
         "OID":  "2.5.4.6"
@@ -560,7 +572,7 @@
     {
         "Section":  "skid",
         "Item":  "require_method_one",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {

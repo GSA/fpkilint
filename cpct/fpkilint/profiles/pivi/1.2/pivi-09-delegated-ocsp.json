@@ -20,7 +20,7 @@
     {
         "Section":  "profile",
         "Item":  "cert_type",
-        "Value":  "Delegated OCSP",
+        "Value":  "PIV-I Delegated OCSP",
         "OID":  ""
     },
     {
@@ -321,6 +321,18 @@
         "Section":  "subject",
         "Item":  "require_geo_political_or_dc",
         "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "permitted_string_types_dir_string",
+        "Value":  "UTF8;Printable",
+        "OID":  ""
+    },
+    {
+        "Section":  "subject",
+        "Item":  "permitted_string_types",
+        "Value":  "",
         "OID":  ""
     },
     {
@@ -662,7 +674,7 @@
     {
         "Section":  "crldp",
         "Item":  "directory_name",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -812,7 +824,7 @@
     {
         "Section":  "cert_policies",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.29.32"
     },
     {
