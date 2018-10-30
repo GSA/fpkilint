@@ -260,8 +260,6 @@ def _get_mappings_config(config_string, config_options, r):
 
 def lint_policy_mappings(config_options, cert):
     r = OutputRow("Policy Mappings")
-    # todo confirm policy extension is present if mappings are present
-    # todo confirm each issuer domain policy is actually in the policy extension
 
     extension = _process_common_extension_options(config_options, cert, r)
 
@@ -272,6 +270,8 @@ def lint_policy_mappings(config_options, cert):
 
         policy_set = set()
         policy_extensions = get_extension_list(cert, '2.5.29.32')
+        # confirm policy extension is present if mappings are present
+
         if not policy_extensions:
             r.add_error('The Certificate Policies extension is not present - nothing to map!')
         else:
@@ -305,6 +305,7 @@ def lint_policy_mappings(config_options, cert):
                                                           policies_display_map[mapping['subject_domain_policy'].dotted])
                 r.add_content(policy_display_string)
 
+            # confirm each issuer domain policy is actually in the policy extension
             if mapping['issuer_domain_policy'].dotted not in policy_set:
                 r.add_error(mapping['issuer_domain_policy'].dotted + ' not present in Certificate Policies')
 
