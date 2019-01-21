@@ -221,6 +221,13 @@ policies_display_map = {
     '2.16.840.1.101.3.2.1.1.5': 'aces-SSL',
     '2.16.840.1.101.3.2.1.1.6': 'aces-fed-employee',
     '2.16.840.1.101.3.2.1.1.7': 'aces-fed-employee-hw',
+    '2.16.840.1.101.3.2.1.1.8': 'aces-??',
+    '2.16.840.1.101.3.2.1.1.9': 'aces-??',
+    '2.16.840.1.101.3.2.1.1.10': 'aces-??',
+    '2.16.840.1.101.3.2.1.1.11': 'aces-??',
+    '2.16.840.1.101.3.2.1.1.12': 'aces-??',
+    '2.16.840.1.101.3.2.1.1.13': 'aces-??',
+    '2.16.840.1.101.3.2.1.1.14': 'aces-??',
     '2.16.840.1.101.3.2.1.2': 'pto-policies',
     '2.16.840.1.101.3.2.1.2.1': 'pto-registered-practitioner',
     '2.16.840.1.101.3.2.1.2.2': 'pto-inventor',
@@ -527,7 +534,7 @@ policies_display_map = {
     '2.16.840.1.101.2.1.11.41': 'id-US-dod-medium-192',
     '2.16.840.1.101.2.1.11.42': 'id-US-dod-mediumHardware-112',
     '2.16.840.1.101.2.1.11.43': 'id-US-dod-mediumHardware-128',
-    '2.16.840.1.101.2.1.11.44': 'id-US-dod- mediumHardware-192',
+    '2.16.840.1.101.2.1.11.44': 'id-US-dod-mediumHardware-192',
     '2.16.840.1.101.2.1.11.5': 'id-US-dod-medium',
     '2.16.840.1.101.2.1.11.6': 'id-US-dod-type1',
     '2.16.840.1.101.2.1.11.9': 'id-US-dod-mediumHardware',
@@ -575,6 +582,137 @@ policies_display_map = {
     # 2.16.840.1.114027.10.4.  The default Admin Services User Registration certificate type already contains
     # this policy and can be used.  Alternatively, create a new certificate type and ensure it contains this policy OID
     '2.16.840.1.114027.10.4': 'Entrust Administrative User',
-    '2.16.840.1.114027.10.5': 'Entrust Admin Services Server'
-}
+    '2.16.840.1.114027.10.5': 'Entrust Admin Services Server',
 
+    # https://services.directtrust.org/wp-content/uploads/2014/08/Direct_certificate_crl_profile_V1.pdf
+    # https://www.directmdemail.com/documents/DirectTrust_CP_V1_2_1.pdf
+    '1.3.6.1.4.1.41179.0.1.2': 'DirectTrust CP v1.2',
+    '1.3.6.1.4.1.41179.0.1.2.1': 'DirectTrust CP v1.2.1',
+    '2.16.840.1.113883.3.1313.0.1': 'DirectTrust CP',
+    '1.3.6.1.4.1.41179.1': 'DirectTrust LoAs',
+    '1.3.6.1.4.1.41179.1.1': 'DirectTrust LoA 1',
+    '1.3.6.1.4.1.41179.1.2': 'DirectTrust LoA 2',
+    '1.3.6.1.4.1.41179.1.3': 'DirectTrust LoA 3',
+    '1.3.6.1.4.1.41179.1.4': 'DirectTrust LoA 4',
+    '1.3.6.1.4.1.41179.2': 'DirectTrust Entity Category',
+    '1.3.6.1.4.1.41179.2.1': 'DirectTrust Cat1 (Covered Entity)',
+    '1.3.6.1.4.1.41179.2.2': 'DirectTrust Cat2 (Business Associate)',
+    '1.3.6.1.4.1.41179.2.3': 'DirectTrust Cat3 (Non-HIPAA Entity)',
+    '1.3.6.1.4.1.41179.2.4': 'DirectTrust Cat4 (Patient)',
+
+    # Verizon-Cybertrust Managed PKI Certificate Policy v2.0
+    '1.3.6.1.4.1.23337.1.1': 'Cybertrust Commercial Policy',  # Cybertrust Managed PKI Policy Frame Work / Base OID ARC Cybertrust Managed PKI Policy (Commercial equivalent to the US Federal Common policy; Provides separate OIDs for PIV I. from the OIDS used for commercial best practices
+    '1.3.6.1.4.1.23337.1.1.1': 'Cybertrust CBP Software',  # Cybertrust Managed PKI PolicySoftware utilizing Commercial Best Practices (CBP)yyy Cybertrust Managed PKI Policy (Commercial equivalent to the US Federal Common Policy) (human subscribers with Software Cryptographic modules) Commercial Best Practices
+    '1.3.6.1.4.1.23337.1.1.2': 'Cybertrust CBP Hardware',  # Hardware CBP / Cybertrust Managed PKI Policy (Human subscribers with Hardware cryptographic modules)
+    '1.3.6.1.4.1.23337.1.1.3': 'Cybertrust CBP Devices',  # Devices CBP / Cybertrust Managed PKI Policy (certificate subjects are devices)
+    '1.3.6.1.4.1.23337.1.1.4': 'Cybertrust CBP Authentication',  # Authentication CBP / Cybertrust Managed PKI Policy (authentication for human subscribers on hardware)
+    '1.3.6.1.4.1.23337.1.1.5': 'Cybertrust CBP Basic',  # Basic CBP / Cybertrust Managed PKI policy Basic assurancehuman subscribers; software based; minimum Identity proofing
+    '1.3.6.1.4.1.23337.1.1.6': 'Cybertrust CBP cardAuthentication',  # CardAuthentication CBP / Cybertrust Managed PKI Policy Commercial Card Authentication(Hardware)
+    '1.3.6.1.4.1.23337.1.1.7': 'Cybertrust Software',  # Cybertrust Common Policy Software / Cybertrust Managed PKI Policy (equivalent to the US Federal Common Policy) (Human subscribers with Software Cryptographic modules)
+    '1.3.6.1.4.1.23337.1.1.8': 'Cybertrust Hardware',  # Hardware / Cybertrust Managed PKI Policy (Human subscribers with Hardware cryptographic modules)
+    '1.3.6.1.4.1.23337.1.1.9': 'Cybertrust Devices',  # Devices / Cybertrust Managed PKI Policy (certificate subjects are devices)
+    '1.3.6.1.4.1.23337.1.1.13': 'Cybertrust DevicesHardware',  # Devices Hardware / Cybertrust Managed PKI Policy (certificate subjects are devices with Hardware Cryptographic Modules)
+    '1.3.6.1.4.1.23337.1.1.10': 'Cybertrust Authentication',  # Authentication / Cybertrust Managed PKI Policy (authentication for human subscribers on Hardware)
+    '1.3.6.1.4.1.23337.1.1.12': 'Cybertrust cardAuthentication',  # CardAuthentication / Cybertrust Managed PKI Policy (Card Authentication (Hardware)
+    '1.3.6.1.4.1.23337.1.1.11': 'Cybertrust contentSigner',  # ContentSigning / Content Signing certificates which are utilized for signing the FIPS 201/PIV I Card content objects
+
+    # from ORC NFI CA 3 certificate. serial 1B 47 BC F3 10 AD 54 5C 34 FF 90 87 42 B2 AD 38
+    '1.3.6.1.4.1.3922.1.3': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.1': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.2': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.3': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.4': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.12': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.14': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.15': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.18': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.19': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.20': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.28': 'orc-??',
+    '1.3.6.1.4.1.3922.1.3.1.37': 'orc-??',
+
+    # Certificate Policy for the WidePoint Non Federal Issuer / Version 1.1.2
+    '1.3.6.1.4.1.3922.1.1.1.100': 'id-orc-nfissp-ca',
+    '1.3.6.1.4.1.3922.1.1.1.3': 'id-orc-nfissp-medium',
+    '1.3.6.1.4.1.3922.1.1.1.12': 'id-orc-nfissp-mediumhardware',
+    '1.3.6.1.4.1.3922.1.1.1.18': 'id-orc-nfissp-pivi-hardware',
+    '1.3.6.1.4.1.3922.1.1.1.19': 'id-orc-nfissp-pivi-cardAuth',
+    '1.3.6.1.4.1.3922.1.1.1.20': 'id-orc-nfissp-pivi-contentSigning',
+    '1.3.6.1.4.1.3922.1.1.1.37': 'id-orc-nfissp-mediumDevice',
+    '1.3.6.1.4.1.3922.1.1.1.38': 'id-orc-nfissp-mediumDeviceHardware',
+    '1.2.840.113549.5.6.1.3': 'id-orc-nfissp-ca',
+    '1.2.840.113549.5.6.1.3.1.3': 'id-orc-nfissp-medium',
+    '1.2.840.113549.5.6.1.3.1.12': 'id-orc-nfissp-mediumhardware',
+    '1.2.840.113549.5.6.1.3.1.18': 'id-orc-nfissp-pivi-hardware',
+    '1.2.840.113549.5.6.1.3.1.19': 'id-orc-nfissp-pivi-cardAuth',
+    '1.2.840.113549.5.6.1.3.1.20': 'id-orc-nfissp-pivi-contentSigning',
+    '1.2.840.113549.5.6.1.3.1.21': 'id-orc-nfissp-devices',
+
+    # Symantec NFI
+    '2.16.840.1.113733.1.7.23.1': 'Symantec CP for Class 1 certificates',
+    '2.16.840.1.113733.1.7.23.1.1.1': 'Symantec SSP Rudimentary',
+
+    '2.16.840.1.113733.1.7.23.2': 'Symantec CP for Class 2 certificates',
+    '2.16.840.1.113733.1.7.23.2.1.1': 'Symantec SSP Basic',
+
+    '2.16.840.1.113733.1.7.23.3': 'Symantec CP for Class 3 certificates',
+    '2.16.840.1.113733.1.7.23.3.1': 'Symantec Non-Federal SSP CPS',
+    '2.16.840.1.113733.1.7.23.3.1.6': 'Symantec Non-Federal SSP Medium',
+    '2.16.840.1.113733.1.7.23.3.1.7': 'Symantec Non-Federal SSP MediumHardware',
+    '2.16.840.1.113733.1.7.23.3.1.8': 'Symantec Non-Federal SSP mediumDevices',
+    '2.16.840.1.113733.1.7.23.3.1.13': 'Symantec Non-Federal SSP Auth (Legacy)',
+    '2.16.840.1.113733.1.7.23.3.1.14': 'Symantec Non-Federal SSP Medium CBP',
+    '2.16.840.1.113733.1.7.23.3.1.15': 'Symantec Non-Federal SSP MediumHardware CBP',
+    '2.16.840.1.113733.1.7.23.3.1.17': 'Symantec Non-Federal SSP PIV-I cardAuth',
+    '2.16.840.1.113733.1.7.23.3.1.18': 'Symantec Non-Federal SSP PIV-I Hardware',
+    '2.16.840.1.113733.1.7.23.3.1.20': 'Symantec Non-Federal SSP PIV-I contentSigning',
+    '2.16.840.1.113733.1.7.23.3.1.23': 'Symantec Non-Federal SSP Medium SHA1',
+    '2.16.840.1.113733.1.7.23.3.1.24': 'Symantec Non-Federal SSP MediumHardware SHA1',
+    '2.16.840.1.113733.1.7.23.3.1.25': 'Symantec Non-Federal SSP Devices SHA1',
+    '2.16.840.1.113733.1.7.23.3.1.26': 'Symantec Non-Federal SSP PIV-I Auth SHA1',
+    '2.16.840.1.113733.1.7.23.3.1.27': 'Symantec Non-Federal SSP PIV-I CardAuth SHA1',
+    '2.16.840.1.113733.1.7.23.3.1.36': 'Symantec Non-Federal SSP mediumDevicesHardware',
+
+    '2.16.840.1.113733.1.7.23.4': 'Symantec CP for Class 4 certificates',
+
+    '2.16.840.114273.1.1.1.1': 'State of Illinois Level I Software',
+    '2.16.840.114273.1.1.1.2': 'State of Illinois Level I Hardware',
+    '2.16.840.114273.1.1.1.3': 'State of Illinois Level II Software',
+    '2.16.840.114273.1.1.1.4': 'State of Illinois Level II Hardware',
+    '2.16.840.114273.1.1.1.5': 'State of Illinois Level III Software',
+    '2.16.840.114273.1.1.1.6': 'State of Illinois Level III Hardware',
+    '2.16.840.114273.1.1.1.7': 'State of Illinois Level IV Hardware',
+    '2.16.840.114273.1.1.2.1': 'State of Illinois MEDI Single-Use Certificate',
+
+    '2.16.840.1.114171.500.0.0': 'Wells Fargo CPS',
+    '1.3.6.1.4.1.71.1.1.103': 'NASA',
+
+    '2.16.840.1 .114027.200.3. 10.7.8': 'id-emspki-nfssp-rudimentary-policy',
+    '2.16.840.1 .114027.200.3. 10.7.7': 'id-emspki-nfssp-basic-policy',
+    '2.16.840.1 .114027.200.3. 10.7.1': 'id-emspki-nfssp-medium-policy',
+    '2.16.840.1 .114027.200.3. 10.7.3': 'id-emspki-nfssp-medium-devices',
+    '2.16.840.1 .114027.200.3. 10.7.2': 'id-emspki-nfssp-medium-hardware',
+    '2.16.840.1 .114027.200.3. 10.7.4': 'id-emspki-nfssp-medium-authentication',
+    '2.16.840.1 .114027.200.3. 10.7.6': 'id-emspki-nfssp-pivi-hardware',
+    '2.16.840.1 .114027.200.3. 10.7.5': 'id-emspki-nfssp-medium-cardAuth',
+    '2.16.840.1 .114027.200.3. 10.7.9': 'id-emspki-nfssp-pivi-contentSigning',
+
+    '2.16.840.1.114412.4.1.1': 'DigiCert Level 1 Client Certificate - Personal',
+    '2.16.840.1.114412.4.1.2': 'DigiCert Level 1 Client Certificate - Enterprise',
+    '2.16.840.1.114412.4.2': 'DigiCert Level 2 Client Certificate - Basic',
+    '2.16.840.1.114412.4.3.1': 'DigiCert Level 3 Client Certificate – US Medium  ',
+    '2.16.840.1.114412.4.3.2': 'DigiCert Level 3 Client Certificate – CBP Medium',
+    '2.16.840.1.114412.4.4.1': 'Digicert Level 4 Client Certificate – US Hardware',
+    '2.16.840.1.114412.4.4.2': 'Digicert Level 4 Client Certificate – CBP Hardware',
+    '2.16.840.1.114412.4.5.1': 'Digicert Level 4 PIV-I - Hardware',
+    '2.16.840.1.114412.4.5.2': 'DigiCert Level 4 PIV-I – Card Authentication',
+    '2.16.840.1.114412.4.5.3': 'DigiCert Level 4 PIV-I – Content Signing',
+    '2.16.840.1.114412.1.11': 'DigiCert OV SSL',
+
+    '2.16.840.1.101.3.2.1.48.248': 'TEST APL Golden PIV-I Authentication',
+    '2.16.840.1.101.3.2.1.48.249': 'TEST APL Golden PIV-I CardAuth',
+    '2.16.840.1.101.3.2.1.48.250': 'TEST APL Golden PIV-I Key Management',
+    '2.16.840.1.101.3.2.1.48.251': 'TEST APL Golden PIV-I Digital Signature',
+    '2.16.840.1.101.3.2.1.48.252': 'TEST APL Golden PIV-I Content Signing',
+
+}
