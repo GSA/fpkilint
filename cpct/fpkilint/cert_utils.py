@@ -258,6 +258,8 @@ map_extension_oid_to_display = {
     '1.3.6.1.4.1.25054.3.6.1': 'Carillon Applicability Extension',  # https://pub.carillon.ca/CertificatePolicy.pdf
 
     '1.3.6.1.4.1.11129.2.4.3': 'CT Pre-Cert Poison Extension',  # RFC 6962
+
+    '1.3.6.1.5.5.7.1.3': 'Qualified Certificate Statements',  # https://tools.ietf.org/html/rfc3739#section-3.2.6
 }
 
 
