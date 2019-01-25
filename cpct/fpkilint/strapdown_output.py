@@ -3,7 +3,7 @@ from fpkilint.text2html import text_to_html
 import json
 
 _header = "\n| **Field** | **Content** | **Analysis** |\n"
-_cols = "|:-------- |: -------------------------------------- |:--------------------------------------------------- |\n"
+_cols = "| :-------- | :-------------------------------------- | :--------------------------------------------------- |\n"
 _all_was_good = "<font color=\"green\">OK</font>"
 _extension_is_critical = "Critical = TRUE<br/>"
 

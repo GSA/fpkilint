@@ -1677,16 +1677,14 @@ def lint_validity(config_options, cert):
     # todo Common - add config options to handle this: except self-signed certificates, that expire after 12/31/2030 shall be signed with keys of at least 3072 bits for RSA or at least 256 bits for ECDSA.
 
     now = datetime.now(na.native.tzinfo)
+
     if na.native < now:
+        r.add_content('Certificate is expired')
         if is_valid_now == '2':
             r.add_error("Certificate is expired")
-        expires_string = 'Expired ' + format_display_time_span(now - na.native) + ' ago'
     else:
         if is_valid_now == '1':
             r.add_error("Certificate should be expired")
-        expires_string = 'Expires in ' + format_display_time_span(na.native - now)
-
-    r.add_content(expires_string)
 
     if 'validity_period_maximum' in config_options and len(config_options['validity_period_maximum'].value) > 0:
         validity_period_maximum = int(config_options['validity_period_maximum'].value)
