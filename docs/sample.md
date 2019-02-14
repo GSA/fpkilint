@@ -9,7 +9,7 @@
 | Not Before |   |   |
 | Not After |  |  |
 | Subject Distinguished Name |   |  |
-| Subject Public Key | Public Key:  |   |
+| Subject Public Key |    |   |
 | Issuer Signature |   |   |
 
 | **Extension** | **Value** | **Analysis** |
