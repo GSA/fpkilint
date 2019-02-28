@@ -1118,7 +1118,7 @@
     {
         "Section":  "policy_constraints",
         "Item":  "is_critical",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
