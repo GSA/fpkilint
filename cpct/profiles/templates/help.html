@@ -54,7 +54,49 @@
         #result-table_wrapper{
             margin-top:5px;padding:0;
         }
-        table.dataTable span.highlight {
+
+        h1 {
+            font-size: 36px;
+            line-height: 40px;
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #024D86;
+            line-height: 40px;
+            border-bottom: 1px solid #8ECDEA;
+            margin-bottom: 13px;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        h3 {
+            font-size: 20px;
+            line-height: 40px;
+            font-weight: 500;
+        }
+
+        h4 {
+            font-size: 18px;
+            line-height: 20px;
+            font-weight: normal;
+        }
+
+        h5 {
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        h6 {
+            font-size: 12px;
+            line-height: 20px;
+        }
+
+        #references {border-top: 1px solid #13315C; margin-top: 40px; font-size: 13px; color: #13315C; }
+        #notes {margin-top: 5px; margin-top: 5px; margin-bottom: 12px; font-style: italic; font-size: 14px; color: #13315C; }
+        #vertspacer {height: 10px}
+
+table.dataTable span.highlight {
   background-color: #FFFF88;
   border-radius: 0.28571429rem;
 }
@@ -63,13 +105,19 @@ table.dataTable span.column_highlight {
   background-color: #ffcc99;
   border-radius: 0.28571429rem;
 }
-        a.anchor {
+
+.anchor a {
     display: block;
     position: relative;
-    top: -175px;
+    top: -145px;
     visibility: hidden;
 }
+
+li { margin: 6px 0; }
+
+
     </style>
+
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 </head>
 
@@ -77,34 +125,6 @@ table.dataTable span.column_highlight {
 <body style="height:100%;padding:0;margin:0;">
 
 <div style="height:100%;position:relative;margin-top:0px;">
-
-<form method="post" id="file-form" enctype="multipart/form-data">
-
-
-
-{% csrf_token %}
-
-<!-- Modal -->
-<div class="modal fade" id="pem_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="z-index:9001">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Paste PEM Certificate</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <textarea id="pem_input" class="form-control" style="height:250px;"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" style="border:0 !important;background-color:#458AB6 !important;" disabled="disabled">Submit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 
     <title>Certificate Profile Conformance Tool</title>
 
@@ -147,65 +167,144 @@ table.dataTable span.column_highlight {
         <div class="col-md-12">
             <div style="padding-left:10px;padding-right:10px;">
                 <div id=result style="max-width:1200px;margin-left:auto;margin-right:auto;margin-top:50px;background-color:white;margin-bottom:20px;">
-                    <div style="padding:20px;overflow-x:scroll;display:none;">
-                        <h3>Certificate Profile Conformance Tool (CPCT)</h3>
-CPCT will be a capable of analyzing a certificate’s conformance to a pre-defined certificate profile. User input will consist of a certificate and a profile selection. After processing the certificate, CPCT will output a table similar in formatting to the certificate format tables often included in Certificate Profile documents, but including additional analysis content indicating PASS or specific text describing the non-conformance.
-<br/><br/>
-                        <a href="https://github.com/GSA/fpkilint/blob/master/docs/cpct_example_output.md">Notional example output</a>
-                        <br/><br/>
 
-                        When complete, the tool is expected to be capable of analyzing certificates for conformance with the FPKI profiles described in the documents available on the <a href="https://www.idmanagement.gov/fpki/">Federal Public Key Infrastructure (FPKI) web page</a>.
- <br/><br/>
-<strong>Common Policy Framework</strong><br/>
-<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-common-policy.pdf">Certificate Policy for the Federal PKI Common Policy Framework (FCPF)</a>
-<br/>
-<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf">X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program</a>
-<br/><br/>
-
-<strong>Federal Bridge</strong><br/>
-<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-profiles.pdf">X.509 Certificate and CRL Extensions Profile</a>
-<br/>
-<a href="https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-pivi-cert-profiles.pdf">X.509 Certificate and CRL Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Credentials</a>
-                    </div>
                     <div style="padding:20px;">
 
-                        <h3>Background section</h3>
-                        <a class="anchor" id="background"></a>
-                            <p>Summary of the tool (what it is, why we developed it, who can use it)</p>
 
 
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In sit amet eros eu augue tempor pulvinar. Integer non consectetur enim. Donec auctor magna enim, eu viverra arcu posuere varius. Donec aliquet ligula vitae turpis ultricies, eget rhoncus sem posuere. Suspendisse nec enim vel quam rhoncus consequat. Nullam maximus ligula diam, eu efficitur risus varius sit amet. Vivamus at justo at est lobortis facilisis non ut lectus. Cras quis massa a lectus feugiat facilisis eu ut sapien.</p>
+<div class="anchor"><a name="what"></a></div>
+<h2>What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
-<p>Quisque viverra ante dapibus neque suscipit elementum. Cras sit amet quam vitae lacus ultricies ullamcorper. Maecenas a vestibulum magna. Proin condimentum metus erat, nec euismod lectus bibendum vitae. Quisque mauris nulla, suscipit facilisis malesuada sed, laoreet quis justo. Cras id dui pharetra, euismod massa in, malesuada augue. Etiam dapibus venenatis lacus, eu porta quam imperdiet ut.</p>
-                        <p>Sed consequat, magna at volutpat ornare, nisi ante bibendum risus, ac molestie mauris turpis eget magna. Nunc fringilla nisl et eros hendrerit posuere. Mauris euismod, leo quis auctor blandit, urna erat interdum odio, euismod dapibus orci ex vel tellus. Vestibulum nisl dui, facilisis et pharetra eget, placerat a urna. Nulla facilisi. Nulla a elit nibh. Suspendisse semper fringilla dictum. Ut posuere pretium felis, nec laoreet mi pharetra eu. </p>
-                        <h3>How to use the tool section</h3>
-                        <a class="anchor" id="howto"></a>
-                            <p>Describe the meaning and purpose of each of the fields (Policy, Version, Profile)</p>
-                            <p>Describe different ways to upload a certificate (text, file upload, drag-and-drop).</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin faucibus diam eros, nec euismod velit pharetra et. Suspendisse rutrum et quam sed condimentum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Etiam iaculis gravida turpis, id sodales nisi volutpat nec. Mauris posuere metus ante, at cursus eros tempor nec. Fusce tincidunt venenatis orci, eu ultrices ex tempus sed. Vivamus dignissim rutrum felis ac blandit. Sed quis tortor vehicula velit efficitur mattis. Nullam pellentesque massa et mauris gravida, eu vulputate metus tincidunt. Integer consectetur est id dui ultrices commodo. Suspendisse potenti. Aenean mollis ornare enim nec pulvinar. Nullam tempus dolor sapien, vel pretium eros tempor elementum. Aliquam eget sollicitudin quam. Ut nec tellus ac sapien tincidunt sodales. </p>
-                        <h3>Report section?</h3>
-                        <a class="anchor" id="report"></a>
-                            <p>Step through the different sections of the report and provide details</p>
-                            <p>Sed efficitur id augue vel sagittis. Vivamus euismod scelerisque risus imperdiet luctus. Proin scelerisque est in ex cursus, ut faucibus justo commodo. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla blandit massa id lacus porta, eu hendrerit velit pharetra. Quisque efficitur, nisi quis accumsan iaculis, ante arcu aliquet nisl, nec gravida libero metus vel metus. Proin tristique egestas dui, eget malesuada ante consectetur quis. Proin sagittis, lorem nec fermentum tempus, odio velit laoreet nisl, tristique posuere nisl nisl ut nisl. Fusce leo lorem, ultricies vel est in, maximus lacinia orci. Phasellus tincidunt non metus accumsan venenatis. Fusce accumsan, quam sit amet commodo pellentesque, sapien velit pulvinar augue, in eleifend leo nibh vel lorem. Donec faucibus suscipit aliquet. Nulla ut erat sagittis, lobortis enim eu, posuere arcu. </p>
-                            <p>Fusce rhoncus aliquet mauris, et gravida turpis. Nulla libero elit, tempus euismod ipsum quis, rhoncus laoreet elit. Morbi in fermentum mauris, non accumsan eros. Cras mattis orci sed urna sagittis, eget aliquam enim malesuada. Morbi lacinia, ipsum a semper imperdiet, sapien leo tristique odio, in condimentum libero leo sit amet dolor. Nulla lacinia tellus mi, vel egestas felis posuere a. Integer viverra faucibus mi sit amet posuere. Donec eleifend varius urna, sed ullamcorper augue imperdiet ac. Morbi odio odio, tempus id lorem ac, commodo finibus libero. Mauris blandit facilisis congue. Nunc vel finibus odio. Aenean venenatis ante eros, a tincidunt orci pellentesque sit amet. Integer cursus, nunc sit amet pretium facilisis, leo arcu mollis elit, quis auctor massa orci et ligula.</p>
-                        <h3>Help and feature request section</h3>
-                        <a class="anchor" id="help"></a>
-                            <p>Provide our icam at gsa.gov email address for any help or feature requests.</p>
-                            <p>Guide folks to use the GitHub issues page for requests.</p>
-                            <p>Provide some steps folks will need to take if they experience issues. For instance, email your certificate to icam at gsa.gov (will need to rename cert to .txt file extensions) or submit an issue and attach the file to the issue (user will need to create a github account in order to do this). I say the submit an issue and attach the file is the preferred approach.</p>
-                            <p>Provide steps if there is a discrepancy with the results (what happens if there is a false-positive or false-negative). Probably follow similar approach as bullet above.</p>
+<p>CPCT instantly analyzes certificates for conformance to a specific profile document and certificate profile. Results show pass or fail status for the certificate content and a brief explanation for failures. You can also download the test report as an .xls or .pdf.</p>
 
-                    </div>
+<ul style="list-style-type:disc">
+<li><a href="#who">Who Needs CPCT?</a>
+<li><a href="#howworks">How Does This Work?</a>
+<li><a href="#howto">Usage Details</a>
+<li><a href="#troubleshooting">Troubleshooting</a>
+<li><a href="#feature">Feature Request</a>
+</ul>
+
+<div class="anchor"><a name="who"></a></div>
+<h2>Who Needs CPCT?</h2>
+
+<p>If you need to analyze Federal PKI certificates for conformance to certificate profiles, then CPCT can help you. The following organizations will find CPCT especially useful:</p>
+<ul>
+<li><strong>Agencies and organizations that submit FPKI Annual Review Packages</strong></br>Prior to submitting the package for review, analyze certificates and download test reports.</li>
+<li><strong>Certificate Issuers</strong></br>Use CPCT to analyze certificates as part of a Quality Assurance process.</li>
+</ul>
+
+<div class="anchor"><a name="howworks"></a></div>
+<h2>How Does This Work?</h2>
+
+                        <div id="notes">In-depth experience with Federal PKI certificates and certificate profiles is recommended.</div>
+
+<p>The key steps are:</p>
+
+<ul style="list-style-type:disc">
+<li>You select the <strong>Profile Document</strong>, <strong>Document Version</strong>, and <strong>Certificate Profile</strong> related to a certificate and then upload the certificate.</li>
+
+<li>You receive the certificate's test results.</li>
+
+<li>You can choose to download a formatted Test Report (.xls or .pdf) to submit as part of a Federal PKI Annual Review package or to retain for your organization's needs.</li>
+</ul>
+
+<div class="anchor"><a name="howto"></a></div>
+<h2>Usage Details</h2>
+
+<h4>1. Certificate Profile Selection</h4>
+Specify the certificate profile you want to test using the drop-list selections.
+
+<ul style="list-style-type:disc">
+<li><strong>Profile Document -</strong> Select the relevant FPKI Profile Document
+    <ul><li>Common Policy SSP Program<sup><a href="#1">1</a></sup></li><li>Federal PKI/Federal Bridge<sup><a href="#2">2</a></sup></li><li>PIV Interoperable (PIV-I)<sup><a href="#3">.3</a></sup></li></ul>
+<li><strong>Document Version -</strong> The most recent version available is automatically selected when you select the Profile Document.
+<li><strong>Certificate Profile -</strong> Select the type of certificate you will test. For example, PIV Authentication.</li>
+</ul>
+
+<h4>2. Upload a Certificate</h4>
+
+<ol type="a">
+<li>Upload a certificate (.ctr, .pem, .cer, or .der file) using either of these options:</ol>
+<ul style="list-style-type:disc">
+<li><strong>Drag-and-drop</strong> your certificate to anywhere on the CPCT main screen. <em>The Test Results display for the uploaded certificate.</em><br>
+<li>Click the <strong>Upload Certificate</strong> button and browse to the certificate. Click it, and then click <strong>Open</strong>. <em>The Test Results display for the uploaded certificate.</em><br></li>
+</ul>
+
+<h4>3. Review Certificate Test Results</h4>
+<!-- <div id="notes">The Test Results screen includes the CPCT drop-downs so you can easily upload more certificates.</div> -->
+
+<p>The status banner will be <em>green</em> (certificate conforms) or <em>red</em> (doesn't conform) and will give a test summary:</p>
+
+<ul style="list-style-type:disc">
+<li><strong><em>Tested [n] fields: No Problems detected</em></strong>
+<li><strong><em>Tested [n] fields: [m] problems detected</em></strong></li>
+</ul>
+
+<p>The Test Results columns provide the following:</p>
+<ul>
+<li><strong><em>Field</em> -</strong> Types of fields and extensions in the certificate.
+<li><strong><em>Content</em> -</strong> Field and extension content.
+<li><strong><em>Analysis</em> -</strong> Displays a <strong>checkmark</strong> for <em>"PASS"</em> or state <strong>"FAIL" (with explanation)</strong> for each field and extension.</li>
+</ul>
+
+<h4>4. Download a Test Report</h4>
+
+<ul>
+<li>To download a Test Report, click the <strong>XLS</strong> or <strong>PDF</strong> button below the status banner. </li>
+</ul>
+
+<div class="anchor"><a name="troubleshooting"></a></div>
+<h2>Troubleshooting</h2>
+
+<h3>Certificate Failures</h3>
+
+<ul>
+<li> Please check to ensure that the right <strong>Profile Document</strong>, <strong>Document Version</strong>, and <strong>Certificate Profile</strong> have been selected.
+<li> If you have questions about why a certificate failed, or you believe the analysis could be an error please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.
+</li>
+</ul>
+
+<h3>Application Error Messages</h3>
+
+<ul>
+<li><em>You can't upload files of this type.</em> The allowable file types are: .crt, .cer, .pem, and .der.</li>
+</ul>
+
+<h3>What If I Can't Resolve an Issue?</h3>
+
+<ul>
+<li><em>GitHub</em> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate. (You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">Join GitHub</a>.)
+<li><em>Email us</em> - <strong>fpki@gsa.gov</strong> and attach your certificate. (Please rename your certificate with <strong>.txt</strong> file extension.)</li>
+</ul>
+
+<div class="anchor"><a name="feature"></a></div>
+<h2>Feature Request</h2>
+
+<ul>
+<li>If you would like to suggest a new CPCT feature, create a GitHub issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a>.</li>
+</ul>
+
+<div id="references">
+    <div id="vertspacer"></div>
+    <div class="anchor"><a name="1"></a>1. <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</em>.</div>
+    <div class="anchor"><a name="2"></a>2. <em>Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile</em>.</div>
+    <div class="anchor"><a name="3"></a>3. <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards</em>.</div>
+</div>
+
+
                 </div>
             </div>
         </div>
+    </div>
+
     </div>
 
 <div class="row" style="background-color:white;margin:0;padding:0;">
         <div class="header4"></div>
             <div class="col-md-12" style="text-align:center;background-color:white;">
                 <div style="padding:10px;">
-                 <a href="/contact-us">Contact Us</a> | <a href="https://github.com/GSA/fpkilint/">Source Code</a> | <a href="/privacy-policy">Privacy Policy</a> | <a href="/help/">Help</a>
+                 <a href="/contact-us/">Contact Us</a> | <a href="https://github.com/GSA/fpkilint/">Source Code</a> | <a href="/privacy-policy/">Privacy Policy</a> | <a href="/help/">Help</a>
                 </div>
             </div>
         <div class="header4" style="height:10px;"></div>
@@ -217,7 +316,7 @@ CPCT will be a capable of analyzing a certificate’s conformance to a pre-defin
     </div>
 </div>
 
-</form>
+
 </div>
 
 </body>
