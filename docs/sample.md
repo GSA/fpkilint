@@ -1,4 +1,4 @@
-### Below is a design example, not actual tool output
+### Below is actual tool output reformatted for this page
 
 | **Field** | **Content** | **Analysis** |
 | :-------- | :------------------------------- | :------------------------------------------------------ |
