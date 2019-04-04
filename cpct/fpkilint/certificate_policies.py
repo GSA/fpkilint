@@ -708,6 +708,9 @@ policies_display_map = {
     '2.16.840.1.114412.4.5.2': 'DigiCert Level 4 PIV-I Card Authentication',
     '2.16.840.1.114412.4.5.3': 'DigiCert Level 4 PIV-I Content Signing',
     '2.16.840.1.114412.1.11': 'DigiCert OV SSL',
+    '2.16.840.1.114412.1.1': 'DigiCert OV',
+    '2.16.840.1.114412.1.2': 'DigiCert DV',
+    '2.16.840.1.114412.2.1': 'DigiCert EV',
 
     '2.16.840.1.101.3.2.1.48.248': 'TEST APL Golden PIV-I Authentication',
     '2.16.840.1.101.3.2.1.48.249': 'TEST APL Golden PIV-I CardAuth',
