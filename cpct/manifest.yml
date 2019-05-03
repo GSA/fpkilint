@@ -1,6 +1,7 @@
 ---
 applications:
 - name: cpct
+  stack: cflinuxfs3
   instances: 1
   memory: 128M
   command: null
