@@ -294,7 +294,7 @@ def parse_tbs_certificate(byte_data):
     if len(byte_data) < 64:
         raise TypeError("byte_data too short to be a certificate")
 
-    if byte_data[0] == 'M':
+    if byte_data[0] == 0x4D:  # 'M':
         byte_data = base64.b64decode(byte_data)
 
     if pem.detect(byte_data):

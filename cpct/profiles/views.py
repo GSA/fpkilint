@@ -60,3 +60,9 @@ def upload_file(request):
 
 def help(request):
     return render(request, 'help.html')
+
+def privacy(request):
+    return render(request, 'privacy-policy.html')
+
+def contact(request):
+    return render(request, 'contact-us.html')

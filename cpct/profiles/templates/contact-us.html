@@ -172,125 +172,26 @@ li { margin: 6px 0; }
 
 
 
-<div class="anchor"><a name="what"></a></div>
-<h2>What is the Certificate Profile Conformance Tool (CPCT)?</h2>
 
-<p>CPCT instantly analyzes certificates for conformance to a specific profile document and certificate profile. Results show pass or fail status for the certificate content and a brief explanation for failures. You can also download the test report as an .xls or .pdf.</p>
+<h2> Questions, Feedback, Suggestions?</h2>
+<p>You can connect with us on GitHub or by email.</p>
 
-<ul style="list-style-type:disc">
-<li><a href="#who">Who Needs CPCT?</a>
-<li><a href="#howworks">How Does This Work?</a>
-<li><a href="#howto">Usage Details</a>
-<li><a href="#troubleshooting">Troubleshooting</a>
-<li><a href="#feature">Feature Request</a>
-</ul>
 
-<div class="anchor"><a name="who"></a></div>
-<h2>Who Needs CPCT?</h2>
-
-<p>If you need to analyze Federal PKI certificates for conformance to certificate profiles, then CPCT can help you. The following organizations will find CPCT especially useful:</p>
+<h3>GitHub</h3>
 <ul>
-<li><strong>Agencies and organizations that submit FPKI Annual Review Packages</strong></br>Test your certificates and take corrective actions before submitting certificate samples.</li>
-<li><strong>Certificate Issuers</strong></br>Use CPCT to analyze certificates as part of a Quality Assurance process.</li>
+    <li>Create an issue, or watch the <a href="https://github.com/GSA/fpkilint/" target="_blank">CPCT GitHub Repository</a></li>
 </ul>
 
-<div class="anchor"><a name="howworks"></a></div>
-<h2>How Does This Work?</h2>
-
-                        <div id="notes">In-depth experience with Federal PKI certificates and certificate profiles is recommended.</div>
-
-<p>The key steps are:</p>
-
-<ul style="list-style-type:disc">
-<li>You select the <strong>Profile Document</strong>, <strong>Document Version</strong>, and <strong>Certificate Profile</strong> related to a certificate and then upload the certificate.</li>
-
-<li>You receive the certificate's test results.</li>
-
-<li>You can choose to download a test report in Microsoft Excel or Adobe PDF formats.</li>
-</ul>
-
-<div class="anchor"><a name="howto"></a></div>
-<h2>Usage Details</h2>
-
-<h4>1. Certificate Profile Selection</h4>
-Specify the certificate profile you want to test using the drop-list selections.
-
-<ul style="list-style-type:disc">
-<li><strong>Profile Document -</strong> Select the relevant FPKI Profile Document
-    <ul><li>Common Policy SSP Program<sup><a href="#1">1</a></sup></li><li>Federal PKI/Federal Bridge<sup><a href="#2">2</a></sup></li><li>PIV Interoperable (PIV-I)<sup><a href="#3">.3</a></sup></li></ul>
-<li><strong>Document Version -</strong> The most recent version available is automatically selected when you select the Profile Document.
-<li><strong>Certificate Profile -</strong> Select the type of certificate you will test. For example, PIV Authentication.</li>
-</ul>
-
-<h4>2. Upload a Certificate</h4>
-
-<ol type="a">
-<li>Upload a certificate (.crt, .pem, .cer, or .der) using either of these options:</ol>
-<ul style="list-style-type:disc">
-<li><strong>Drag-and-drop</strong> your certificate to anywhere on the CPCT main screen. <em>The Test Results display for the uploaded certificate.</em><br>
-<li>Click the <strong>Upload Certificate</strong> button and browse to the certificate. Click it, and then click <strong>Open</strong>. <em>The Test Results display for the uploaded certificate.</em><br></li>
-</ul>
-
-<h4>3. Review Certificate Test Results</h4>
-<!-- <div id="notes">The Test Results screen includes the CPCT drop-downs so you can easily upload more certificates.</div> -->
-
-<p>The status banner will be <em>green</em> (certificate conforms) or <em>red</em> (doesn't conform) and will give a test summary:</p>
-
-<ul style="list-style-type:disc">
-<li><strong><em>Tested [n] fields: No Problems detected</em></strong>
-<li><strong><em>Tested [n] fields: [m] problems detected</em></strong></li>
-</ul>
-
-<p>The Test Results columns provide the following:</p>
+<h3>Email</h3>
 <ul>
-<li><strong><em>Field</em> -</strong> Types of fields and extensions in the certificate.
-<li><strong><em>Content</em> -</strong> Field and extension content.
-<li><strong><em>Analysis</em> -</strong> Displays a <strong>checkmark</strong> for <em>"PASS"</em> or state <strong>"FAIL" (with explanation)</strong> for each field and extension.</li>
+    <li>Email us at <a href="mailto:fpki@gsa.gov">fpki@gsa.gov</a></li>
 </ul>
-
-<h4>4. Download a Test Report</h4>
+<p> </p>
+<h2>Federal PKI Certificate Policies and Certificate Profiles</h2>
 
 <ul>
-<li>To download a Test Report, click the <strong>XLS</strong> or <strong>PDF</strong> button below the status banner. </li>
+<li>These documents are available from IDManagement.gov's <a href="https://www.idmanagement.gov/fpki/" target="_blank"><b>Federal Public Key Infrastructure</a> page.</li>
 </ul>
-
-<div class="anchor"><a name="troubleshooting"></a></div>
-<h2>Troubleshooting</h2>
-
-<h3>Certificate Failures</h3>
-
-<ul>
-<li> Please check to ensure that the right <strong>Profile Document</strong>, <strong>Document Version</strong>, and <strong>Certificate Profile</strong> have been selected.
-<li> If you have questions about why a certificate failed, or you believe the analysis could be an error please <a href="https://github.com/GSA/fpkilint/blob/dev/docs/cpct_contact_us.md" target="_blank">contact us</a>.
-</li>
-</ul>
-
-<h3>Application Error Messages</h3>
-
-<ul>
-<li><em>You can't upload files of this type.</em> The permitted file extensions are: .crt, .cer, .pem, and .der.</li>
-</ul>
-
-<h3>What If I Can't Resolve an Issue?</h3>
-
-<ul>
-<li><em>GitHub</em> - Create an issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a> and attach the certificate. (You will need a GitHub account to do this: <a href="https://github.com/join" target="_blank">Join GitHub</a>.)
-<li><em>Email us</em> - <strong>fpki@gsa.gov</strong> and attach your certificate. (Please rename your certificate with <strong>.txt</strong> file extension.)</li>
-</ul>
-
-<div class="anchor"><a name="feature"></a></div>
-<h2>Feature Request</h2>
-
-<ul>
-<li>If you would like to suggest a new CPCT feature, create a GitHub issue in the <a href="https://github.com/GSA/fpkilint" target="_blank">CPCT Repository</a>.</li>
-</ul>
-
-<div id="references">
-    <div id="vertspacer"></div>
-    <div class="anchor"><a name="1"></a>1. <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for the Shared Service Providers (SSP) Program Policy</em>.</div>
-    <div class="anchor"><a name="2"></a>2. <em>Federal Public Key Infrastructure (PKI) X.509 Certificate and CRL Extensions Profile</em>.</div>
-    <div class="anchor"><a name="3"></a>3. <em>X.509 Certificate and Certificate Revocation List (CRL) Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Cards</em>.</div>
-</div>
 
 
                 </div>

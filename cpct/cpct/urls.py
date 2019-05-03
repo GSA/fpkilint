@@ -22,4 +22,6 @@ urlpatterns = [
     url(r'^$', dashboard, name='dashboard'),
     url(r'^file/', upload_file, name='upload'),
     url(r'^help/', help, name='help'),
+    url(r'^privacy-policy/', privacy, name='privacy-policy'),
+    url(r'^contact-us/', contact, name='contact-us'),
 ]
