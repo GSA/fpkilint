@@ -284,6 +284,10 @@ def lint_policy_mappings(config_options, cert):
         from_set = set()
         to_set = set()
 
+        suppress_warning = 0
+        if 'suppress_warning' in config_options and len(config_options['suppress_warning'].value) > 0:
+            suppress_warning = int(config_options['suppress_warning'].value)
+
         mapping_count = 0
         for mapping in policy_mappings:
             mapping_count += 1
@@ -310,13 +314,15 @@ def lint_policy_mappings(config_options, cert):
                 r.add_error(mapping['issuer_domain_policy'].dotted + ' not present in Certificate Policies')
 
             if mapping['issuer_domain_policy'].dotted in from_set:
+                # this is not the right one
                 # r.add_error('Policy mapping [{}] may be ignored by Microsoft Windows'.format(mapping_count), lint_warning_prefix)
                 pass
             else:
                 from_set.add(mapping['issuer_domain_policy'].dotted)
 
             if mapping['subject_domain_policy'].dotted in to_set:
-                r.add_error('Policy mapping [{}] may be ignored by Microsoft Windows'.format(mapping_count), lint_warning_prefix)
+                if suppress_warning is 0:
+                    r.add_error('Policy mapping [{}] may be ignored by Microsoft Windows'.format(mapping_count), lint_warning_prefix)
             else:
                 to_set.add(mapping['subject_domain_policy'].dotted)
 
@@ -641,6 +647,11 @@ printable_string_char_set = {
 teletex_bad_character_set = {35, 36, 92, 94, 96, 123, 125, 126, 169, 170, 172, 173, 174, 175, 185, 186, 192, 201,
                              208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 229, 255}
 
+# https://www.itu.int/ITU-T/studygroups/com17/languages/X.691-0207.pdf
+# (For IA5String the range is 0 to 127, for VisibleString it is
+# 32 to 126, for NumericString it is 32 to 57, and for PrintableString it is 32 to 122. For IA5String and
+# VisibleString all values in the range are present, but for NumericString and PrintableString not all values in
+# the range are in use.)
 
 def find_illegal_characters(asn_string):
 
@@ -656,6 +667,10 @@ def find_illegal_characters(asn_string):
             if c not in printable_string_char_set:
                 illegal_characters.append(c)
     elif string_type == 'IA5':
+        for c in asn_string.contents:
+            if not 0x00 <= c <= 0x7f:
+                illegal_characters.append(chr(c))
+    elif string_type == 'Visible':
         # for c in asn_string.native:
         #     if not 0x20 <= ord(c) <= 0x7f:
         #         illegal_characters.append(c)
@@ -1706,6 +1721,9 @@ def lint_validity(config_options, cert):
 
 _geo_or_dc_error = '{} must be a geo-political name (O=X, C=Y) or an Internet domain component (DC=X, DC=Y) name'
 
+#         for c in asn_string.native:
+#             if c not in printable_string_char_set:
+#                 illegal_characters.append(c)
 
 def check_permitted_string_types(rdn_seq, permitted_string_types, r, directory_string_only):
     bad_things_found = {}
