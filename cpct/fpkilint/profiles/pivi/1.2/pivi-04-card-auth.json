@@ -188,7 +188,7 @@
     {
         "Section":  "issuer",
         "Item":  "rdn_organizational_unit",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.4.11"
     },
     {
