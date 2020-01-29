@@ -234,7 +234,7 @@ def _get_mappings_config(config_string, config_options, r):
         for i, mapping in enumerate(mappings):
             mappings[i] = mapping.split(":")
 
-            if not isinstance(mappings[i], list) or len(mappings[i]) is not 2:
+            if not isinstance(mappings[i], list) or len(mappings[i]) != 2:
                 r.add_error("Bad {} policy mapping configuration.".format(config_string))
                 r.add_error("Configuration takes this form:", "")
                 r.add_error("issuer:subject[space]issuer2:subject2[space]...", "")
@@ -321,7 +321,7 @@ def lint_policy_mappings(config_options, cert):
                 from_set.add(mapping['issuer_domain_policy'].dotted)
 
             if mapping['subject_domain_policy'].dotted in to_set:
-                if suppress_warning is 0:
+                if not suppress_warning:
                     r.add_error('Policy mapping [{}] may be ignored by Microsoft Windows'.format(mapping_count), lint_warning_prefix)
             else:
                 to_set.add(mapping['subject_domain_policy'].dotted)
@@ -1425,7 +1425,7 @@ def lint_ocsp_nocheck(config_options, cert):
         ocsp_no_check = extension['extn_value'].parsed
 
         # The value of the extension SHALL be NULL.
-        if len(ocsp_no_check.contents) is 0:
+        if not len(ocsp_no_check.contents):
             r.add_content("NULL")
         else:
             r.add_content(get_der_display_string(ocsp_no_check.contents))
@@ -1557,10 +1557,10 @@ def lint_serial_number(config_options, cert):
     if 'max_length' in config_options and len(config_options['max_length'].value) > 0:
         max_length = int(config_options['max_length'].value)
 
-    if min_length is not 0 and len(serial_bytes) < min_length:
+    if min_length and len(serial_bytes) < min_length:
         r.add_error("Minimum permitted length is {} octets".format(str(min_length)))
 
-    if max_length is not 0 and len(serial_bytes) > max_length:
+    if max_length and len(serial_bytes) > max_length:
         r.add_error("Maximum permitted length is {} octets".format(str(max_length)))
 
     if len(serial_bytes) > 1 and serial_bytes[0] == 0 and serial_bytes[1] & 0x80 != 0x80:
@@ -1593,14 +1593,17 @@ def lint_subject_public_key_info(config_options, cert):
     r.add_content("")
     pub_key_bytes = public_key_info['public_key'].contents
     # strip leading 00 so it matches microsoft cert viewer
-    if pub_key_bytes[0] is 0:
+    if pub_key_bytes[0] == 0:
         pub_key_bytes = pub_key_bytes[1:]
     # 43 chars to match ms cert viewer
     pub_key_text = lint_cert_newline.join(textwrap.wrap(' '.join('%02X' % c for c in pub_key_bytes), 43))
     r.add_content(pub_key_text)
 
     if public_key_info.algorithm == 'rsa':
-        pub_key = public_key_info.unwrap()
+        # asn1crypto._errors.APIException: asn1crypto.keys.PublicKeyInfo().unwrap() has been removed,
+        # please use oscrypto.asymmetric.PublicKey().unwrap() instead
+        # pub_key = public_key_info.unwrap()
+        pub_key = public_key_info['public_key'].parsed
         modulus = pub_key.native['modulus']
         if modulus < 0:
             r.add_error("RSA modulus is negative")
@@ -1610,11 +1613,20 @@ def lint_subject_public_key_info(config_options, cert):
         if public_exponent < 0:
             r.add_error("RSA public exponent is negative")
 
-        if 'parameters' in public_key_info['algorithm']:
-            if public_key_info['algorithm']['parameters'] is not None and len(
-                    public_key_info['algorithm']['parameters'].contents) > 0:
-                r.add_content("{}**Parameters**:{}".format(lint_cert_newline, lint_cert_newline))
+    elif public_key_info.algorithm == 'ec':
+        pass
+
+    if 'parameters' in public_key_info['algorithm'] and public_key_info['algorithm']['parameters'] is not None:
+        if len(public_key_info['algorithm']['parameters'].contents) > 0:
+            if public_key_info.algorithm == 'ec' and public_key_info['algorithm']['parameters'].name == 'named':
+                r.add_content("{}Named Curve: {} ({})".format(lint_cert_newline,
+                                                              public_key_info['algorithm']['parameters'].chosen.native,
+                                                              public_key_info['algorithm']['parameters'].chosen.dotted))
+            else:
+                # todo add better display support for rsa pss, ec specified curve
+                r.add_content("{}Parameters:{}".format(lint_cert_newline, lint_cert_newline))
                 r.add_content(der2asn(public_key_info['algorithm']['parameters'].contents))
+
 
     found = False
 
@@ -1874,12 +1886,12 @@ def lint_other_extensions(config_options, cert):
                 others_critical += 1
                 r.add_content("Critical = TRUE")
                 if 'other_critical_extensions_present' in config_options and \
-                                config_options['other_critical_extensions_present'].value is '1':
+                                config_options['other_critical_extensions_present'].value == '1':
                     r.add_error("Additional critical extensions are not permitted")
             else:
                 others_non_critical += 1
                 if 'other_non_critical_extensions_present' in config_options and \
-                        config_options['other_non_critical_extensions_present'].value is '1':
+                        config_options['other_non_critical_extensions_present'].value == '1':
                     r.add_error("Additional non-critical extensions are not permitted")
 
             if e.contents is not None:

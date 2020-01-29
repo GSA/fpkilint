@@ -382,7 +382,7 @@ def get_extension_and_criticality(tbs_cert, oid):
 
     ext_list = get_extension_list(tbs_cert, oid)
 
-    if len(ext_list) is 0:
+    if len(ext_list) == 0:
         return None, False
 
     return ext_list[0][0], ext_list[0][1]
@@ -547,7 +547,7 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
 
         for rdn2 in rdn_list:
             for name2 in rdn2:
-                if s is not "":
+                if s:
                     s += rdn_separator
                 s += get_pretty_dn_name_component(name2['type'])
                 if include_oid is True:
@@ -754,7 +754,7 @@ def get_short_name_from_cert(cert, name_for_subject=True):
             general_name = alt_name_value[0]
             alt_name_string = get_general_name_type(general_name)
 
-        if len(alt_name_value) is 1:
+        if len(alt_name_value) == 1:
             return alt_name_value
 
         for desired_type in desired_alt_names:
