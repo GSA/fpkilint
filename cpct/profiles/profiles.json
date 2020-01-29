@@ -8,6 +8,56 @@
       "name": "Common Policy SSP Program",
       "versions": [
         {
+          "version": "1.9",
+          "date": "5/9/2018",
+          "cert_types": [
+			{
+				"cert_type": "Self Signed (Root)",
+				"template": "common-ssp/1.9/ssp-01-self-signed.json"
+			},
+			{
+				"cert_type": "Self Issued CA",
+				"template": "common-ssp/1.9/ssp-02-self-issued-ca.json"
+			},
+			{
+				"cert_type": "Cross Certificate",
+				"template": "common-ssp/1.9/ssp-03-cross-certificate.json"
+			},
+			{
+				"cert_type": "End Entity Signature",
+				"template": "common-ssp/1.9/ssp-05-ee-signature.json"
+			},
+			{
+				"cert_type": "Key Management",
+				"template": "common-ssp/1.9/ssp-06-key-management.json"
+			},
+			{
+				"cert_type": "Device",
+				"template": "common-ssp/1.9/ssp-07-device.json"
+			},
+			{
+				"cert_type": "PIV Card Auth",
+				"template": "common-ssp/1.9/ssp-08-piv-card-auth.json"
+			},
+			{
+				"cert_type": "PIV Authentication",
+				"template": "common-ssp/1.9/ssp-09-piv-auth.json"
+			},
+			{
+				"cert_type": "PIV Content Signing",
+				"template": "common-ssp/1.9/ssp-10-piv-content-signing.json"
+			},
+			{
+				"cert_type": "Derived PIV Auth",
+				"template": "common-ssp/1.9/ssp-11-derived-piv-auth.json"
+			},
+			{
+				"cert_type": "Delegated OCSP",
+				"template": "common-ssp/1.9/ssp-12-delegated-ocsp.json"
+			}
+            ]
+        },
+        {
           "version": "1.8",
           "date": "7/17/2017",
           "cert_types": [
@@ -63,6 +113,32 @@
       "name": "Federal PKI / Federal Bridge",
       "versions": [
         {
+          "version": "1.9",
+          "date": "5/10/2018",
+          "cert_types": [
+			{
+			  "cert_type": "Self Signed CA",
+			  "template": "fbca/1.9/1-self-signed-ca.json"
+			},
+			{
+			  "cert_type": "CA Key Rollover",
+			  "template": "fbca/1.9/2-key-roll-over-ca.json"
+			},
+			{
+			  "cert_type": "Cross Certificate",
+			  "template": "fbca/1.9/3-cross-certificate.json"
+			},
+			{
+			  "cert_type": "End Entity Signature",
+			  "template": "fbca/1.9/5-ee-signature.json"
+			},
+			{
+			  "cert_type": "Key Management",
+			  "template": "fbca/1.9/6-ee-key-management.json"
+			}
+            ]
+        },
+        {
           "version": "1.8",
           "date": "7/17/2017",
           "cert_types": [
@@ -93,6 +169,44 @@
     {
       "name": "PIV Interoperable (PIV-I)",
       "versions": [
+        {
+          "version": "1.3",
+          "date": "5/10/2018",
+          "cert_types": [
+			{
+			  "cert_type": "Self Signed",
+			  "template": "pivi/1.3/pivi-01-self-signed.json"
+			},
+			{
+			  "cert_type": "Cross Certificate",
+			  "template": "pivi/1.3/pivi-02-cross-certificate.json"
+			},
+			{
+			  "cert_type": "Card Authentication",
+			  "template": "pivi/1.3/pivi-04-card-auth.json"
+			},
+			{
+			  "cert_type": "Authentication",
+			  "template": "pivi/1.3/pivi-05-authentication.json"
+			},
+			{
+			  "cert_type": "Signature",
+			  "template": "pivi/1.3/pivi-06-signature.json"
+			},
+			{
+			  "cert_type": "Key Management",
+			  "template": "pivi/1.3/pivi-07-key-management.json"
+			},
+			{
+			  "cert_type": "Content Signing",
+			  "template": "pivi/1.3/pivi-08-content-signing.json"
+			},
+			{
+			  "cert_type": "Delegated OCSP",
+			  "template": "pivi/1.3/pivi-09-delegated-ocsp.json"
+			}
+            ]
+        },  
         {
           "version": "1.2",
           "date": "7/17/2017",
