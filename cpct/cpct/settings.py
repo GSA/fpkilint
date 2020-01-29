@@ -122,9 +122,11 @@ if 'win' in sys.platform:
     # must be false to run without https in debugger
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_HTTPONLY = True
 else:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
