@@ -139,6 +139,10 @@ cpct/.idea/dynamic.xml
 cpct/.idea/uiDesigner.xml
 cpct/.idea/dbnavigator.xml
 
+# not needed
+.idea/
+.idea/fpkilint.iml
+
 # Gradle
 cpct/.idea/**/gradle.xml
 cpct/.idea/**/libraries
