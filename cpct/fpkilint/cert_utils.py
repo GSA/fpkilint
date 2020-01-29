@@ -93,7 +93,7 @@ eku_display_map = {
     '1.3.6.1.4.1.311.10.3.9': 'Microsoft root list signer',
     '1.3.6.1.4.1.311.10.3.10': 'Microsoft qualified subordination',
     '1.3.6.1.4.1.311.10.3.11': 'Microsoft key recovery',
-    '1.3.6.1.4.1.311.10.3.12': 'Microsoft Document Signing',
+    '1.3.6.1.4.1.311.10.3.12': 'Microsoft Doc Signing',
     '1.3.6.1.4.1.311.10.3.13': 'Microsoft Lifetime signing',
     '1.3.6.1.4.1.311.10.3.14': 'Microsoft mobile device software',
     # https://opensource.Apple.com/source
@@ -132,12 +132,14 @@ eku_display_map = {
     '1.2.840.113635.100.1.33': 'Apple server authentication',
     '1.2.840.113635.100.1.34': 'Apple pcs escrow service',
     # missing from asn1crypto
-    '1.3.6.1.4.1.311.20.2.2': 'Microsoft Smart Card Logon',
+    '1.3.6.1.4.1.311.20.2.2': 'MS Smart Card Logon',
     '2.16.840.1.101.3.6.8': 'id-PIV-cardAuth',
     '2.16.840.1.101.3.6.7': 'id-PIV-content-signing',
     '2.16.840.1.101.3.8.7': 'id-fpki-pivi-content-signing',
     '1.3.6.1.5.2.3.4': 'id-pkinit-KPClientAuth',
     '1.3.6.1.5.2.3.5': 'id-pkinit-KPKdc',
+    '1.3.6.1.4.1.311.20.2.1': 'MS Enrollment Agent',
+    '1.3.6.1.4.1.311.21.6': 'MS Key Recovery Agent',  # Enhanced Key Usage for key recovery agent certificate
     '1.2.840.113583.1.1.5': 'Adobe PDF Signing',
     '2.23.133.8.1': 'Endorsement Key Certificate',
     '1.3.6.1.5.5.8.2.2': 'IKE Intermediate',
@@ -276,6 +278,12 @@ def parse_certificate(byte_data):
 
         if file_type != 'CERTIFICATE':
             raise TypeError("CERTIFICATE expected, but got {}".format(file_type))
+
+    if byte_data[0] != 0x30:
+        raise TypeError("Leading byte is not 0x30 - this is not a certificate")
+
+    if byte_data[1] & 0xF0 != 0x80:
+        raise TypeError("Second byte is not 0x8n - this is not a certificate")
 
     x509cert = x509.Certificate.load(byte_data)
     x509cert.issuer  # forces lazy parse to occur now
@@ -566,7 +574,7 @@ general_name_display_map = {
     'other_name': 'Other Name',
     'uniform_resource_identifier': 'URI',
     'other_name_upn': 'UPN',
-    'other_name_piv_fasc_n': 'FASCN',
+    'other_name_piv_fasc_n': 'FASC-N',
     'uniform_resource_identifier_chuid': 'UUID',
     'uniform_resource_identifier_http': 'HTTP URI',
     'uniform_resource_identifier_ldap': 'LDAP URI',
@@ -576,7 +584,7 @@ general_name_display_map = {
 
 other_name_display_map = {
     '1.3.6.1.4.1.311.20.2.3': 'UPN',
-    '2.16.840.1.101.3.6.6': 'FASCN',
+    '2.16.840.1.101.3.6.6': 'FASC-N',
 }
 
 other_name_type_map = {
