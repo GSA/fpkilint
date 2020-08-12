@@ -1810,9 +1810,9 @@ def lint_dn(config_options, dn, row_name):
             # print(ce + " " + config_options[ce].oid)
             found = is_name_type_in_dn(config_options[ce].oid, dn)
             if found is True and config_options[ce].value == '1':
-                r.add_error('{} is not permitted'.format(ce))
+                r.add_error('{} is not permitted'.format(ce[4:].replace('_', ' ').title()))
             elif found is False and config_options[ce].value == '2':
-                r.add_error('{} is missing'.format(ce))
+                r.add_error('{} is missing'.format(ce[4:].replace('_', ' ').title()))
 
         elif 'values_' in ce and len(config_options[ce].value):
             rdn_values = get_rdn_values_from_dn(config_options[ce].oid, dn)

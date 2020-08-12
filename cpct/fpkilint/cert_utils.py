@@ -1,7 +1,7 @@
 import base64
 from collections import OrderedDict
 from asn1crypto import pem, x509
-from fpkilint.binary_utils import *
+import textwrap
 
 from asn1crypto.core import (
     AbstractString,
@@ -96,6 +96,18 @@ eku_display_map = {
     '1.3.6.1.4.1.311.10.3.12': 'Microsoft Doc Signing',
     '1.3.6.1.4.1.311.10.3.13': 'Microsoft Lifetime signing',
     '1.3.6.1.4.1.311.10.3.14': 'Microsoft mobile device software',
+    '1.3.6.1.4.1.311.3.10.3.1': 'Microsoft Signer of CTLs',
+    '1.3.6.1.4.1.311.3.10.3.2': 'Microsoft Signer of TimeStamps',
+    '1.3.6.1.4.1.311.3.10.3.3': 'Microsoft Can use strong encryption in export environment',
+    '1.3.6.1.4.1.311.3.10.3.4': 'Microsoft Can use encrypted file systems (EFS)',
+    '1.3.6.1.4.1.311.3.10.3.5': 'Microsoft Can use Windows Hardware Compatible (WHQL)',
+    '1.3.6.1.4.1.311.3.10.3.6': 'Microsoft Signed by the NT5 Build Lab',
+    '1.3.6.1.4.1.311.3.10.3.7': 'Microsoft Signed by an OEM of WHQL',
+    '1.3.6.1.4.1.311.3.10.3.8': 'Microsoft Signed by the Embedded NT',
+    '1.3.6.1.4.1.311.3.10.3.9': 'Microsoft Signer of a CTL containing trusted roots',
+    '1.3.6.1.4.1.311.3.10.3.10': 'Microsoft Key Recovery',
+    '1.3.6.1.4.1.311.3.10.3.11': 'Microsoft Key Recovery',
+    '1.3.6.1.4.1.311.3.10.3.12': 'Microsoft Document Signing',
     # https://opensource.Apple.com/source
     #  - /Security/Security-57031.40.6/Security/libsecurity keychain/lib/SecPolicy.cpp
     #  - /libsecurity cssm/libsecurity cssm-36064/lib/oidsalg.c
@@ -596,7 +608,7 @@ other_name_type_map = {
 import urllib.parse
 
 
-def get_general_name_string(general_name, multiline=None, indent_string=None, type_separator=None, include_string_type=None):
+def get_general_name_string(general_name, multiline=None, indent_string=None, type_separator=None, include_string_type=None, value_only=None):
     if multiline is None:
         multiline = False
     if indent_string is None:
@@ -605,9 +617,13 @@ def get_general_name_string(general_name, multiline=None, indent_string=None, ty
         type_separator = ' = '
     if include_string_type is None:
         include_string_type = False
+    if value_only is None:
+        value_only = False
 
-
-    general_name_string = "{}: ".format(general_name_display_map.get(general_name.name, "Unknown Name Type"))
+    if value_only is False:
+        general_name_string = "{}: ".format(general_name_display_map.get(general_name.name, "Unknown Name Type"))
+    else:
+        general_name_string = ''
 
     if general_name.name == 'uniform_resource_identifier':
 
@@ -763,3 +779,35 @@ def get_short_name_from_cert(cert, name_for_subject=True):
                     return get_general_name_string(general_name)
 
     return alt_name_string
+
+
+def binary_to_hex_string(byte_value, multi_line=None):
+    if not isinstance(byte_value, bytes):
+        return "You must pass in bytes..."
+
+    hex_string = ""
+
+    if multi_line is not True:
+        hex_string += ''.join('%02X' % c for c in byte_value)
+    else:
+        hex_string += textwrap.fill(' '.join('%02X' % c for c in byte_value), 43)
+
+    return hex_string
+
+
+def get_der_display_string(byte_value, preface=None, multi_line=None):
+    if not isinstance(byte_value, bytes):
+        return "You must pass in bytes..."
+
+    if preface is None:
+        der_display_string = "DER: "
+    else:
+        der_display_string = preface
+
+    if multi_line is not True:
+        der_display_string += binary_to_hex_string(byte_value)
+    else:
+        der_display_string += '\n'
+        der_display_string += binary_to_hex_string(byte_value, True)
+
+    return der_display_string
