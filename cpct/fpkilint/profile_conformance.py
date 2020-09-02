@@ -1187,7 +1187,7 @@ def lint_aia(config_options, cert):
         ocsp_https = False
         aia_https = False
         aia_ldaps = False
-        aia_not_p7c = 0
+        aia_with_p7c = 0
 
         for access_description in aia:
             access_method = access_description['access_method']  # AccessMethod
@@ -1214,8 +1214,8 @@ def lint_aia(config_options, cert):
                         # todo Confirm valid issuer cert for this cert is present in AIA
                         if first_http == 0:
                             first_http = dp_num
-                        if not access_location.native.endswith('.p7c'):
-                            aia_not_p7c += 1
+                        if access_location.native.endswith('.p7c'):
+                            aia_with_p7c += 1
                     if access_location.native[0:4] == 'ldap' and first_ldap == 0:
                         first_ldap = dp_num
                     if access_location.native[0:8] == 'https://':
@@ -1262,7 +1262,7 @@ def lint_aia(config_options, cert):
 
             _do_presence_test(r, config_options, 'ca_issuers_directory_name', 'Directory Address AIA',
                               first_directory_name > 0)
-            _do_presence_test(r, config_options, 'ca_issuers_http_p7c', 'caIssuers ending with .p7c', aia_not_p7c == 0)
+            _do_presence_test(r, config_options, 'ca_issuers_http_p7c', 'caIssuers ending with .p7c', aia_with_p7c != 0)
 
         _do_presence_test(r, config_options, 'ocsp_present', 'OCSP', ocsp_found)
 
