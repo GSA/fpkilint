@@ -192,7 +192,7 @@ policies_display_map = {
     '2.16.840.1.101.3.2.1.3.6': 'id-fpki-common-policy',
     '2.16.840.1.101.3.2.1.3.7': 'id-fpki-common-hardware',
     '2.16.840.1.101.3.2.1.3.8': 'id-fpki-common-devices',
-    '2.16.840.1.101.3.2.1.3.13': 'id-fpki-common-authentication',
+    '2.16.840.1.101.3.2.1.3.13': 'id-fpki-common-authentication (PIV)',
     '2.16.840.1.101.3.2.1.3.16': 'id-fpki-common-high',
     '2.16.840.1.101.3.2.1.3.17': 'id-fpki-common-cardAuth',
     '2.16.840.1.101.3.2.1.3.26': 'id-fpki-SHA1-authentication',
@@ -583,6 +583,9 @@ policies_display_map = {
     # this policy and can be used.  Alternatively, create a new certificate type and ensure it contains this policy OID
     '2.16.840.1.114027.10.4': 'Entrust Administrative User',
     '2.16.840.1.114027.10.5': 'Entrust Admin Services Server',
+
+    '2.16.840.1.114027.10.23': 'Entrust AS Internal Service',
+    '2.16.840.1.114027.10.24': 'Entrust AS Internal Client',
 
     # https://services.directtrust.org/wp-content/uploads/2014/08/Direct_certificate_crl_profile_V1.pdf
     # https://www.directmdemail.com/documents/DirectTrust_CP_V1_2_1.pdf

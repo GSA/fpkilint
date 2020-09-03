@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 from fpkilint.certificate_policies import policies_display_map
 from fpkilint.binary_utils import *
+from fpkilint.name_utils import *
 
 # these are not all used, keeping them here as a matter of convenience
 from asn1crypto.core import (
