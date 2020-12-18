@@ -7,6 +7,76 @@
     {
       "name": "Common Policy SSP Program",
       "versions": [
+		  {
+          "version": "2.0",
+          "date": "9/1/2020",
+		  "cert_types": [
+			{
+				"cert_type": "Self-Signed (Root)",
+				"template": "common-ssp/2.0/ssp-01-self-signed.json"
+			},
+			{
+				"cert_type": "Self-Issued CA",
+				"template": "common-ssp/2.0/ssp-02-self-issued-ca.json"
+			},
+			{
+				"cert_type": "Cross Certificate",
+				"template": "common-ssp/2.0/ssp-03-cross-certificate.json"
+			},
+			{
+				"cert_type": "Intermediate CA",
+				"template": "common-ssp/2.0/ssp-04-intermediate-ca.json"
+			},
+			{
+				"cert_type": "PIV Content Signing",
+				"template": "common-ssp/2.0/ssp-05-piv-content-signing.json"
+			},
+			{
+				"cert_type": "PIV Authentication",
+				"template": "common-ssp/2.0/ssp-06-piv-auth.json"
+			},
+			{
+				"cert_type": "PIV Card Authentication",
+				"template": "common-ssp/2.0/ssp-07-piv-card-auth.json"
+			},
+			{
+				"cert_type": "Signature",
+				"template": "common-ssp/2.0/ssp-08-ee-signature.json"
+			},
+			{
+				"cert_type": "Key Management",
+				"template": "common-ssp/2.0/ssp-09-key-management.json"
+			},
+			{
+				"cert_type": "Derived PIV Auth",
+				"template": "common-ssp/2.0/ssp-10-derived-piv-auth.json"
+			},
+			{
+				"cert_type": "Authentication",
+				"template": "common-ssp/2.0/ssp-11-auth.json"
+			},
+			{
+				"cert_type": "Device",
+				"template": "common-ssp/2.0/ssp-12-device.json"
+			},
+			{
+				"cert_type": "Delegated OCSP Responder",
+				"template": "common-ssp/2.0/ssp-13-delegated-ocsp.json"
+			},
+			{
+				"cert_type": "Common PIV-I Content Signing",
+				"template": "common-ssp/2.0/ssp-15-pivi-content-signing.json"
+			},
+			{
+				"cert_type": "Common PIV-I Authentication",
+				"template": "common-ssp/2.0/ssp-16-pivi-authentication.json"
+			},
+			{
+				"cert_type": "Common PIV-I Card Auth",
+				"template": "common-ssp/2.0/ssp-17-pivi-card-auth.json"
+			}
+            ]
+        },
         {
           "version": "1.9",
           "date": "5/9/2018",
