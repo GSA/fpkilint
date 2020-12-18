@@ -654,14 +654,15 @@ teletex_bad_character_set = {35, 36, 92, 94, 96, 123, 125, 126, 169, 170, 172, 1
 # VisibleString all values in the range are present, but for NumericString and PrintableString not all values in
 # the range are in use.)
 
-def find_illegal_characters(asn_string):
+def find_illegal_characters(asn_string, string_type=None):
 
     if not asn_string or not isinstance(asn_string, AbstractString):
         print('not a string?')
         return None
 
     illegal_characters = []
-    string_type = get_abstract_string_type(asn_string)
+    if not string_type:
+        string_type = get_abstract_string_type(asn_string)
 
     if string_type == 'Printable':
         for c in asn_string.native:
@@ -696,9 +697,9 @@ def find_illegal_characters(asn_string):
 
 
 #  "Non IA5 character {} found in CPSuri ::= IA5String".format('0x%02X' % ord(c)))
-def lint_asn_string(asn_string, string_description, r):
+def lint_asn_string(asn_string, string_description, r, string_type=None):
 
-    bad_chars = find_illegal_characters(asn_string)
+    bad_chars = find_illegal_characters(asn_string, string_type)
 
     if bad_chars:
         error_string = "Illegal {} character".format(asn_string.__class__.__name__)
@@ -726,13 +727,12 @@ def lint_dn_strings(name, r):
     rdn_seq = name.chosen  # type = RDNSequence
     if len(rdn_seq):
         for rdn in rdn_seq:
-            for name in rdn:
-                value = name['value']
-                if isinstance(value, x509.DirectoryString):
-                    lint_asn_string(value.chosen, get_pretty_dn_name_component(name['type']), r)
-                elif isinstance(value, Any):
-                    if value.parsed and isinstance(value.parsed, AbstractString):
-                        lint_asn_string(value.parsed, name['type'], r)
+            for name2 in rdn:
+                string_type, value = split_name_type_and_value(name2)
+                if isinstance(value, AbstractString):
+                    lint_asn_string(value, get_pretty_dn_name_component(name2['type']), r, string_type)
+                else:
+                    pass  # what to do with this..
 
     return
 
@@ -761,7 +761,7 @@ def lint_policies(config_options, cert):
         match_mode = config_options['match_mode'].value
 
     if 'permit_others' in config_options and len(config_options['permit_others'].value) > 0:
-        permit_others = config_options['permit_others'].value
+        permit_others = int(config_options['permit_others'].value)
 
     policy_count = 0
     for policy in certificate_policies:
@@ -1156,10 +1156,10 @@ def lint_crldp(config_options, cert):
 
                 http_before_ldap = int(config_options['http_before_ldap'].value)
 
-                if http_before_ldap == '1' and first_http < first_ldap:
+                if http_before_ldap == 1 and first_http < first_ldap:
                     # require ldap first but http came first
                     r.add_error("LDAP URI must appear before the HTTP URI")
-                elif http_before_ldap == '2' and first_ldap < first_http:
+                elif http_before_ldap == 2 and first_ldap < first_http:
                     # require http first but ldap came first
                     r.add_error("HTTP URI must appear before the LDAP URI")
 
@@ -1245,10 +1245,10 @@ def lint_aia(config_options, cert):
 
                 http_before_ldap = int(config_options['ca_issuers_http_before_ldap'].value)
 
-                if http_before_ldap == '1' and first_http < first_ldap:
+                if http_before_ldap == 1 and first_http < first_ldap:
                     # require ldap first but http came first
                     r.add_error("LDAP URI must appear before the HTTP URI")
-                elif http_before_ldap == '2' and first_ldap < first_http:
+                elif http_before_ldap == 2 and first_ldap < first_http:
                     # require http first but ldap came first
                     r.add_error("HTTP URI must appear before the LDAP URI")
 
@@ -1342,10 +1342,10 @@ def lint_sia(config_options, cert):
 
                 http_before_ldap = int(config_options['ca_repository_http_before_ldap'].value)
 
-                if http_before_ldap == '1' and first_http < first_ldap:
+                if http_before_ldap == 1 and first_http < first_ldap:
                     # require ldap first but http came first
                     r.add_error("LDAP URI must appear before the HTTP URI")
-                elif http_before_ldap == '2' and first_ldap < first_http:
+                elif http_before_ldap == 2 and first_ldap < first_http:
                     # require http first but ldap came first
                     r.add_error("HTTP URI must appear before the LDAP URI")
 
@@ -1708,10 +1708,10 @@ def lint_validity(config_options, cert):
 
     if na.native < now:
         r.add_content('Certificate is expired')
-        if is_valid_now == '2':
+        if is_valid_now == 2:
             r.add_error("Certificate is expired")
     else:
-        if is_valid_now == '1':
+        if is_valid_now == 1:
             r.add_error("Certificate should be expired")
 
     if 'validity_period_maximum' in config_options and len(config_options['validity_period_maximum'].value) > 0:
@@ -1719,7 +1719,10 @@ def lint_validity(config_options, cert):
 
     if validity_period_maximum > 0:
         # lifespan must be less than validity_period_maximum
-        max_validity = timedelta(days=validity_period_maximum)
+        # certificates should meet the spirit of the requirement. pad between 1 and 14 days.
+        padded_validity_period_maximum = min(14, max(1, int(validity_period_maximum * .02))) + validity_period_maximum
+
+        max_validity = timedelta(days=padded_validity_period_maximum)
         if lifespan > max_validity:
             r.add_error("Validity period exceeds {} days".format(str(validity_period_maximum)))
 
@@ -1752,10 +1755,10 @@ def check_permitted_string_types(rdn_seq, permitted_string_types, r, directory_s
 
     for rdn in rdn_list:
         for name in rdn:
-            if get_name_type_string(name) not in permitted_string_types:
+            if get_name_type_and_value_string_type(name) not in permitted_string_types:
                 if directory_string_only and not isinstance(name['value'], x509.DirectoryString):
                     continue
-                string_type = get_name_type_string(name)
+                string_type = get_name_type_and_value_string_type(name)
                 rdn_type = get_pretty_dn_name_component(name['type'])
                 if string_type in bad_things_found:
                     if rdn_type not in bad_things_found[string_type]:

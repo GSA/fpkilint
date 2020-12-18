@@ -1,3 +1,4 @@
+import warnings
 from asn1crypto import x509
 from fpkilint.display_maps import *
 import textwrap
@@ -101,27 +102,36 @@ def get_abstract_string_type(abstract_string):
     return string_type
 
 
-def get_name_type_string(name):
-    if not isinstance(name, x509.NameTypeAndValue):
-        return 'Error - get_name_string_type takes x509.NameTypeAndValue'
+class type_and_value(Sequence):
+    _fields = [
+        ('oid', ObjectIdentifier, {}),
+        ('value', Any, {})
+    ]
 
-    value = name['value']
 
-    if isinstance(value, x509.DirectoryString):
-        return directory_string_type_display_map.get(value.name, 'Undefined DirectoryString Type')
+def get_name_type_and_value_string_type(nameTypeAndValue):
+    if not isinstance(nameTypeAndValue, x509.NameTypeAndValue):
+        raise TypeError('Expected asn1crypto.x509.NameTypeAndValue')
 
-    if isinstance(value, Any):
-        if value.parsed and isinstance(value.parsed, AbstractString):
-            return get_abstract_string_type(value.parsed)
-
-    string_type = 'Unknown'
-
-    try:
-        string_type = get_abstract_string_type(value)
-    except:
-        pass
-
+    string_type, value = split_name_type_and_value(nameTypeAndValue)
     return string_type
+
+
+def split_name_type_and_value(nameTypeAndValue):
+    if not isinstance(nameTypeAndValue, x509.NameTypeAndValue):
+        raise TypeError('Expected asn1crypto.x509.NameTypeAndValue')
+
+    # this code side steps any auto correcting that is happening in asn1crypto
+    # example: auto correcting EmailAddress encoded as printable string to IA5
+    name_type_and_value = type_and_value.load(nameTypeAndValue.dump())
+    value = name_type_and_value['value'].parsed
+
+    if isinstance(value, AbstractString):
+        return get_abstract_string_type(value), value
+    else:
+        warnings.warn('NameTypeAndValue did not contain an AbstractString?')
+
+    return 'Unknown', value
 
 
 # type = Name e.g. subject = tbs_cert['subject']
@@ -162,7 +172,7 @@ def get_pretty_dn(name, rdn_separator=None, type_value_separator=None, include_o
                     s += ' ({})'.format(name2['type'])
 
                 if include_string_type is True:
-                    string_type = '({}) '.format(get_name_type_string(name2))
+                    string_type = '({}) '.format(get_name_type_and_value_string_type(name2))
 
                 s += '{}{}{}'.format(type_value_separator, string_type, name2.native['value'])
     else:
