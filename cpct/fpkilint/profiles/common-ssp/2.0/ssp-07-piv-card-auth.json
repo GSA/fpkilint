@@ -320,7 +320,7 @@
     {
         "Section":  "subject",
         "Item":  "permitted_string_types_dir_string",
-        "Value":  "Printable",
+        "Value":  "UTF8;Printable",
         "OID":  ""
     },
     {

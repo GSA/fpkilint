@@ -320,7 +320,7 @@
     {
         "Section":  "subject",
         "Item":  "permitted_string_types_dir_string",
-        "Value":  "Printable",
+        "Value":  "UTF8;Printable",
         "OID":  ""
     },
     {
@@ -812,6 +812,12 @@
     {
         "Section":  "sia",
         "Item":  "ca_repository_http_p7c",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "sia",
+        "Item":  "ca_repository_required_if_not_path_len_zero",
         "Value":  "0",
         "OID":  ""
     },

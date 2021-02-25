@@ -1277,6 +1277,7 @@ def lint_sia(config_options, cert):
     r = OutputRow("Subject Information Access")
 
     extension = _process_common_extension_options(config_options, cert, r)
+    ca_repository_found = False
 
     if extension is not None:
 
@@ -1286,7 +1287,6 @@ def lint_sia(config_options, cert):
         first_http = 0
         first_ldap = 0
         first_directory_name = 0
-        ca_repository_found = False
         time_stamping_found = False
         sia_https = False
         sia_ldaps = False
@@ -1365,6 +1365,40 @@ def lint_sia(config_options, cert):
                               'HTTP Repository ending in .p7c', sia_not_p7c == 0)
 
         _do_presence_test(r, config_options, 'time_stamping_present', 'Time Stamping', time_stamping_found)
+
+    # config_options['ca_repository_required_if_not_path_len_zero'] = ConfigEntry()
+    # config_options['ca_repository_required_if_not_path_len_zero'].value = '1'
+    # config_options['ca_repository_required_if_not_path_len_zero'].oid = ''
+
+    if not ca_repository_found and 'ca_repository_required_if_not_path_len_zero' in config_options and \
+                len(config_options['ca_repository_required_if_not_path_len_zero'].value) > 0:
+
+        ca_repository_required = int(config_options['ca_repository_required_if_not_path_len_zero'].value)
+
+        if not ca_repository_required:
+            return r
+
+        # ca_repository_required_if_not_path_len_zero was set
+        if isinstance(cert, x509.Certificate):
+            cert = cert['tbs_certificate']
+
+        # no need to check if ca, can assume the profile is for ca certs / this is a ca cert
+        # extension, crit = get_extension_and_criticality(cert, '2.5.29.15')  # 'Key Usage',
+
+        msg = None
+        extension, crit = get_extension_and_criticality(cert, '2.5.29.19')  # basic constraints
+        if extension:
+            bc = extension['extn_value'].parsed
+            if bc.native['path_len_constraint'] is None:
+                msg = 'absent'
+            elif bc.native['path_len_constraint'] != 0:
+                msg = '{}'.format(bc.native['path_len_constraint'])
+        else:
+            msg = 'absent'
+
+        if msg:
+            msg = 'CA Repository URI is required when path length constraint is ' + msg
+            r.add_error(msg)
 
     return r
 
