@@ -842,7 +842,7 @@
     {
         "Section":  "cert_policies",
         "Item":  "match_mode",
-        "Value":  "all",
+        "Value":  "one",
         "OID":  ""
     },
     {
@@ -902,13 +902,13 @@
     {
         "Section":  "san",
         "Item":  "dns_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "x400_address",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
@@ -920,25 +920,25 @@
     {
         "Section":  "san",
         "Item":  "edi_party_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "uniform_resource_identifier",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "ip_address",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "registered_id",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
@@ -950,13 +950,13 @@
     {
         "Section":  "san",
         "Item":  "other_name_piv_fasc_n",
-        "Value":  "2",
+        "Value":  "1",
         "OID":  "2.16.840.1.101.3.6.6"
     },
     {
         "Section":  "san",
         "Item":  "uniform_resource_identifier_chuid",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
