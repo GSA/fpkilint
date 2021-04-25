@@ -1402,7 +1402,6 @@ def lint_sia(config_options, cert):
 
     return r
 
-
 # id-ce-privateKeyUsagePeriod OBJECT IDENTIFIER ::=  { id-ce 16 }
 #
 # PrivateKeyUsagePeriod ::= SEQUENCE {
@@ -1855,9 +1854,12 @@ def lint_dn(config_options, dn, row_name):
         elif 'values_' in ce and len(config_options[ce].value):
             rdn_values = get_rdn_values_from_dn(config_options[ce].oid, dn)
             if len(rdn_values):
-                permitted_strings = config_options[ce].value.split(';')
+                # 2012-04 made this case insensitive because the Common CP does not explicitly state case sensitive
+                # this change may allow a pass on DNs that will cause issues with name constraints
+                # in any software that does not perform case-insensitive name comparisons with name constraints
+                permitted_strings = config_options[ce].value.lower().split(';')
                 for rdn_value in rdn_values:
-                    if rdn_value.native['value'] not in permitted_strings:
+                    if rdn_value.native['value'].lower() not in permitted_strings:
                         r.add_error('\'{} = {}\' is not permitted'.format(get_pretty_dn_name_component(rdn_value['type']), rdn_value.native['value']))
 
     lint_dn_strings(dn, r)
