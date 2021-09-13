@@ -338,13 +338,13 @@
     {
         "Section":  "subject",
         "Item":  "values_country",
-        "Value":  "",
+        "Value":  "US",
         "OID":  "2.5.4.6"
     },
     {
         "Section":  "subject",
         "Item":  "values_organization",
-        "Value":  "",
+        "Value":  "U.S. Government",
         "OID":  "2.5.4.10"
     },
     {
