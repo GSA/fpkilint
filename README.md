@@ -4,15 +4,15 @@ CPCT is capable of analyzing a certificate’s conformance to a pre-defined cert
 
 [Example output](https://github.com/GSA/fpkilint/blob/dev/docs/sample.md)
 
-The tool is capable of analyzing certificates for conformance with the FPKI profiles described in the documents available on the [Federal Public Key Infrastructure (FPKI) web page](https://www.idmanagement.gov/fpki/).
+The tool is capable of analyzing certificates for conformance with the FPKI profiles described in the documents available on the [Federal Public Key Infrastructure (FPKI) web page](https://playbooks.idmanagement.gov/fpki/)
 
 #### Common Policy Framework
-[Certificate Policy for the Federal PKI Common Policy Framework (FCPF)](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-common-policy.pdf)
+[Certificate Policy for the Federal PKI Common Policy Framework (FCPF)](https://www.idmanagement.gov/docs/fpki-x509-cert-policy-common.pdf)
 
-[X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf)
+[X.509 Certificate and CRL Extensions Profile for the Shared Service Provider (SSP) Program](https://www.idmanagement.gov/docs/fpki-x509-cert-profile-common.pdf)
 
 #### Federal Bridge
-[X.509 Certificate and CRL Extensions Profile](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-x509-cert-profiles.pdf)
+[X.509 Certificate and CRL Extensions Profile](https://www.idmanagement.gov/docs/fpki-x509-cert-profiles-fbca.pdf)
 
-[X.509 Certificate and CRL Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Credentials](https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-pivi-cert-profiles.pdf)
+[X.509 Certificate and CRL Extensions Profile for Personal Identity Verification Interoperable (PIV-I) Credentials](https://www.idmanagement.gov/docs/fpki-x509-cert-profiles-pivi.pdf)
 
