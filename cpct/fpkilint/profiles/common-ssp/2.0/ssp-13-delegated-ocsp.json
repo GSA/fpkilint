@@ -332,13 +332,13 @@
     {
         "Section":  "subject",
         "Item":  "values_country",
-        "Value":  "US",
+        "Value":  "",
         "OID":  "2.5.4.6"
     },
     {
         "Section":  "subject",
         "Item":  "values_organization",
-        "Value":  "U.S. Government",
+        "Value":  "",
         "OID":  "2.5.4.10"
     },
     {
