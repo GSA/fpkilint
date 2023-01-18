@@ -6,6 +6,12 @@ CPCT is capable of analyzing a certificate’s conformance to a pre-defined cert
 
 The tool is capable of analyzing certificates for conformance with the FPKI profiles described in the documents available on the [Federal Public Key Infrastructure (FPKI) web page](https://playbooks.idmanagement.gov/fpki/)
 
+#### Running the CPCT Application
+
+To better serve the FPKI community, the CPCT was transitioned from an online application to an application that is hosted and run from the user’s workstation. Users can now access the CPCT application directly from their local hard drive using Docker Desktop. A link to more information on how to access the CPCT application is provided below.
+
+[Step-by-step Instructions on How Run the CPCT Tool](https://playbooks.idmanagement.gov/fpki/tools/cpct/#accessing-the-cpct-application)
+
 #### Common Policy Framework
 [Certificate Policy for the Federal PKI Common Policy Framework (FCPF)](https://www.idmanagement.gov/docs/fpki-x509-cert-policy-common.pdf)
 
