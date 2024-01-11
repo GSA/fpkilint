@@ -359,7 +359,7 @@
               },
               {
                 "cert_type": "Delegated OCSP",
-                "template": "pivi/2.0/pivi-09-delegated-ocsp.json"
+                "template": "fbca/2.0/pivi-09-delegated-ocsp.json"
               }
               ]
           },
