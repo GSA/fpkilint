@@ -8,19 +8,19 @@
     {
         "Section":  "profile",
         "Item":  "version",
-        "Value":  "2.5",
+        "Value":  "2.2",
         "OID":  ""
     },
     {
         "Section":  "profile",
         "Item":  "date",
-        "Value":  "10/18/2023",
+        "Value":  "9/16/2022",
         "OID":  ""
     },
     {
         "Section":  "profile",
         "Item":  "cert_type",
-        "Value":  "Common PIV-I Authentication",
+        "Value":  "Common PIV-I Card Authentication",
         "OID":  ""
     },
     {
@@ -50,7 +50,7 @@
     {
         "Section":  "signature_algorithm",
         "Item":  "alg_rsassa_pss",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.2.840.113549.1.1.10"
     },
     {
@@ -392,13 +392,13 @@
     {
         "Section":  "subject",
         "Item":  "rdn_common_name",
-        "Value":  "2",
+        "Value":  "1",
         "OID":  "2.5.4.3"
     },
     {
         "Section":  "subject",
         "Item":  "rdn_serial_number",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  "2.5.4.5"
     },
     {
@@ -482,7 +482,7 @@
     {
         "Section":  "subject",
         "Item":  "rdn_userid",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "0.9.2342.19200300.100.1.1"
     },
     {
@@ -745,12 +745,6 @@
     },
     {
         "Section":  "aia",
-        "Item":  "ca_issuers_http_cer",
-        "Value":  "0",
-        "OID":  ""
-    },
-    {
-        "Section":  "aia",
         "Item":  "ocsp_present",
         "Value":  "2",
         "OID":  "1.3.6.1.5.5.7.48.1"
@@ -842,7 +836,7 @@
     {
         "Section":  "cert_policies",
         "Item":  "required_policy_list",
-        "Value":  "2.16.840.1.101.3.2.1.3.45",
+        "Value":  "2.16.840.1.101.3.2.1.3.46",
         "OID":  ""
     },
     {
@@ -854,7 +848,7 @@
     {
         "Section":  "cert_policies",
         "Item":  "permit_others",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -896,67 +890,67 @@
     {
         "Section":  "san",
         "Item":  "other_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "rfc822_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "dns_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "x400_address",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "directory_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "edi_party_name",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "uniform_resource_identifier",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "ip_address",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "registered_id",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "san",
         "Item":  "other_name_upn",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.3.6.1.4.1.311.20.2.3"
     },
     {
         "Section":  "san",
         "Item":  "other_name_piv_fasc_n",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "2.16.840.1.101.3.6.6"
     },
     {
@@ -1046,7 +1040,7 @@
     {
         "Section":  "ian",
         "Item":  "uniform_resource_identifier_chuid",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -1064,7 +1058,7 @@
     {
         "Section":  "basic_constraints",
         "Item":  "present",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "2.5.29.19"
     },
     {
@@ -1076,7 +1070,7 @@
     {
         "Section":  "basic_constraints",
         "Item":  "ca_true",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
@@ -1196,7 +1190,7 @@
     {
         "Section":  "eku",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  ""
     },
     {
@@ -1208,7 +1202,7 @@
     {
         "Section":  "eku",
         "Item":  "oid_client_auth",
-        "Value":  "2",
+        "Value":  "1",
         "OID":  "1.3.6.1.5.5.7.3.2"
     },
     {
@@ -1244,37 +1238,37 @@
     {
         "Section":  "eku",
         "Item":  "oid_smart_card_logon",
-        "Value":  "2",
+        "Value":  "1",
         "OID":  "1.3.6.1.4.1.311.20.2.2"
     },
     {
         "Section":  "eku",
         "Item":  "oid_ipsec_ike_intermediate",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.3.6.1.5.5.8.2.2"
     },
     {
         "Section":  "eku",
         "Item":  "oid_ipsec_end_system",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.3.6.1.5.5.7.3.5"
     },
     {
         "Section":  "eku",
         "Item":  "oid_ipsec_tunnel_termination",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.3.6.1.5.5.7.3.6"
     },
     {
         "Section":  "eku",
         "Item":  "oid_ipsec_user",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.3.6.1.5.5.7.3.7"
     },
     {
         "Section":  "eku",
         "Item":  "oid_piv_card_auth",
-        "Value":  "1",
+        "Value":  "2",
         "OID":  "2.16.840.1.101.3.6.8"
     },
     {
@@ -1292,7 +1286,7 @@
     {
         "Section":  "eku",
         "Item":  "oid_pkinit_KPClientAuth",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.3.6.1.5.2.3.4"
     },
     {
@@ -1322,7 +1316,7 @@
     {
         "Section":  "eku",
         "Item":  "other",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {

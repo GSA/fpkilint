@@ -8,13 +8,13 @@
     {
         "Section":  "profile",
         "Item":  "version",
-        "Value":  "2.2",
+        "Value":  "2.5",
         "OID":  ""
     },
     {
         "Section":  "profile",
         "Item":  "date",
-        "Value":  "9/16/2022",
+        "Value":  "10/18/2023",
         "OID":  ""
     },
     {
@@ -589,18 +589,6 @@
     },
     {
         "Section":  "key_usage",
-        "Item":  "digital_signature",
-        "Value":  "1",
-        "OID":  ""
-    },
-    {
-        "Section":  "key_usage",
-        "Item":  "non_repudiation",
-        "Value":  "1",
-        "OID":  ""
-    },
-    {
-        "Section":  "key_usage",
         "Item":  "key_encipherment",
         "Value":  "1",
         "OID":  ""
@@ -740,6 +728,12 @@
     {
         "Section":  "aia",
         "Item":  "ca_issuers_http_p7c",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "aia",
+        "Item":  "ca_issuers_http_cer",
         "Value":  "0",
         "OID":  ""
     },
