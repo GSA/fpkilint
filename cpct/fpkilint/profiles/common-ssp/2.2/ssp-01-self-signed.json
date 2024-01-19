@@ -14,7 +14,7 @@
     {
         "Section":  "profile",
         "Item":  "date",
-        "Value":  "9/16/2022",
+        "Value":  "10/18/2023",
         "OID":  ""
     },
     {
@@ -26,7 +26,7 @@
     {
         "Section":  "profile",
         "Item":  "more_info_url",
-        "Value":  "https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf",
+        "Value":  "https://www.idmanagement.gov/docs/fpki-x509-cert-profile-common.pdf",
         "OID":  ""
     },
     {
@@ -585,18 +585,6 @@
         "Section":  "key_usage",
         "Item":  "is_critical",
         "Value":  "2",
-        "OID":  ""
-    },
-    {
-        "Section":  "key_usage",
-        "Item":  "digital_signature",
-        "Value":  "0",
-        "OID":  ""
-    },
-    {
-        "Section":  "key_usage",
-        "Item":  "non_repudiation",
-        "Value":  "1",
         "OID":  ""
     },
     {

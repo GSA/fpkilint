@@ -14,7 +14,7 @@
     {
         "Section":  "profile",
         "Item":  "date",
-        "Value":  "9/16/2022",
+        "Value":  "10/18/2023",
         "OID":  ""
     },
     {
@@ -26,7 +26,7 @@
     {
         "Section":  "profile",
         "Item":  "more_info_url",
-        "Value":  "https://www.idmanagement.gov/wp-content/uploads/sites/1171/uploads/fpki-cert-profile-ssp.pdf",
+        "Value":  "https://www.idmanagement.gov/docs/fpki-x509-cert-profile-common.pdf",
         "OID":  ""
     },
     {
@@ -745,6 +745,12 @@
     },
     {
         "Section":  "aia",
+        "Item":  "ca_issuers_http_cer",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "aia",
         "Item":  "ocsp_present",
         "Value":  "1",
         "OID":  "1.3.6.1.5.5.7.48.1"
@@ -1196,7 +1202,7 @@
     {
         "Section":  "eku",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  ""
     },
     {

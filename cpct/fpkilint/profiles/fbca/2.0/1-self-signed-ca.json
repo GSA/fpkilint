@@ -2,13 +2,13 @@
     {
         "Section":  "profile",
         "Item":  "name",
-        "Value":  "Personal Identity Verification Interoperable (PIV-I)",
+        "Value":  "Federal PKI",
         "OID":  ""
     },
     {
         "Section":  "profile",
         "Item":  "version",
-        "Value":  "3.2",
+        "Value":  "2.0",
         "OID":  ""
     },
     {
@@ -20,13 +20,13 @@
     {
         "Section":  "profile",
         "Item":  "cert_type",
-        "Value":  "PIV-I Authentication",
+        "Value":  "FBCA Self Signed CA",
         "OID":  ""
     },
     {
         "Section":  "profile",
         "Item":  "more_info_url",
-        "Value":  "https://www.idmanagement.gov/fpki",
+        "Value":  "https://www.idmanagement.gov/docs/fpki-x509-cert-profiles-fbca.pdf",
         "OID":  ""
     },
     {
@@ -44,13 +44,13 @@
     {
         "Section":  "signature_algorithm",
         "Item":  "alg_sha1_rsa",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.2.840.113549.1.1.5"
     },
     {
         "Section":  "signature_algorithm",
         "Item":  "alg_rsassa_pss",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.2.840.113549.1.1.10"
     },
     {
@@ -62,7 +62,7 @@
     {
         "Section":  "signature_algorithm",
         "Item":  "alg_sha384_rsa",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  "1.2.840.113549.1.1.12"
     },
     {
@@ -92,7 +92,7 @@
     {
         "Section":  "signature_algorithm",
         "Item":  "alg_sha224_ec",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.2.840.10045.4.3.1"
     },
     {
@@ -110,7 +110,7 @@
     {
         "Section":  "signature_algorithm",
         "Item":  "alg_sha512_ec",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.2.840.10045.4.3.4"
     },
     {
@@ -139,14 +139,8 @@
     },
     {
         "Section":  "issuer",
-        "Item":  "base_dn",
-        "Value":  "",
-        "OID":  ""
-    },
-    {
-        "Section":  "issuer",
         "Item":  "require_geo_political_or_dc",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -302,7 +296,7 @@
     {
         "Section":  "validity",
         "Item":  "validity_period_maximum",
-        "Value":  "1097",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -313,8 +307,8 @@
     },
     {
         "Section":  "subject",
-        "Item":  "base_dn",
-        "Value":  "",
+        "Item":  "present",
+        "Value":  "2",
         "OID":  ""
     },
     {
@@ -374,7 +368,7 @@
     {
         "Section":  "subject",
         "Item":  "rdn_organizational_unit",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.4.11"
     },
     {
@@ -392,7 +386,7 @@
     {
         "Section":  "subject",
         "Item":  "rdn_common_name",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.4.3"
     },
     {
@@ -486,6 +480,12 @@
         "OID":  "0.9.2342.19200300.100.1.1"
     },
     {
+        "Section":  "subject",
+        "Item":  "is_self_issued",
+        "Value":  "2",
+        "OID":  ""
+    },
+    {
         "Section":  "subject_public_key_info",
         "Item":  "alg_rsa",
         "Value":  "0",
@@ -500,8 +500,8 @@
     {
         "Section":  "subject_public_key_info",
         "Item":  "alg_ec_named_curve",
-        "Value":  "1.2.840.10045.3.1.7 1.3.132.0.34",
-        "OID":  ""
+        "Value":  "",
+        "OID":  "1.2.840.10045.3.1.1 1.2.840.10045.3.1.7 1.3.132.0.1 1.3.132.0.15 1.3.132.0.33 1.3.132.0.26 1.3.132.0.27 1.3.132.0.7 1.3.132.0.16 1.3.132.0.17 1.3.132.0.34 1.3.132.0.36 1.3.132.0.37 1.3.132.0.35 1.3.132.0.38 1.3.132.0.39"
     },
     {
         "Section":  "subject_public_key_info",
@@ -518,13 +518,13 @@
     {
         "Section":  "subject_public_key_info",
         "Item":  "rsa_max_size",
-        "Value":  "2048",
+        "Value":  "0",
         "OID":  ""
     },
     {
         "Section":  "subject_public_key_info",
         "Item":  "ec_min_size",
-        "Value":  "0",
+        "Value":  "224",
         "OID":  ""
     },
     {
@@ -536,7 +536,7 @@
     {
         "Section":  "akid",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.29.35"
     },
     {
@@ -548,13 +548,13 @@
     {
         "Section":  "akid",
         "Item":  "key_id",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
         "Section":  "akid",
         "Item":  "name_and_serial",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -590,13 +590,13 @@
     {
         "Section":  "key_usage",
         "Item":  "digital_signature",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
         "Section":  "key_usage",
         "Item":  "non_repudiation",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -620,13 +620,13 @@
     {
         "Section":  "key_usage",
         "Item":  "key_cert_sign",
-        "Value":  "1",
+        "Value":  "2",
         "OID":  ""
     },
     {
         "Section":  "key_usage",
         "Item":  "crl_sign",
-        "Value":  "1",
+        "Value":  "2",
         "OID":  ""
     },
     {
@@ -644,7 +644,7 @@
     {
         "Section":  "crldp",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.29.31"
     },
     {
@@ -656,7 +656,7 @@
     {
         "Section":  "crldp",
         "Item":  "http",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -668,7 +668,7 @@
     {
         "Section":  "crldp",
         "Item":  "http_before_ldap",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -680,13 +680,13 @@
     {
         "Section":  "crldp",
         "Item":  "crl_reasons",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  ""
     },
     {
         "Section":  "aia",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.1.1"
     },
     {
@@ -698,13 +698,13 @@
     {
         "Section":  "aia",
         "Item":  "ca_issuers_present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.48.2"
     },
     {
         "Section":  "aia",
         "Item":  "ca_issuers_http",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -716,7 +716,7 @@
     {
         "Section":  "aia",
         "Item":  "ca_issuers_http_before_ldap",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -746,7 +746,7 @@
     {
         "Section":  "aia",
         "Item":  "ocsp_present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.48.1"
     },
     {
@@ -758,25 +758,25 @@
     {
         "Section":  "sia",
         "Item":  "present",
-        "Value":  "1",
+        "Value":  "2",
         "OID":  "1.3.6.1.5.5.7.1.11"
     },
     {
         "Section":  "sia",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "sia",
         "Item":  "ca_repository_present",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  "1.3.6.1.5.5.7.48.5"
     },
     {
         "Section":  "sia",
         "Item":  "ca_repository_http",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  ""
     },
     {
@@ -824,7 +824,7 @@
     {
         "Section":  "cert_policies",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.29.32"
     },
     {
@@ -854,13 +854,13 @@
     {
         "Section":  "policy_mappings",
         "Item":  "present",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "2.5.29.33"
     },
     {
         "Section":  "policy_mappings",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
@@ -878,7 +878,7 @@
     {
         "Section":  "san",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.29.17"
     },
     {
@@ -968,7 +968,7 @@
     {
         "Section":  "ian",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
@@ -1040,7 +1040,7 @@
     {
         "Section":  "ian",
         "Item":  "uniform_resource_identifier_chuid",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -1052,31 +1052,31 @@
     {
         "Section":  "sub_dir_attr",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
         "Section":  "basic_constraints",
         "Item":  "present",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  "2.5.29.19"
     },
     {
         "Section":  "basic_constraints",
         "Item":  "is_critical",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  ""
     },
     {
         "Section":  "basic_constraints",
         "Item":  "ca_true",
-        "Value":  "0",
+        "Value":  "2",
         "OID":  ""
     },
     {
         "Section":  "basic_constraints",
         "Item":  "path_length_constraint_req",
-        "Value":  "0",
+        "Value":  "1",
         "OID":  ""
     },
     {
@@ -1130,7 +1130,7 @@
     {
         "Section":  "policy_constraints",
         "Item":  "require_explicit_policy_max",
-        "Value":  "99",
+        "Value":  "0",
         "OID":  ""
     },
     {
@@ -1142,7 +1142,7 @@
     {
         "Section":  "policy_constraints",
         "Item":  "inhibit_policy_mapping_max",
-        "Value":  "99",
+        "Value":  "2",
         "OID":  ""
     },
     {
@@ -1154,6 +1154,12 @@
     {
         "Section":  "inhibit_any",
         "Item":  "is_critical",
+        "Value":  "1",
+        "OID":  ""
+    },
+    {
+        "Section":  "inhibit_any",
+        "Item":  "inhibit_any_max",
         "Value":  "0",
         "OID":  ""
     },
@@ -1184,7 +1190,7 @@
     {
         "Section":  "eku",
         "Item":  "present",
-        "Value":  "2",
+        "Value":  "0",
         "OID":  "2.5.29.37"
     },
     {
@@ -1196,7 +1202,7 @@
     {
         "Section":  "eku",
         "Item":  "oid_server_auth",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.3.1"
     },
     {
@@ -1214,19 +1220,19 @@
     {
         "Section":  "eku",
         "Item":  "oid_email_protection",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.3.4"
     },
     {
         "Section":  "eku",
         "Item":  "oid_time_stamping",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.3.8"
     },
     {
         "Section":  "eku",
         "Item":  "oid_ocsp_signing",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.5.7.3.9"
     },
     {
@@ -1273,6 +1279,12 @@
     },
     {
         "Section":  "eku",
+        "Item":  "oid_piv_content_signing",
+        "Value":  "1",
+        "OID":  "2.16.840.1.101.3.6.7"
+    },
+    {
+        "Section":  "eku",
         "Item":  "oid_pivi_content_signing",
         "Value":  "1",
         "OID":  "2.16.840.1.101.3.8.7"
@@ -1280,7 +1292,7 @@
     {
         "Section":  "eku",
         "Item":  "oid_pkinit_KPKdc",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.5.2.3.5"
     },
     {
@@ -1292,25 +1304,31 @@
     {
         "Section":  "eku",
         "Item":  "oid_msft_document_signing",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.4.1.311.10.3.12"
     },
     {
         "Section":  "eku",
         "Item":  "oid_adobe_document_signing",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.2.840.113583.1.1.5"
     },
     {
         "Section":  "eku",
+        "Item":  "oid_secure_shell_client",
+        "Value":  "0",
+        "OID":  "1.3.6.1.5.5.7.3.21"
+    },
+    {
+        "Section":  "eku",
         "Item":  "oid_msft_efs",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.4.1.311.10.3.4"
     },
     {
         "Section":  "eku",
         "Item":  "oid_life_time_signing",
-        "Value":  "1",
+        "Value":  "0",
         "OID":  "1.3.6.1.4.1.311.10.3.13"
     },
     {

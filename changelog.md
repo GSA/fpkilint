@@ -1,7 +1,13 @@
 # FPKI Lint Change Log
-Date: 10/16/2023
+Updated: 01/12/2024
 
-## Common Profile v2.5
+## Updates and modifications 
+
+- Updated version numbers for Common-SSP v2.1, 2.2, and FBCA v2.0 to correct version.
+- Updated dropdown list to reflect correct version number.
+- Updated each `more_info_url` to the url of profile's PDF document.
+
+## Common Profile v2.2
 
 | Profiles Affected | Common Profile Changes |
 |:--------------------------|:---------------|
@@ -15,7 +21,7 @@ Date: 10/16/2023
 | Worksheet 13 | OCSP Responder Certificate, EKU must be marked critical |
 | Worksheet 8,9 | Signature Certificates and Key Management Certificates <ul><li>For PIV, id-kp-emailProtection must be included</li><li>rfc822Name is required if id-kp-emailProtection is asserted in Extended Key Usage</li></ul> |
 
-## Bridge Profile v3.2
+## Bridge Profile v2.0
 
 | Profiles Affected | Bridge Profile Changes |
 |:--------------------------|:----------------------|

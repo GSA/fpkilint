@@ -14,7 +14,7 @@
     {
         "Section":  "profile",
         "Item":  "date",
-        "Value":  "9/16/2022",
+        "Value":  "10/18/2023",
         "OID":  ""
     },
     {
@@ -26,7 +26,7 @@
     {
         "Section":  "profile",
         "Item":  "more_info_url",
-        "Value":  "https://www.idmanagement.gov/fpki",
+        "Value":  "https://www.idmanagement.gov/docs/fpki-x509-cert-profile-common.pdf",
         "OID":  ""
     },
     {
@@ -740,6 +740,12 @@
     {
         "Section":  "aia",
         "Item":  "ca_issuers_http_p7c",
+        "Value":  "0",
+        "OID":  ""
+    },
+    {
+        "Section":  "aia",
+        "Item":  "ca_issuers_http_cer",
         "Value":  "0",
         "OID":  ""
     },
